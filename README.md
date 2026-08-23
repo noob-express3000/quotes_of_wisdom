@@ -2,23 +2,33 @@
 
 Android-only Shipaton project built with Kotlin + Jetpack Compose.
 
+## Continue this project in another chat
+
+Read [`docs/PROJECT_STATE.md`](docs/PROJECT_STATE.md) first. It is the canonical handoff checkpoint containing the frozen product decisions, completed milestones, architecture decisions, CI state, and exact next milestone.
+
+Then read [`docs/product-spec.md`](docs/product-spec.md) for the detailed product/access specification.
+
 ## Current checkpoint
 
-M0 is compile-verified and installs on a physical Android device.
+M0 and M1 are complete. M1 is compile-verified through GitHub Actions and merged into `main`.
 
 Current implementation:
 
 - Android-only Kotlin project
 - Jetpack Compose + Material 3
 - single `app` module
-- working home-screen shell based on the notebook sketches
 - three-color 60/30/10 theme foundation
+- local bundled quote corpus with classification metadata
+- asset-backed quote repository
+- no-repeat shuffle deck
+- `HomeViewModel` + `StateFlow`
+- functional `Next` button
 - no login
 - no custom backend
 - GitHub Actions remote APK build
 - universal browser development through GitHub Codespaces
 
-Product behavior and commercial decisions are frozen in [`docs/product-spec.md`](docs/product-spec.md).
+Replay remains intentionally unwired until M2 adds Android TTS.
 
 ## Universal workflow
 
@@ -60,8 +70,6 @@ browser / laptop / other computer
 
 ### Windows local build
 
-The repository does not commit a binary Gradle wrapper JAR yet. Generate the wrapper once:
-
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\bootstrap-gradle.ps1
@@ -100,18 +108,21 @@ Local Android builds also require an Android SDK containing API 36. If you do no
 - one trial TTS voice and fixed TTS speed
 - Pro unlocks all themes, voice selection and adjustable speech speed
 - RevenueCat `pro_access` entitlement for all paid products
+- deterministic opaque device-scoped RevenueCat identity planned for reinstall-resistant trial history
 - approximate pricing targets: $0.50 weekly, $1 monthly, $70 lifetime
 - quote text scroll control
 
-## M1
+## Next checkpoint: M2
 
-Next checkpoint:
+M2 adds the real Android Text-to-Speech subsystem:
 
-1. `Quote` model
-2. bundled `quotes.json`
-3. classification/genre metadata
-4. repository
-5. shuffle-bag quote deck
-6. `HomeViewModel`
-7. wire `Next`
-8. preserve the current UI shell
+1. TTS controller/lifecycle
+2. current-quote speech
+3. functional Replay
+4. stop/flush behavior when Next interrupts speech
+5. ready/speaking/error state
+6. unavailable-TTS fallback
+7. lifecycle shutdown
+8. CI + physical-device APK validation
+
+See `docs/PROJECT_STATE.md` for the exact handoff state before coding.
