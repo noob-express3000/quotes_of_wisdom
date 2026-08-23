@@ -1,0 +1,16 @@
+{
+  "name": "Quotes of Wisdom Android",
+  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "postCreateCommand": "bash .devcontainer/setup-android.sh",
+  "remoteEnv": {
+    "ANDROID_HOME": "/home/vscode/android-sdk",
+    "ANDROID_SDK_ROOT": "/home/vscode/android-sdk"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "fwcd.kotlin"
+      ]
+    }
+  }
+}
