@@ -28,10 +28,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shipaton.quotesofwisdom.model.Quote
 import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    uiState: HomeUiState,
+    onNextQuote: () -> Unit,
+    onReplay: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -51,12 +56,19 @@ fun HomeScreen() {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                QuoteCard()
+                when {
+                    uiState.isLoading -> LoadingCard()
+                    uiState.errorMessage != null -> MessageCard(uiState.errorMessage)
+                    uiState.quote != null -> QuoteCard(uiState.quote)
+                }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            Controls()
+            Controls(
+                onReplay = onReplay,
+                onNextQuote = onNextQuote
+            )
         }
     }
 }
@@ -70,18 +82,19 @@ private fun Header() {
     ) {
         Text(
             text = "Quotes of Wisdom",
+            color = MaterialTheme.colorScheme.secondary,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold
         )
 
         Surface(
             shape = RoundedCornerShape(999.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
+            color = MaterialTheme.colorScheme.primary
         ) {
             Text(
                 text = "FREE",
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
@@ -90,24 +103,22 @@ private fun Header() {
 }
 
 @Composable
-private fun QuoteCard() {
+private fun QuoteCard(quote: Quote) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.secondary
         ),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
-        )
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 28.dp, vertical = 38.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "“The beginning is the most important part of the work.”",
+                text = "“${quote.text}”",
+                color = MaterialTheme.colorScheme.onSecondary,
                 textAlign = TextAlign.Center,
                 fontSize = 26.sp,
                 lineHeight = 36.sp,
@@ -117,36 +128,66 @@ private fun QuoteCard() {
             Spacer(Modifier.height(22.dp))
 
             Text(
-                text = "— Plato",
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
+                text = "— ${quote.author}",
+                color = MaterialTheme.colorScheme.onSecondary,
+                fontStyle = FontStyle.Italic
             )
         }
     }
 }
 
 @Composable
-private fun Controls() {
+private fun LoadingCard() {
+    MessageCard("Loading your quote library…")
+}
+
+@Composable
+private fun MessageCard(message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondary
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(horizontal = 28.dp, vertical = 38.dp),
+            color = MaterialTheme.colorScheme.onSecondary,
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            lineHeight = 28.sp
+        )
+    }
+}
+
+@Composable
+private fun Controls(
+    onReplay: () -> Unit,
+    onNextQuote: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         OutlinedButton(
-            onClick = {},
+            onClick = onReplay,
             modifier = Modifier.weight(1f),
-            border = BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.secondary
             )
         ) {
             Text("↻  Replay")
         }
 
         Button(
-            onClick = {},
+            onClick = onNextQuote,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
             Text("Next  →")
@@ -158,6 +199,18 @@ private fun Controls() {
 @Composable
 private fun HomeScreenPreview() {
     QuotesOfWisdomTheme {
-        HomeScreen()
+        HomeScreen(
+            uiState = HomeUiState(
+                quote = Quote(
+                    id = 1,
+                    text = "Begin with the smallest action that makes the next action easier.",
+                    author = "Quotes of Wisdom",
+                    classification = "progress"
+                ),
+                isLoading = false
+            ),
+            onNextQuote = {},
+            onReplay = {}
+        )
     }
 }
