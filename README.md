@@ -23,7 +23,7 @@ This is the first implementation checkpoint for the Shipaton app.
 - Gradle: 9.5.0
 - Kotlin / Compose compiler plugin: 2.3.21
 - Compose BOM: 2026.08.00
-- compileSdk / targetSdk: 37
+- compileSdk / targetSdk: 36
 - minSdk: 23
 - JDK: 17
 
