@@ -5,7 +5,7 @@
 - Android only.
 - Local-first. No custom backend and no login/registration system.
 - RevenueCat is used for purchases/entitlements, not authentication.
-- Every visual theme contains exactly three colors.
+- Every visual theme contains exactly three base colors.
 - Theme composition follows a perceptual 60/30/10 hierarchy:
   - 60% dominant
   - 30% secondary
@@ -102,6 +102,43 @@ LOCKED
 Any state + active pro_access -> PRO
 ```
 
-## Known limitation
+## Trial identity hardening
 
-A purely local install-based trial can be reset by some reinstall/device-reset scenarios and is susceptible to deliberate clock manipulation. v1 accepts this tradeoff to preserve the no-login/no-backend architecture. We can harden it later if real-world abuse justifies the complexity.
+The app will not use RevenueCat's randomly generated anonymous ID for the final purchase/trial implementation.
+
+Instead, it will derive a stable opaque RevenueCat App User ID from app-scoped device information. The raw Android identifier must never be displayed, logged, or transmitted as the RevenueCat identifier.
+
+Conceptual derivation:
+
+```text
+ANDROID_ID
++ application package name
++ app signing-certificate fingerprint
+        |
+        v
+SHA-256
+        |
+        v
+opaque RevenueCat App User ID
+```
+
+This gives the same signed app on the same Android user/device a stable RevenueCat identity across normal uninstall/reinstall cycles while avoiding a custom login system.
+
+RevenueCat customer history, including first-seen timing when available, can then be used as an external anchor for trial history. Local DataStore state remains the fast/offline cache.
+
+## Clock rollback hardening
+
+Trial calculations must not trust the user-editable wall clock by itself.
+
+The implementation will track:
+
+- local trial-start timestamp,
+- latest observed wall-clock timestamp,
+- monotonic elapsed time during a running installation,
+- RevenueCat first-seen/customer timing when available.
+
+Moving the device clock backwards must never grant additional trial time. If timestamps disagree, the access controller should choose the earliest defensible trial start / most restrictive valid elapsed state rather than extending access.
+
+## Known limits
+
+This design is intended to deter casual trial resets without creating a backend or account system. It is not expected to resist factory resets, a new Android user profile, signing-key changes, rooted/device-tampered environments, or sophisticated integrity bypasses. Stronger abuse resistance would require platform attestation and/or server-side state and is intentionally outside v1 unless real-world abuse justifies it.
