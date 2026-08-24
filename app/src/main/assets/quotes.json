@@ -9,5 +9,6 @@
   {"id":8,"text":"The language of Friendship is not words, but meanings.","author":"Henry David Thoreau","classification":"relationships"},
   {"id":9,"text":"What makes life dreary is the want of motive.","author":"George Eliot","classification":"purpose"},
   {"id":10,"text":"I conceive a knowledge of books is the basis upon which other knowledge is to be built.","author":"George Washington","classification":"learning"},
-  {"id":11,"text":"Bad times have a scientific value. These are occasions a good learner would not miss.","author":"Ralph Waldo Emerson","classification":"resilience"}
+  {"id":11,"text":"Bad times have a scientific value. These are occasions a good learner would not miss.","author":"Ralph Waldo Emerson","classification":"resilience"},
+  {"id":12,"text":"If we had no winter, the spring would not be so pleasant; if we did not sometimes taste of adversity, prosperity would not be so welcome.","author":"Anne Bradstreet","classification":"resilience"}
 ]
