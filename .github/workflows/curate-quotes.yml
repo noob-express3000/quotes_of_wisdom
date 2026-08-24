@@ -9,6 +9,11 @@ on:
       - "tools/curate_quotes.py"
       - "docs/quote-curation-policy.md"
       - ".github/workflows/curate-quotes.yml"
+  pull_request:
+    paths:
+      - "tools/curate_quotes.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-quotes.yml"
 
 permissions:
   contents: read
