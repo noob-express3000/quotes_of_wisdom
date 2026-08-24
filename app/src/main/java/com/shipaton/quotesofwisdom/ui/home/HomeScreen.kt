@@ -4,12 +4,15 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,7 +37,8 @@ import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
 fun HomeScreen(
     uiState: HomeUiState,
     onNextQuote: () -> Unit,
-    onReplay: () -> Unit
+    onReplay: () -> Unit,
+    onOpenSettings: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -45,7 +49,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 22.dp, vertical = 20.dp)
         ) {
-            Header()
+            Header(onOpenSettings = onOpenSettings)
 
             Spacer(Modifier.height(28.dp))
 
@@ -73,12 +77,29 @@ fun HomeScreen(
 }
 
 @Composable
-private fun Header() {
+private fun Header(onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Button(
+            onClick = onOpenSettings,
+            modifier = Modifier.size(48.dp),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary
+            )
+        ) {
+            Text(
+                text = "⚙",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
         Surface(
             shape = RoundedCornerShape(999.dp),
             color = MaterialTheme.colorScheme.secondary
@@ -202,7 +223,8 @@ private fun HomeScreenPreview() {
                 isLoading = false
             ),
             onNextQuote = {},
-            onReplay = {}
+            onReplay = {},
+            onOpenSettings = {}
         )
     }
 }
