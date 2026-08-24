@@ -15,6 +15,18 @@ Every retained quote must be:
 
 Fail any required rule -> reject.
 
+## Corpus size and browsing model
+
+The corpus is intended for heavy browsing, not merely a once-per-day quote experience.
+
+- **Release minimum: 1,000 production-approved quotes.**
+- Prefer roughly **2,000–3,000+** if enough material survives the quality rules.
+- There is **no fixed upper cap**. Quality, attribution, rights safety, and usefulness determine whether additional quotes are included.
+- Do not dilute the corpus merely to reach a number. The minimum is a release gate; additional approved material is desirable.
+- The app may be used for extended or effectively endless quote browsing, so author/category diversity and low repetition matter.
+- Selection/build tooling should avoid over-representing one prolific author or category merely because the source corpus contains more material from them.
+- The runtime shuffle/no-repeat system should operate over the full production corpus rather than a small daily subset.
+
 ## Controlled categories
 
 Each quote receives one primary `classification` from this list:
