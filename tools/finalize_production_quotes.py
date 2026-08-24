@@ -9,6 +9,9 @@ from pathlib import Path
 
 AUTHOR_ALIASES = {
     "Shakespeare": "William Shakespeare",
+    "Meas. for Meas": "William Shakespeare",
+    "Tit. Andron": "William Shakespeare",
+    "Jul. Cæs": "William Shakespeare",
     "Tennyson": "Alfred, Lord Tennyson",
     "Lincoln": "Abraham Lincoln",
     "Washington": "George Washington",
@@ -23,6 +26,25 @@ AUTHOR_ALIASES = {
     "Colton": "Charles Caleb Colton",
     "Schiller": "Friedrich Schiller",
     "Schopenhauer": "Arthur Schopenhauer",
+    "Wm. Blake": "William Blake",
+    "Dickens": "Charles Dickens",
+    "Locke": "John Locke",
+    "Sir P. Sidney": "Philip Sidney",
+    "Earl of Roscommon": "Wentworth Dillon",
+    "Carlyle to his mother": "Thomas Carlyle",
+    "J. Burroughs": "John Burroughs",
+    "J. G. Holland": "Josiah Gilbert Holland",
+    "H. Ballou": "Hosea Ballou",
+    "D'Urfey": "Thomas d'Urfey",
+    "Froude": "James Anthony Froude",
+    "Chapin": "Edwin Hubbell Chapin",
+    "Bovee": "Christian Nestell Bovee",
+    "Rivarol": "Antoine de Rivarol",
+    "Seume": "Johann Gottfried Seume",
+    "Landor": "Walter Savage Landor",
+    "Salis": "Johann Gaudenz von Salis-Seewis",
+    "Howell": "James Howell",
+    "Prof. Blackie": "John Stuart Blackie",
 }
 
 REJECT_AUTHORS = {
@@ -30,6 +52,8 @@ REJECT_AUTHORS = {
     "Motte",
     "Spectator",
     "Joineriana",
+    "Hitopadesa",
+    "Paul",
     "Saying",
     "Unknown",
     "Anonymous",
@@ -41,11 +65,12 @@ REJECT_AUTHOR_PATTERNS = (
     r"\bProverb\b",
     r"\bLit\.?\s*Col\b",
     r"^[A-Z]\.?\s*[A-Z]?\.?$",
+    r"^(?:Dr|General|Bp)\.?(?:\s|$)",
 )
 
 REJECT_TEXT_PATTERNS = (
     # Sectarian, supernatural, or mythological claims presented as standalone advice.
-    r"\b(?:god|gods|goddess|christ|jesus|heaven|hell|devil|satan|church|prayer|pray|sin|salvation|bible|gospel|saint|saints|providence|divine|religion|religious|worship)\b",
+    r"\b(?:god|gods|goddess|christ|jesus|heaven|hell|devil|satan|church|prayer|pray|sin|salvation|bible|gospel|saint|saints|providence|divine|religion|religious|worship|spiritually|immortality)\b",
     # Gender generalizations are poor universal wisdom and age badly.
     r"\b(?:female|male|women|woman|wives|wife|husband|husbands|sexes?)\b",
     # Product-inappropriate violence, racial language, intoxication, and crime/punishment material.
@@ -53,7 +78,8 @@ REJECT_TEXT_PATTERNS = (
     r"\b(?:kill|slay|murder|dagger|bloodshed)\b",
     r"\b(?:wine|ale|drunk|drunken|tobacco)\b",
     r"\b(?:crime|criminal|offender)\b",
-    # Explicitly nihilistic or death-prescriptive aphorisms.
+    r"\bconquered race\b",
+    # Explicitly nihilistic, fatalistic, or death-prescriptive aphorisms.
     r"\bbetter to die\b",
     r"\bdeath is better\b",
     r"\bhonou?rable death is better\b",
@@ -62,12 +88,16 @@ REJECT_TEXT_PATTERNS = (
     r"\bpain is the positive element in life\b",
     r"\bonly error is life\b.*\bknowledge is death\b",
     r"\blife is (?:only |nothing but )?(?:misery|suffering)\b",
+    r"\blittle hope of release\b",
+    # Claims that depend on obsolete hierarchy or broad stereotypes.
+    r"\bsuperiors?\b.{0,40}\brule\b.{0,40}\binferiors?\b",
+    r"\bwarlike people\b",
     # Very narrow factual/political/legal material is not the app's purpose.
     r"\b(?:national morality|political party|constitution|legislature|parliament)\b",
 )
 
 # Historical editorial artifacts and context fragments that should never reach the UI.
-FORBIDDEN_MARKERS = ("...", "…", "_", "[", "]", "(", ")", " / ")
+FORBIDDEN_MARKERS = ("...", "…", "_", "[", "]", "(", ")", " / ", "--")
 
 
 def key(text: str) -> str:
