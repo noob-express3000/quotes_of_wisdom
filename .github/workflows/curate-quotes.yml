@@ -7,11 +7,13 @@ on:
       - quotes-database
     paths:
       - "tools/curate_quotes.py"
+      - "tools/refine_quote_candidates.py"
       - "docs/quote-curation-policy.md"
       - ".github/workflows/curate-quotes.yml"
   pull_request:
     paths:
       - "tools/curate_quotes.py"
+      - "tools/refine_quote_candidates.py"
       - "docs/quote-curation-policy.md"
       - ".github/workflows/curate-quotes.yml"
 
@@ -51,9 +53,20 @@ jobs:
             --sample-per-category 12 \
             --minimum-score 4
 
-      - name: Publish curation summary
+      - name: Apply high-precision gate
+        run: |
+          python3 tools/refine_quote_candidates.py \
+            build/quote-curation/candidates.jsonl \
+            build/quote-curation \
+            --sample-per-category 15 \
+            --minimum-score 7
+
+      - name: Publish curation summaries
         shell: bash
-        run: cat build/quote-curation/report.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          cat build/quote-curation/report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/quote-curation/high_precision_report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload short-lived review artifact
         uses: actions/upload-artifact@v4
@@ -63,5 +76,8 @@ jobs:
             build/quote-curation/candidates.jsonl
             build/quote-curation/report.json
             build/quote-curation/report.md
+            build/quote-curation/high_precision_candidates.jsonl
+            build/quote-curation/high_precision_report.json
+            build/quote-curation/high_precision_report.md
           retention-days: 3
           compression-level: 9
