@@ -10,9 +10,15 @@
   - 60% dominant
   - 30% secondary
   - 10% accent
+- The 60/30/10 values are semantic color roles, not a requirement to pixel-count exact percentages.
+- The dominant/60 color owns the app canvas and the largest visible surfaces.
+- The secondary/30 color is the primary text/structural color and the background color of primary controls.
+- The accent/10 color is reserved for control labels/highlights and other small emphasis areas.
+- The home screen does not show a redundant `Quotes of Wisdom` title in the top-left corner.
 - v1 ships with 20 themes.
 - Quotes are local and carry author + classification/genre metadata.
 - The control previously interpreted as volume is a quote-text scroll control.
+- A handwritten note contains an unfinished requirement beginning `Replay button should ...`; no additional Replay-specific UI rule is frozen until that requirement is completed.
 
 ## Access lifecycle
 
