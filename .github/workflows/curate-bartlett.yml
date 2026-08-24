@@ -51,14 +51,14 @@ jobs:
             /tmp/bartlett/bartlett.txt \
             /tmp/bartlett/bartlett-normalized.txt
 
-      - name: Build quotation candidate pool
+      - name: Build uncapped quotation candidate pool
         run: |
           python3 tools/curate_bartlett.py \
             /tmp/bartlett/bartlett-normalized.txt \
             build/bartlett-curation \
             --minimum-score 8 \
             --max-death-year 1955 \
-            --max-candidates 3000
+            --max-candidates 0
 
       - name: Verify known author boundaries
         run: python3 tools/check_bartlett_regressions.py build/bartlett-curation/bartlett_candidates.jsonl
