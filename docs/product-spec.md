@@ -15,6 +15,8 @@
 - The secondary/30 color is the primary text/structural color and the background color of primary controls.
 - The accent/10 color is reserved for control labels/highlights and other small emphasis areas.
 - The home screen does not show a redundant `Quotes of Wisdom` title in the top-left corner.
+- The home screen exposes a settings control in the top-left area. Its button surface uses the accent/tertiary color and its glyph uses the dominant color. This does not introduce a fourth base color.
+- The current M1 palette is compile-time fixed, but the theme system will be converted to runtime `AppThemePalette(dominant, secondary, accent)` values before the 20-theme selector is implemented. Composables should therefore consume semantic Material color roles rather than hardcoded color literals.
 - v1 ships with 20 themes.
 - Quotes are local and carry author + classification/genre metadata.
 - The control previously interpreted as volume is a quote-text scroll control.
