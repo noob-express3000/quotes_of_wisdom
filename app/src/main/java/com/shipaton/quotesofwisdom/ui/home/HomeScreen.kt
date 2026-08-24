@@ -16,7 +16,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,24 +76,17 @@ fun HomeScreen(
 private fun Header() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "Quotes of Wisdom",
-            color = MaterialTheme.colorScheme.secondary,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-
         Surface(
             shape = RoundedCornerShape(999.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         ) {
             Text(
                 text = "FREE",
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
@@ -108,9 +100,9 @@ private fun QuoteCard(quote: Quote) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondary
+            containerColor = MaterialTheme.colorScheme.background
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 28.dp, vertical = 38.dp),
@@ -118,7 +110,7 @@ private fun QuoteCard(quote: Quote) {
         ) {
             Text(
                 text = "“${quote.text}”",
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.secondary,
                 textAlign = TextAlign.Center,
                 fontSize = 26.sp,
                 lineHeight = 36.sp,
@@ -129,7 +121,7 @@ private fun QuoteCard(quote: Quote) {
 
             Text(
                 text = "— ${quote.author}",
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.secondary,
                 fontStyle = FontStyle.Italic
             )
         }
@@ -147,14 +139,14 @@ private fun MessageCard(message: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondary
+            containerColor = MaterialTheme.colorScheme.background
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
     ) {
         Text(
             text = message,
             modifier = Modifier.padding(horizontal = 28.dp, vertical = 38.dp),
-            color = MaterialTheme.colorScheme.onSecondary,
+            color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
             lineHeight = 28.sp
@@ -171,12 +163,12 @@ private fun Controls(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedButton(
+        Button(
             onClick = onReplay,
             modifier = Modifier.weight(1f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.secondary
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Text("↻  Replay")
@@ -186,8 +178,8 @@ private fun Controls(
             onClick = onNextQuote,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Text("Next  →")
