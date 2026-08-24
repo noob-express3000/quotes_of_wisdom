@@ -2,13 +2,15 @@
 
 ## Goal
 
-The production corpus should feel grounded rather than cheesy. Every retained quote must be:
+The production corpus should feel grounded, memorable, and worth returning to. Fiction is explicitly allowed: novels, plays, poetry, speeches, letters, essays, and dialogue can all produce valid Quotes of Wisdom material.
 
-1. **Realistic** — compatible with ordinary life; no magical guarantees, deterministic promises, or toxic positivity.
-2. **Truthful** — not demonstrably false, misleading, pseudoscientific, or presented as a universal fact when it is merely wishful thinking.
-3. **Motivational** — should encourage constructive action, endurance, learning, perspective, responsibility, or healthy connection.
+Every retained quote must be:
+
+1. **Grounded** — useful or psychologically/emotionally truthful when read on its own. Fiction does not need to be a literal factual claim, but it must not become misleading or nonsensical outside its source scene.
+2. **Truthful enough to stand alone** — no demonstrably false factual claim, pseudoscience, magical guarantee, or deceptive certainty presented as reality.
+3. **Motivational or insight-bearing** — should encourage constructive action, endurance, learning, perspective, responsibility, courage, purpose, self-mastery, or healthy connection. A line may qualify because it is powerful and clarifying even when it is not cheerful.
 4. **Classifiable** — must fit at least one approved category below.
-5. **Attribution-safe** — attribution must be credible enough to ship. Entries marked or suspected as misattributed are rejected unless independently verified.
+5. **Attribution-safe** — the author attribution must be credible enough to ship. The internal verification ledger may also record the work and character/speaker where useful, while the app schema remains simple and displays the author.
 6. **Redistribution-safe** — the project must have a defensible right to include the text in a public, monetized app/repository.
 
 Fail any required rule -> reject.
@@ -30,17 +32,50 @@ Each quote receives one primary `classification` from this list:
 - `hope`
 - `relationships`
 
-The taxonomy can be expanded deliberately later, but raw source tags are not copied directly into the app.
+A quote may reasonably fit several categories; the app stores one primary category for v1.
+
+## Fiction policy
+
+Fiction is first-class source material.
+
+KEEP fictional material when:
+
+- the line makes sense without needing the surrounding scene;
+- it delivers a strong insight, challenge, warning, or motivational idea;
+- its meaning remains defensible when presented as a standalone quotation;
+- the author/source attribution can be established;
+- the text is public domain, permissively licensed, or otherwise cleared for redistribution.
+
+REJECT fictional material only when:
+
+- it is a fragment that depends on missing dialogue/context;
+- irony, sarcasm, villainous intent, or plot context reverses the apparent meaning;
+- it is merely exposition, romance dialogue, or scene-specific chatter with no broader value;
+- it fails the same quality, attribution, or rights rules as non-fiction material.
+
+Dialogue is therefore **not automatically rejected** simply because it is dialogue.
+
+## Copyright and attribution
+
+The app displays the author because that is the clean product experience we want. Internally we retain source/work information when available for verification.
+
+Author attribution and copyright permission are separate questions. Crediting an author is good attribution, but it does not by itself grant permission to redistribute a copyrighted passage in a commercial app. Therefore the production corpus prioritizes:
+
+1. public-domain fiction and non-fiction;
+2. permissively licensed material compatible with commercial redistribution;
+3. original Quotes of Wisdom material that we own.
+
+Modern copyrighted fiction can be considered only if we have a defensible license/permission path. We do not rely on attribution alone as a rights strategy.
 
 ## Automatic rejection signals
 
 Reject by default when an entry is:
 
 - `attributed-no-source`, `widely-misattributed`, or otherwise attribution-uncertain;
-- dialogue/fragments that only make sense inside a novel, film, or scene;
-- primarily romantic, sexual, celebrity gossip, partisan, sectarian, or promotional content without broader constructive value;
-- an empty platitude (for example, promising success merely for believing);
-- advice based on magical thinking, pseudoscience, guaranteed destiny, or false certainty;
+- a dialogue fragment that cannot stand on its own;
+- primarily celebrity gossip, partisan campaigning, sectarian promotion, or promotional copy without broader constructive value;
+- an empty platitude promising success merely for believing;
+- based on magical thinking, pseudoscience, guaranteed destiny, or false certainty;
 - demeaning, hateful, coercive, abusive, or glorifying self-destruction;
 - malformed, duplicated, badly encoded, or obviously scraped incorrectly;
 - so long that it becomes an excerpt rather than a concise quote.
@@ -67,19 +102,17 @@ Keep the app schema simple:
 
 IDs are stable integers assigned only after an entry passes final review.
 
-## Source: jstet/quotes-500k
+## Source strategy
+
+### jstet/quotes-500k
 
 The Hugging Face dataset is a useful **candidate/discovery pool**, not an automatic redistribution source.
 
 Its card traces the data to `ShivaliGoel/Quotes-500K`, whose README says the corpus was scraped from multiple quote websites and made available for educational/research purposes. No repository `LICENSE` file was found during our review. Because Quotes of Wisdom is intended to be public and monetized, we do not blindly copy the dataset into the app.
 
-Use this dataset to discover candidate quotes/categories. Before final inclusion, prefer one of these routes:
+### Public-domain fiction corpus
 
-1. independently verify the quote in a public-domain source/work;
-2. use text with a clear redistribution license compatible with the app;
-3. use original Quotes of Wisdom material that we own.
-
-For public-domain candidates, favor old works/authors and verify the actual source text rather than trusting scraper attribution.
+Public-domain novels, plays, poetry, and essays are now a preferred source lane. Exact text can be extracted from known public-domain editions, then filtered for standalone value and mapped into the controlled categories. The internal ledger records the work/source so that a future audit does not depend on memory.
 
 ## Review pipeline
 
@@ -87,9 +120,9 @@ For public-domain candidates, favor old works/authors and verify the actual sour
 raw candidate
     -> normalize whitespace/punctuation
     -> reject malformed/duplicate material
-    -> realism check
-    -> truthfulness check
-    -> motivational-value check
+    -> standalone-context check
+    -> grounded/truthfulness check
+    -> motivational-or-insight-value check
     -> category assignment
     -> attribution verification
     -> rights/source verification
