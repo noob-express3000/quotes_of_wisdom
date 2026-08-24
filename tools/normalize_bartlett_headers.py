@@ -12,15 +12,10 @@ HEADER_WITH_MARKER = re.compile(
 
 # Ancient-author headings use era markers such as
 # `MARCUS AURELIUS ANTONINUS. 121-180 A. D.` or `8 B. C.-65 A. D.`.
-# The curation parser only needs a stable author boundary and a conservative
-# death-year number, so normalize the era labels out of heading lines only.
+# Normalize only the date annotation while preserving the terminal heading dot.
 LIKELY_AUTHOR_HEADER = re.compile(r"^[A-Z][A-Z .,'&-]+\.\s+.*\d.*$")
-ERA_MARKER = re.compile(r"\s+(?:B|A)\.\s*D?C?\.?")
-# Explicit forms are safer than relying on the permissive helper above.
-ERA_FORMS = (
-    re.compile(r"\s+B\.\s*C\."),
-    re.compile(r"\s+A\.\s*D\."),
-)
+BCE_BEFORE_HYPHEN = re.compile(r"\s+B\.\s*C\.(?=\s*-)")
+ERA_AT_END = re.compile(r"\s+(?:A\.\s*D\.|B\.\s*C\.)(?=\s*(?:\r?\n)?$)")
 
 
 def normalize_header(line: str) -> tuple[str, int]:
@@ -29,9 +24,12 @@ def normalize_header(line: str) -> tuple[str, int]:
     changes += count
 
     if LIKELY_AUTHOR_HEADER.match(line):
-        for pattern in ERA_FORMS:
-            line, count = pattern.subn("", line)
-            changes += count
+        line, count = BCE_BEFORE_HYPHEN.subn("", line)
+        changes += count
+        # Replace a terminal era marker with a single period instead of deleting
+        # it; the section parser intentionally requires the heading terminator.
+        line, count = ERA_AT_END.subn(".", line)
+        changes += count
 
     return line, changes
 
@@ -52,7 +50,7 @@ def main() -> int:
         output.append(line)
 
     dst.write_text("".join(output), encoding="utf-8")
-    print(f"Normalized Bartlett author headers: {replacements} marker/era token(s) removed")
+    print(f"Normalized Bartlett author headers: {replacements} marker/era token(s) normalized")
     return 0
 
 
