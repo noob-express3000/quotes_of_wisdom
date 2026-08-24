@@ -1,0 +1,63 @@
+name: Curate Wood Quotations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - quotes-database
+    paths:
+      - "tools/curate_wood_dictionary.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-wood.yml"
+  pull_request:
+    paths:
+      - "tools/curate_wood_dictionary.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-wood.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  curate-wood:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Wood public-domain source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wood
+          curl \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 30 \
+            --output /tmp/wood/wood.txt \
+            "https://www.gutenberg.org/cache/epub/48105/pg48105.txt"
+          test -s /tmp/wood/wood.txt
+
+      - name: Build quotation candidate pool
+        run: |
+          python3 tools/curate_wood_dictionary.py \
+            /tmp/wood/wood.txt \
+            build/wood-curation \
+            --minimum-score 10
+
+      - name: Publish Wood summary
+        shell: bash
+        run: cat build/wood-curation/wood_report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload short-lived Wood review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wood-quotation-candidates
+          path: |
+            build/wood-curation/wood_candidates.jsonl
+            build/wood-curation/wood_report.md
+          retention-days: 3
+          compression-level: 9
