@@ -8,6 +8,7 @@ on:
     paths:
       - "tools/curate_wood_dictionary.py"
       - "tools/build_production_quotes.py"
+      - "tools/finalize_production_quotes.py"
       - "tools/validate_production_quotes.py"
       - "app/src/main/assets/quotes.json"
       - "docs/quote-curation-policy.md"
@@ -16,6 +17,7 @@ on:
     paths:
       - "tools/curate_wood_dictionary.py"
       - "tools/build_production_quotes.py"
+      - "tools/finalize_production_quotes.py"
       - "tools/validate_production_quotes.py"
       - "app/src/main/assets/quotes.json"
       - "docs/quote-curation-policy.md"
@@ -63,6 +65,14 @@ jobs:
             --author-cap 20 \
             --minimum-release-size 1000
 
+      - name: Apply final semantic product policy
+        run: |
+          python3 tools/finalize_production_quotes.py \
+            build/wood-curation/production \
+            --author-cap 20 \
+            --minimum-release-size 1000 \
+            --minimum-per-category 20
+
       - name: Validate generated production database
         run: python3 tools/validate_production_quotes.py build/wood-curation/production/quotes.json
 
@@ -72,6 +82,8 @@ jobs:
           cat build/wood-curation/wood_report.md >> "$GITHUB_STEP_SUMMARY"
           printf '\n' >> "$GITHUB_STEP_SUMMARY"
           cat build/wood-curation/production/production-report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/wood-curation/production/finalization-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload production review artifact
         uses: actions/upload-artifact@v4
@@ -81,6 +93,7 @@ jobs:
             build/wood-curation/production/quotes.json
             build/wood-curation/production/production-source-ledger.jsonl
             build/wood-curation/production/production-report.md
+            build/wood-curation/production/finalization-report.md
             build/wood-curation/wood_report.md
           retention-days: 3
           compression-level: 9
