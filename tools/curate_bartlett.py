@@ -7,11 +7,31 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
-AUTHOR_RE = re.compile(r"^([A-Z][A-Z .,'&-]+)\.\s+(\d{3,4})-(\d{2,4})\.\s*$")
+# Handles ordinary headings (1564-1616), ancient headings (8 B. C.-65 A. D.),
+# and open-ended headings used for authors who were alive in an earlier edition (1809- ----).
+AUTHOR_RE = re.compile(
+    r"^([A-Z][A-Z .,'&-]+)\.\s+"
+    r"(\d{1,4})(?:\s+B\.\s*C\.)?\s*-\s*"
+    r"(?:(\d{1,4})|----)(?:\s+A\.\s*D\.)?\.\s*$"
+)
 SOURCE_RE = re.compile(r"^_(.+)_\s*$")
 FOOTNOTE_RE = re.compile(r"\[\d+(?:-\d+)?\]")
 WORD_RE = re.compile(r"\b[\w’'-]+\b", re.UNICODE)
 SPACE_RE = re.compile(r"\s+")
+
+KNOWN_DEATH_YEARS = {
+    "ALFRED TENNYSON": 1892,
+    "RUDYARD KIPLING": 1936,
+    "THOMAS HARDY": 1928,
+    "GEORGE MEREDITH": 1909,
+    "MARK TWAIN": 1910,
+    "SAMUEL L. CLEMENS": 1910,
+    "ROBERT LOUIS STEVENSON": 1894,
+    "OSCAR WILDE": 1900,
+    "ARTHUR CONAN DOYLE": 1930,
+    "GEORGE BERNARD SHAW": 1950,
+    "H. G. WELLS": 1946,
+}
 
 CATEGORY_TERMS = {
     "discipline": ("duty", "habit", "patience", "persever", "steadfast", "industry", "temperance", "resolve", "practice", "self-command", "restraint"),
@@ -35,8 +55,7 @@ CATEGORY_PRIORITY = (
 
 BLOCK_PATTERNS = (
     r"\b(?:god|christ|jesus|heaven|hell|satan|devil)\b",
-    r"\b(?:king|queen|prince|duke|earl)\s+[A-Z]",
-    r"\b(?:murder|kill|slay|blood)\b",
+    r"\b(?:murder|kill|slay)\b",
 )
 
 
@@ -45,7 +64,7 @@ def normalize(text: str) -> str:
     text = FOOTNOTE_RE.sub("", text)
     text = text.replace("--", "—")
     text = SPACE_RE.sub(" ", text).strip()
-    return text.strip(" ")
+    return text
 
 
 def word_count(text: str) -> int:
@@ -56,13 +75,12 @@ def display_author(raw: str) -> str:
     small = {"OF", "AND", "THE", "DE", "DU", "VON"}
     parts = []
     for token in raw.split():
-        cleaned = token.strip()
-        if cleaned in small and parts:
-            parts.append(cleaned.lower())
-        elif cleaned in {"I", "II", "III", "IV", "V"}:
-            parts.append(cleaned)
+        if token in small and parts:
+            parts.append(token.lower())
+        elif token in {"I", "II", "III", "IV", "V"}:
+            parts.append(token)
         else:
-            parts.append(cleaned.title())
+            parts.append(token.title())
     return " ".join(parts)
 
 
@@ -107,15 +125,22 @@ def quality_score(text: str, scores: dict[str, int]) -> int:
     return score
 
 
+def resolve_death_year(author: str, raw_death: str | None) -> int | None:
+    if raw_death:
+        return int(raw_death)
+    return KNOWN_DEATH_YEARS.get(author)
+
+
 def parse_bartlett(path: Path):
     lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     current_author = None
     death_year = None
     quote_lines = []
+    in_footnotes = False
 
     def flush(source=None):
         nonlocal quote_lines
-        if current_author and quote_lines:
+        if current_author and quote_lines and not in_footnotes:
             text = normalize(" ".join(line.strip() for line in quote_lines))
             quote_lines = []
             if text:
@@ -128,24 +153,26 @@ def parse_bartlett(path: Path):
         quote_lines = []
         return None
 
-    pending = None
     for line in lines:
         author_match = AUTHOR_RE.match(line)
         if author_match:
-            if pending:
-                yield pending
-                pending = None
             maybe = flush()
             if maybe:
                 yield maybe
             current_author = author_match.group(1)
-            death_year = int(author_match.group(3))
-            if death_year < 100:
-                century = int(author_match.group(2)) // 100 * 100
-                death_year += century
+            death_year = resolve_death_year(current_author, author_match.group(3))
+            in_footnotes = False
             continue
 
         if current_author is None:
+            continue
+
+        if line.strip() == "FOOTNOTES:":
+            quote_lines = []
+            in_footnotes = True
+            continue
+
+        if in_footnotes:
             continue
 
         source_match = SOURCE_RE.match(line.strip())
@@ -156,13 +183,10 @@ def parse_bartlett(path: Path):
             continue
 
         if line.startswith("    ") and line.strip():
-            # Quote blocks in Bartlett are indented. Avoid prose notes and Gutenberg boilerplate.
             quote_lines.append(line)
         elif not line.strip():
-            # Keep block open until a source citation arrives; Bartlett frequently uses blank lines.
             continue
         elif quote_lines:
-            # Non-indented material before a citation means this is not a clean quote block.
             quote_lines = []
 
     maybe = flush()
@@ -189,6 +213,9 @@ def main() -> int:
     for record in parse_bartlett(args.input_text):
         text = record["text"]
         wc = word_count(text)
+        if record["death_year"] is None:
+            rejections["unknown_death_year"] += 1
+            continue
         if record["death_year"] > args.max_death_year:
             rejections["author_not_global_pd_priority"] += 1
             continue
@@ -246,7 +273,7 @@ def main() -> int:
         f"- Author death-year ceiling: **{args.max_death_year}**",
         f"- Minimum quality score: **{args.minimum_score}**",
         "",
-        "> Bartlett candidates already have a traced literary source, but still receive standalone-context and product-quality review before promotion.",
+        "> Footnote comparison quotations are excluded. Author headings, source citations, and public-domain priority are resolved before product review.",
         "",
         "## Categories",
         "",
