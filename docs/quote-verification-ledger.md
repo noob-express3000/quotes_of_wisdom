@@ -30,6 +30,7 @@ All entries below are by authors whose underlying cited works are public-domain 
 | 9 | George Eliot | What makes life dreary is the want of motive. | purpose | *Daniel Deronda*; public-domain text, Project Gutenberg #7469. | KEEP — exact source match; concise statement about purpose/motivation, not an absolute prescription for every cause of distress. |
 | 10 | George Washington | I conceive a knowledge of books is the basis upon which other knowledge is to be built. | learning | George Washington correspondence; Library of Congress manuscript collection reproduces the passage. | KEEP — exact historical source; grounded endorsement of foundational learning. |
 | 11 | Ralph Waldo Emerson | Bad times have a scientific value. These are occasions a good learner would not miss. | resilience | *The Conduct of Life*, “Considerations by the Way”; public-domain 1860 work, verified in Project Gutenberg #39827. | KEEP — explicitly frames adversity as material for learning, not as a promise that suffering is inherently good. |
+| 12 | Anne Bradstreet | If we had no winter, the spring would not be so pleasant; if we did not sometimes taste of adversity, prosperity would not be so welcome. | resilience | Bradstreet's *Meditations Divine and Moral* (maxim XIV), preserved in public-domain editions. The dataset contained both a corrupted `"]` copy and a truncated duplicate. | KEEP — exact maxim recovered from source; scrape damage removed and archaic `tast` minimally modernized to `taste`. |
 
 ### Verification references
 
@@ -45,6 +46,7 @@ All entries below are by authors whose underlying cited works are public-domain 
 - George Eliot / Project Gutenberg: https://www.gutenberg.org/cache/epub/7469/pg7469-images.html
 - George Washington / Library of Congress: https://tile.loc.gov/storage-services/service/mss/mgw/mgw5/116/116_0373_0628.pdf
 - Ralph Waldo Emerson / Project Gutenberg: https://www.gutenberg.org/cache/epub/39827/pg39827-images.html
+- Anne Bradstreet / public-domain source transcription: https://www.gutenberg.org/cache/epub/6854/pg6854.html
 
 ## Rejected during context / attribution verification
 
@@ -57,11 +59,14 @@ All entries below are by authors whose underlying cited works are public-domain 
 | Small herbs have grace; great weeds do grow apace. | William Shakespeare | REJECT — exact line exists in *Richard III*, but it is a joking/sarcastic exchange about physical growth, not a motivational growth principle. |
 | Each time we face our fear, we gain strength, courage, and confidence in the doing. | Theodore Roosevelt | HOLD/REJECT — repeated attribution found, but no traceable Roosevelt primary source established in this pass. It does not meet the app's attribution threshold. |
 | My greatest concern is not whether you have failed, but whether you are concerned/content with your failure. | Abraham Lincoln | HOLD/REJECT — wording varies across quote sites and no primary Lincoln source was established in this pass. |
+| Do not fear mistakes. You will know failure. Continue to reach out. | Benjamin Franklin | REJECT — modern quotation references explicitly report that no Franklin primary source has been traced; likely later attribution. |
+| Keep your fears to yourself, but share your courage with others. | Robert Louis Stevenson | HOLD/REJECT — widely attributed online, but no traceable Stevenson work was established in this pass. |
 
 ## Rules learned from verification
 
 - Exact attribution is not enough: context can disqualify a line.
 - “Famous quote” websites are discovery hints, never final evidence.
 - A quote can be historically authentic and still fail the app's realism/truthfulness/motivation test.
+- Corrupted scraped text may be repaired only by returning to the underlying source; never by guessing the missing words.
 - Spelling/punctuation may be minimally normalized for modern readability only when meaning is unchanged.
 - No final ID is assigned before verification; production IDs are stable once assigned.
