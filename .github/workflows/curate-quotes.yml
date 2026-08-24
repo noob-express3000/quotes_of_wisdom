@@ -8,12 +8,14 @@ on:
     paths:
       - "tools/curate_quotes.py"
       - "tools/refine_quote_candidates.py"
+      - "tools/build_quote_verification_queue.py"
       - "docs/quote-curation-policy.md"
       - ".github/workflows/curate-quotes.yml"
   pull_request:
     paths:
       - "tools/curate_quotes.py"
       - "tools/refine_quote_candidates.py"
+      - "tools/build_quote_verification_queue.py"
       - "docs/quote-curation-policy.md"
       - ".github/workflows/curate-quotes.yml"
 
@@ -61,12 +63,22 @@ jobs:
             --sample-per-category 15 \
             --minimum-score 7
 
+      - name: Build attribution and rights verification queue
+        run: |
+          python3 tools/build_quote_verification_queue.py \
+            build/quote-curation/high_precision_candidates.jsonl \
+            build/quote-curation \
+            --max-per-category 15 \
+            --minimum-score 8
+
       - name: Publish curation summaries
         shell: bash
         run: |
           cat build/quote-curation/report.md >> "$GITHUB_STEP_SUMMARY"
           printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
           cat build/quote-curation/high_precision_report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/quote-curation/verification_queue.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload short-lived review artifact
         uses: actions/upload-artifact@v4
@@ -79,5 +91,7 @@ jobs:
             build/quote-curation/high_precision_candidates.jsonl
             build/quote-curation/high_precision_report.json
             build/quote-curation/high_precision_report.md
+            build/quote-curation/verification_queue.jsonl
+            build/quote-curation/verification_queue.md
           retention-days: 3
           compression-level: 9
