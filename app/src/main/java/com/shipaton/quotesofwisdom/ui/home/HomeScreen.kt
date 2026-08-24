@@ -109,7 +109,7 @@ private fun QuoteCard(quote: Quote) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "“${quote.text}”",
+                text = quote.text,
                 color = MaterialTheme.colorScheme.secondary,
                 textAlign = TextAlign.Center,
                 fontSize = 26.sp,

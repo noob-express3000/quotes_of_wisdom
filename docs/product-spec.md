@@ -15,6 +15,7 @@
 - The secondary/30 color is the primary text/structural color and the background color of primary controls.
 - The accent/10 color is reserved for control labels/highlights and other small emphasis areas.
 - The home screen does not show a redundant `Quotes of Wisdom` title in the top-left corner.
+- Quote text is displayed without added opening/closing quotation marks; the bordered quote container already provides the visual framing.
 - v1 ships with 20 themes.
 - Quotes are local and carry author + classification/genre metadata.
 - The control previously interpreted as volume is a quote-text scroll control.
