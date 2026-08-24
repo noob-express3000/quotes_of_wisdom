@@ -41,13 +41,13 @@ jobs:
             "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/gutenberg.zip"
           test -s /tmp/gutenberg/gutenberg.zip
 
-      - name: Build fiction candidate pool
+      - name: Build uncapped fiction candidate pool
         run: |
           python3 tools/curate_public_domain_fiction.py \
             /tmp/gutenberg/gutenberg.zip \
             build/fiction-curation \
             --minimum-score 8 \
-            --max-candidates 2400
+            --max-candidates 0
 
       - name: Publish fiction summary
         shell: bash
