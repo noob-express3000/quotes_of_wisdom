@@ -200,7 +200,7 @@ def main() -> int:
     parser.add_argument("output_dir", type=Path)
     parser.add_argument("--minimum-score", type=int, default=8)
     parser.add_argument("--max-death-year", type=int, default=1955)
-    parser.add_argument("--max-candidates", type=int, default=3000)
+    parser.add_argument("--max-candidates", type=int, default=0, help="0 means no candidate cap")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -254,7 +254,8 @@ def main() -> int:
         candidates.append(record)
 
     candidates.sort(key=lambda r: (-r["score"], word_count(r["text"]), r["author"], r["text"]))
-    candidates = candidates[: args.max_candidates]
+    if args.max_candidates > 0:
+        candidates = candidates[: args.max_candidates]
 
     out = args.output_dir / "bartlett_candidates.jsonl"
     with out.open("w", encoding="utf-8") as handle:
@@ -272,6 +273,7 @@ def main() -> int:
         f"- Candidate quotations: **{len(candidates):,}**",
         f"- Author death-year ceiling: **{args.max_death_year}**",
         f"- Minimum quality score: **{args.minimum_score}**",
+        f"- Candidate cap: **{'none' if args.max_candidates <= 0 else args.max_candidates}**",
         "",
         "> Footnote comparison quotations are excluded. Author headings, source citations, and public-domain priority are resolved before product review.",
         "",
