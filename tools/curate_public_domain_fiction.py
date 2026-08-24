@@ -5,7 +5,7 @@ import json
 import re
 import unicodedata
 import zipfile
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 SOURCES = {
@@ -27,58 +27,18 @@ SOURCES = {
 }
 
 CATEGORY_TERMS = {
-    "discipline": {
-        "habit", "duty", "discipline", "resolve", "resolved", "patience", "patient",
-        "persevere", "perseverance", "steadfast", "steady", "constancy", "practice",
-        "self-command", "self control", "self-control",
-    },
-    "resilience": {
-        "adversity", "struggle", "endure", "endurance", "hardship", "suffer", "suffering",
-        "failure", "failed", "defeat", "wound", "grief", "sorrow", "storm", "trial",
-        "trouble", "misfortune", "pain",
-    },
-    "courage": {
-        "courage", "brave", "bravery", "fear", "fearful", "danger", "dare", "daring",
-        "coward", "bold", "boldly", "valor", "valour",
-    },
-    "growth": {
-        "grow", "growth", "change", "changed", "become", "becoming", "improve",
-        "experience", "progress", "develop", "development", "mature",
-    },
-    "learning": {
-        "learn", "learning", "knowledge", "wisdom", "wise", "ignorance", "ignorant",
-        "truth", "understand", "understanding", "thought", "think", "mind", "book",
-        "books", "study", "education", "reason",
-    },
-    "focus": {
-        "attention", "attend", "heed", "watch", "observe", "present", "concentrate",
-        "single", "purpose", "resolve", "mind",
-    },
-    "work": {
-        "work", "labour", "labor", "effort", "task", "duty", "deed", "action", "act",
-        "doing", "practice", "craft", "industry",
-    },
-    "self-mastery": {
-        "character", "temper", "control", "command", "desire", "conscience", "integrity",
-        "honour", "honor", "self", "passion", "will", "master", "mastery",
-    },
-    "perspective": {
-        "life", "death", "world", "happiness", "happy", "sorrow", "joy", "time", "truth",
-        "reality", "fortune", "fate", "human", "nature", "meaning",
-    },
-    "purpose": {
-        "purpose", "aim", "goal", "ambition", "meaning", "mission", "end", "intend",
-        "intention", "calling", "direction",
-    },
-    "hope": {
-        "hope", "despair", "future", "tomorrow", "possible", "possibility", "dawn",
-        "light", "better", "begin", "beginning",
-    },
-    "relationships": {
-        "friend", "friends", "friendship", "love", "kindness", "kind", "compassion",
-        "trust", "family", "heart", "affection", "fellow", "fellowship", "sympathy",
-        "respect",
-    },
+    "discipline": {"habit", "duty", "discipline", "resolve", "resolved", "patience", "patient", "persevere", "perseverance", "steadfast", "steady", "constancy", "practice", "self-command", "self control", "self-control"},
+    "resilience": {"adversity", "struggle", "endure", "endurance", "hardship", "suffer", "suffering", "failure", "failed", "defeat", "wound", "grief", "sorrow", "storm", "trial", "trouble", "misfortune", "pain"},
+    "courage": {"courage", "brave", "bravery", "fear", "fearful", "danger", "dare", "daring", "coward", "bold", "boldly", "valor", "valour"},
+    "growth": {"grow", "growth", "change", "changed", "become", "becoming", "improve", "experience", "progress", "develop", "development", "mature"},
+    "learning": {"learn", "learning", "knowledge", "wisdom", "wise", "ignorance", "ignorant", "truth", "understand", "understanding", "thought", "think", "mind", "book", "books", "study", "education", "reason"},
+    "focus": {"attention", "attend", "heed", "watch", "observe", "present", "concentrate", "single", "purpose", "resolve", "mind"},
+    "work": {"work", "labour", "labor", "effort", "task", "duty", "deed", "action", "act", "doing", "practice", "craft", "industry"},
+    "self-mastery": {"character", "temper", "control", "command", "desire", "conscience", "integrity", "honour", "honor", "self", "passion", "will", "master", "mastery"},
+    "perspective": {"life", "death", "world", "happiness", "happy", "sorrow", "joy", "time", "truth", "reality", "fortune", "fate", "human", "nature", "meaning"},
+    "purpose": {"purpose", "aim", "goal", "ambition", "meaning", "mission", "end", "intend", "intention", "calling", "direction"},
+    "hope": {"hope", "despair", "future", "tomorrow", "possible", "possibility", "dawn", "light", "better", "begin", "beginning"},
+    "relationships": {"friend", "friends", "friendship", "love", "kindness", "kind", "compassion", "trust", "family", "heart", "affection", "fellow", "fellowship", "sympathy", "respect"},
 }
 
 CATEGORY_PRIORITY = (
@@ -199,7 +159,7 @@ def main() -> int:
     parser.add_argument("gutenberg_zip", type=Path)
     parser.add_argument("output_dir", type=Path)
     parser.add_argument("--minimum-score", type=int, default=8)
-    parser.add_argument("--max-candidates", type=int, default=2400)
+    parser.add_argument("--max-candidates", type=int, default=0, help="0 means no candidate cap")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -257,7 +217,8 @@ def main() -> int:
             records.append(record)
 
     records.sort(key=lambda row: (-row["score"], len(words(row["text"])), row["author"], row["text"]))
-    records = records[: args.max_candidates]
+    if args.max_candidates > 0:
+        records = records[: args.max_candidates]
 
     with output.open("w", encoding="utf-8") as handle:
         for row in records:
@@ -272,6 +233,7 @@ def main() -> int:
         "",
         f"- Candidates retained: **{len(records):,}**",
         f"- Minimum quality score: **{args.minimum_score}**",
+        f"- Candidate cap: **{'none' if args.max_candidates <= 0 else args.max_candidates}**",
         "",
         "> These are authentic public-domain source lines, but they still require standalone-context review before production promotion.",
         "",
