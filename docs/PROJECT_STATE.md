@@ -1,6 +1,6 @@
 # Quotes of Wisdom — Canonical Project State
 
-_Last updated: 2026-08-23_
+_Last updated: 2026-08-25_
 
 This file is the handoff checkpoint for continuing development from any ChatGPT window, computer, Codespace, or local checkout. Read this file first, then `docs/product-spec.md`, before making product or architecture changes.
 
@@ -51,7 +51,7 @@ Target prices, subject to store-supported localized price points:
 
 - approximately USD 0.50 weekly
 - approximately USD 1.00 monthly
-- approximately USD 70 lifetime
+- approximately USD 45 lifetime
 
 All paid products grant RevenueCat entitlement `pro_access`.
 
