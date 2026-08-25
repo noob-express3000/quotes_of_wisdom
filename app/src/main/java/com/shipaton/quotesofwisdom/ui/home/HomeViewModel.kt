@@ -25,7 +25,9 @@ data class HomeUiState(
     val bestStreak: Int = 0,
     val streakBrokenOnLaunch: Boolean = false,
     val accessState: AccessState = AccessState.TRIAL_ACTIVE,
-    val debugAccessOverride: AccessState? = null
+    val debugAccessOverride: AccessState? = null,
+    val proVoiceName: String = "",
+    val proSpeechRate: Float = 1.0f
 ) {
     val effectiveAccessState: AccessState get() = debugAccessOverride ?: accessState
     val isCurrentFavorite: Boolean get() = quote?.id in favoriteIds
@@ -60,6 +62,8 @@ class HomeViewModel(
                     streak = prefs.streak,
                     bestStreak = prefs.bestStreak,
                     accessState = access,
+                    proVoiceName = prefs.proVoiceName,
+                    proSpeechRate = prefs.proSpeechRate,
                     streakBrokenOnLaunch = pendingBrokenStreak || _uiState.value.streakBrokenOnLaunch
                 )
             }
@@ -104,6 +108,14 @@ class HomeViewModel(
 
     fun selectTheme(themeId: String) {
         viewModelScope.launch { preferencesRepository.setTheme(themeId) }
+    }
+
+    fun selectProVoice(voiceName: String) {
+        viewModelScope.launch { preferencesRepository.setProVoice(voiceName) }
+    }
+
+    fun setProSpeechRate(rate: Float) {
+        viewModelScope.launch { preferencesRepository.setProSpeechRate(rate) }
     }
 
     fun setDebugAccessOverride(state: AccessState?) {
