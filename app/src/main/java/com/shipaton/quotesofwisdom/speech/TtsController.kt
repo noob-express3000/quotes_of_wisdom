@@ -3,6 +3,7 @@ package com.shipaton.quotesofwisdom.speech
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,24 +59,34 @@ class TtsController(context: Context) : TextToSpeech.OnInitListener {
             return
         }
 
-        val available = engine.voices.orEmpty()
-            .asSequence()
+        val englishVoices = engine.voices.orEmpty()
             .filter { it.locale.language.equals("en", ignoreCase = true) }
-            .sortedWith(compareBy({ it.isNetworkConnectionRequired }, { it.locale.displayCountry }, { it.name }))
-            .mapIndexed { index, voice ->
-                val country = voice.locale.displayCountry.takeIf { it.isNotBlank() } ?: voice.locale.displayLanguage
-                VoiceOption(
-                    name = voice.name,
-                    label = "Voice ${index + 1} · $country${if (voice.isNetworkConnectionRequired) " · online" else ""}"
-                )
-            }
-            .toList()
-        _voices.value = available
+            .sortedWith(
+                compareBy<Voice> { it.isNetworkConnectionRequired }
+                    .thenByDescending { it.quality }
+                    .thenBy { it.latency }
+                    .thenBy { it.locale.displayCountry }
+                    .thenBy { it.name }
+            )
 
-        trialVoiceName = engine.voice?.name ?: available.firstOrNull()?.name
-        trialVoiceName?.let { name ->
-            engine.voices?.firstOrNull { it.name == name }?.let { engine.voice = it }
-            _selectedVoiceName.value = name
+        _voices.value = englishVoices.mapIndexed { index, voice ->
+            val country = voice.locale.displayCountry.takeIf { it.isNotBlank() }
+                ?: voice.locale.displayLanguage
+            val locality = if (voice.isNetworkConnectionRequired) "online" else "local"
+            VoiceOption(
+                name = voice.name,
+                label = "Voice ${index + 1} · $country · $locality"
+            )
+        }
+
+        val trialVoice = englishVoices.firstOrNull { !it.isNetworkConnectionRequired }
+            ?: englishVoices.firstOrNull()
+            ?: engine.voice
+
+        trialVoiceName = trialVoice?.name
+        trialVoice?.let {
+            engine.voice = it
+            _selectedVoiceName.value = it.name
         }
 
         engine.setSpeechRate(1.0f)
