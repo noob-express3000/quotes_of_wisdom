@@ -6,44 +6,24 @@
     android:viewportHeight="108">
 
     <path
-        android:pathData="M54,24 A30,30 0,1 1,53.99,24"
+        android:pathData="M54,14 C48,22 49,28 53,33 C45,31 39,26 39,19 C31,27 30,38 36,45 C39,49 44,52 49,53 C45,48 45,42 49,37 C51,35 53,32 54,28 C58,33 63,38 63,45 C63,49 61,52 59,54 C67,52 73,47 76,40 C81,29 73,19 66,14 C67,23 62,27 58,30 C60,23 58,18 54,14 Z"
+        android:fillColor="@color/icon_accent" />
+
+    <path
+        android:pathData="M54,30 A25,25 0,1 1,53.99,30"
         android:fillColor="@android:color/transparent"
         android:strokeColor="@color/icon_secondary"
-        android:strokeWidth="8"
+        android:strokeWidth="9"
         android:strokeLineCap="round" />
 
     <path
-        android:pathData="M69,69 L83,83"
+        android:pathData="M67,66 L83,82"
         android:fillColor="@android:color/transparent"
         android:strokeColor="@color/icon_secondary"
-        android:strokeWidth="8"
+        android:strokeWidth="9"
         android:strokeLineCap="round" />
 
     <path
-        android:pathData="M43,42 L43,55"
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon_accent"
-        android:strokeWidth="7"
-        android:strokeLineCap="round" />
-
-    <path
-        android:pathData="M59,42 L59,55"
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon_accent"
-        android:strokeWidth="7"
-        android:strokeLineCap="round" />
-
-    <path
-        android:pathData="M39,57 C39,64 35,68 30,70"
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon_accent"
-        android:strokeWidth="4"
-        android:strokeLineCap="round" />
-
-    <path
-        android:pathData="M55,57 C55,64 51,68 46,70"
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="@color/icon_accent"
-        android:strokeWidth="4"
-        android:strokeLineCap="round" />
+        android:pathData="M55,36 C50,42 50,47 54,52 C58,47 59,42 55,36 Z"
+        android:fillColor="@color/icon_accent" />
 </vector>
