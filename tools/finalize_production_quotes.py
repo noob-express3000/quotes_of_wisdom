@@ -58,6 +58,18 @@ AUTHOR_ALIASES = {
     "Gen. Lee": "Robert E. Lee",
     "J. Sterling": "John Sterling",
     "Fénélon": "François Fénelon",
+    "St. Evremond": "Charles de Saint-Évremond",
+    "Dan. Webster": "Daniel Webster",
+    "Webster": "Daniel Webster",
+    "Theo. Parker": "Theodore Parker",
+    "Mme. Swetchine": "Sophie Swetchine",
+    "Sir H. Davy": "Humphry Davy",
+    "Holmes": "Oliver Wendell Holmes Sr.",
+    "Whately": "Richard Whately",
+    "Gladstone": "William Ewart Gladstone",
+    "Bodenstedt": "Friedrich Martin von Bodenstedt",
+    "Rückert": "Friedrich Rückert",
+    "Warburton": "William Warburton",
 }
 
 REJECT_AUTHORS = {
@@ -96,7 +108,7 @@ REJECT_AUTHOR_PATTERNS = (
 
 REJECT_TEXT_PATTERNS = (
     # Sectarian, supernatural, or mythological claims presented as standalone advice.
-    r"\b(?:god|gods|goddess|christ|jesus|heaven|hell|devil|satan|church|prayer|pray|sin|salvation|bible|gospel|saint|saints|providence|divine|religion|religious|worship|spiritually|immortality)\b",
+    r"\b(?:god|gods|goddess|christ|jesus|heaven|hell|devil|satan|church|prayer|pray|sin|salvation|bible|gospel|saint|saints|providence|divine|religion|religious|worship|spiritually|immortality|deity|deities)\b",
     # Gender generalizations are poor universal wisdom and age badly.
     r"\b(?:female|male|women|woman|wives|wife|husband|husbands|sexes?)\b",
     r"\byoung ladies?\b",
@@ -122,11 +134,12 @@ REJECT_TEXT_PATTERNS = (
     r"\bhuman life is everywhere a state in which much is to be endured and little to be enjoyed\b",
     r"\bdeath is a friend of ours\b",
     r"\bthe running waves of eager life end on .* death\b",
+    r"\bthe blessings of life do not equal its ills\b",
     # Claims that depend on obsolete hierarchy or broad stereotypes.
     r"\bsuperiors?\b.{0,40}\brule\b.{0,40}\binferiors?\b",
     r"\bwarlike people\b",
     # Narrow political/legal material is not the app's purpose.
-    r"\b(?:national morality|political party|constitution|legislator|legislature|parliament|government|commonwealth|nation|judge|laws?|clan)\b",
+    r"\b(?:national morality|political party|constitution|legislator|legislature|parliament|government|commonwealth|nation|judge|laws?|clan|insurrection|insurrections|revolt|revolts)\b",
     # Known context-dependent/metaphysical tail from the Wood corpus.
     r"\bevery man hath a good and a bad angel\b",
     r"\blife is the jailer, death the angel\b",
@@ -145,6 +158,16 @@ REJECT_TEXT_PATTERNS = (
     r"\bdeserves to die a beggar\b",
     r"\bdifficulty is not so great to die for a friend\b",
     r"\ba knowledge of mankind tends to induce a want of faith in virtue and probity\b",
+    r"\bpity and friendship are passions incompatible\b",
+    r"\btrust instinct to the end, though you can render no reason\b",
+    r"\bthe future destiny of the child is always the work of the mother\b",
+    r"\bone scream of fear from a mother may resound through the whole life of her daughter\b",
+    r"\bto endeavour to work upon the vulgar with fine sense\b",
+    r"\bmaterialism coarsens and petrifies everything\b",
+    r"\bchange of fashions is the tax which industry imposes on the vanity of the rich\b",
+    r"\bfear guides more to their duty than gratitude\b",
+    r"\bobedience is our universal duty and destiny\b",
+    r"\btruth is born with us; and we must do violence to nature\b",
 )
 
 # Historical editorial artifacts and context fragments that should never reach the UI.
@@ -183,6 +206,8 @@ def reject(author: str, text: str) -> str | None:
     if any(re.search(pattern, author, re.I) for pattern in REJECT_AUTHOR_PATTERNS):
         return "unresolved_or_collection_attribution"
     if any(marker in text for marker in FORBIDDEN_MARKERS):
+        return "editorial_or_context_artifact"
+    if text and text[0].islower():
         return "editorial_or_context_artifact"
     if re.search(r"(?:^|\s)\d+\s*$", text):
         return "editorial_or_context_artifact"
