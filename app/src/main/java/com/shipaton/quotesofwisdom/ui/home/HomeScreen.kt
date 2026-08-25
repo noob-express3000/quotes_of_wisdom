@@ -48,7 +48,6 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     uiState: HomeUiState,
     ttsReady: Boolean,
-    ttsSpeaking: Boolean,
     onNextQuote: () -> Unit,
     onReplay: () -> Unit,
     onAutoSpeak: () -> Unit,
@@ -126,7 +125,6 @@ fun HomeScreen(
 
             Controls(
                 replayEnabled = ttsAllowed && ttsReady,
-                ttsSpeaking = ttsSpeaking,
                 onReplay = onReplay,
                 onNextQuote = onNextQuote
             )
@@ -293,7 +291,6 @@ private fun MessageCard(message: String) {
 @Composable
 private fun Controls(
     replayEnabled: Boolean,
-    ttsSpeaking: Boolean,
     onReplay: () -> Unit,
     onNextQuote: () -> Unit
 ) {
@@ -312,7 +309,7 @@ private fun Controls(
                 disabledContentColor = MaterialTheme.colorScheme.primary
             )
         ) {
-            Text(if (ttsSpeaking) "■  Stop / Replay" else "↻  Replay")
+            Text("↻  Replay")
         }
 
         Button(
