@@ -123,7 +123,11 @@ class HomeViewModel(
 
     fun toggleFavorite() {
         val id = _uiState.value.quote?.id ?: return
-        viewModelScope.launch { preferencesRepository.toggleFavorite(id) }
+        toggleFavorite(id)
+    }
+
+    fun toggleFavorite(quoteId: Int) {
+        viewModelScope.launch { preferencesRepository.toggleFavorite(quoteId) }
     }
 
     fun selectTheme(themeId: String) {
