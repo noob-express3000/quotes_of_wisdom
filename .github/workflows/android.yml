@@ -18,6 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate production quote database
+        run: python3 tools/validate_production_quotes.py app/src/main/assets/quotes.json
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

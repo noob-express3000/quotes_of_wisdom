@@ -1,0 +1,146 @@
+name: Curate Wood Quotations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - quotes-database
+    paths:
+      - "tools/curate_wood_dictionary.py"
+      - "tools/build_production_quotes.py"
+      - "tools/finalize_production_quotes.py"
+      - "tools/validate_production_quotes.py"
+      - "tools/verified_seed_quotes.json"
+      - "app/src/main/assets/quotes.json"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-wood.yml"
+  pull_request:
+    paths:
+      - "tools/curate_wood_dictionary.py"
+      - "tools/build_production_quotes.py"
+      - "tools/finalize_production_quotes.py"
+      - "tools/validate_production_quotes.py"
+      - "tools/verified_seed_quotes.json"
+      - "app/src/main/assets/quotes.json"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-wood.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  curate-wood:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Wood public-domain source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wood
+          curl \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 30 \
+            --output /tmp/wood/wood.txt \
+            "https://www.gutenberg.org/cache/epub/48105/pg48105.txt"
+          test -s /tmp/wood/wood.txt
+
+      - name: Build quotation candidate pool
+        run: |
+          python3 tools/curate_wood_dictionary.py \
+            /tmp/wood/wood.txt \
+            build/wood-curation \
+            --minimum-score 10
+
+      - name: Build production corpus
+        run: |
+          python3 tools/build_production_quotes.py \
+            build/wood-curation/wood_candidates.jsonl \
+            tools/verified_seed_quotes.json \
+            build/wood-curation/production \
+            --author-cap 20 \
+            --minimum-release-size 1000
+
+      - name: Apply final semantic product policy
+        run: |
+          python3 tools/finalize_production_quotes.py \
+            build/wood-curation/production \
+            --author-cap 20 \
+            --minimum-release-size 1000 \
+            --minimum-per-category 20
+
+      - name: Validate generated production database
+        run: python3 tools/validate_production_quotes.py build/wood-curation/production/quotes.json
+
+      - name: Publish curation summaries
+        shell: bash
+        run: |
+          cat build/wood-curation/wood_report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/wood-curation/production/production-report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/wood-curation/production/finalization-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prepare promoted production files
+        if: github.event_name == 'push' && github.ref_name == 'quotes-database'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp build/wood-curation/production/quotes.json app/src/main/assets/quotes.json
+          cp build/wood-curation/production/production-source-ledger.jsonl docs/production-quote-sources.jsonl
+          {
+            echo '# Production Quote Curation Results'
+            echo
+            echo 'This document is generated from the deterministic production curation pipeline.'
+            echo
+            echo '## Source strategy'
+            echo
+            echo '- The original `jstet/quotes-500k` dataset is discovery-only and is not redistributed as the shipping database.'
+            echo '- Twelve individually source-verified public-domain quotes seed the production corpus.'
+            echo '- The large production lane is James Wood, *Dictionary of Quotations* (1893), Project Gutenberg eBook #48105.'
+            echo '- Every shipped record has a matching row in `docs/production-quote-sources.jsonl`, including a traceable source URL.'
+            echo '- Fiction and historical material remain eligible when authentic, context-independent, grounded enough to stand alone, motivational/insight-bearing, and redistribution-safe.'
+            echo '- The final pass rejects unresolved source labels, context fragments, editorial artifacts, sectarian/supernatural claims presented as advice, broad stereotypes, narrow political/legal material, and product-inappropriate nihilistic or death-prescriptive lines.'
+            echo
+            echo '## Mechanical production report'
+            echo
+            cat build/wood-curation/production/production-report.md
+            echo
+            echo '## Final semantic release pass'
+            echo
+            cat build/wood-curation/production/finalization-report.md
+          } > docs/quote-curation-results.md
+
+      - name: Commit promoted production corpus
+        if: github.event_name == 'push' && github.ref_name == 'quotes-database'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/quotes.json docs/production-quote-sources.jsonl docs/quote-curation-results.md
+          if git diff --cached --quiet; then
+            echo "Production corpus already matches generated output."
+            exit 0
+          fi
+          git commit -m "Quotes: promote validated production corpus"
+          git push origin HEAD:quotes-database
+
+      - name: Upload production review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wood-production-corpus
+          path: |
+            build/wood-curation/production/quotes.json
+            build/wood-curation/production/production-source-ledger.jsonl
+            build/wood-curation/production/production-report.md
+            build/wood-curation/production/finalization-report.md
+            build/wood-curation/wood_report.md
+          retention-days: 3
+          compression-level: 9

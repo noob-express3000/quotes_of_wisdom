@@ -1,0 +1,78 @@
+name: Curate Bartlett Quotations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - quotes-database
+    paths:
+      - "tools/curate_bartlett.py"
+      - "tools/normalize_bartlett_headers.py"
+      - "tools/check_bartlett_regressions.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-bartlett.yml"
+  pull_request:
+    paths:
+      - "tools/curate_bartlett.py"
+      - "tools/normalize_bartlett_headers.py"
+      - "tools/check_bartlett_regressions.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-bartlett.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  curate-bartlett:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Bartlett public-domain source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bartlett
+          curl \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 30 \
+            --output /tmp/bartlett/bartlett.txt \
+            "https://www.gutenberg.org/cache/epub/27889/pg27889.txt"
+          test -s /tmp/bartlett/bartlett.txt
+
+      - name: Normalize Bartlett author headers
+        run: |
+          python3 tools/normalize_bartlett_headers.py \
+            /tmp/bartlett/bartlett.txt \
+            /tmp/bartlett/bartlett-normalized.txt
+
+      - name: Build uncapped quotation candidate pool
+        run: |
+          python3 tools/curate_bartlett.py \
+            /tmp/bartlett/bartlett-normalized.txt \
+            build/bartlett-curation \
+            --minimum-score 8 \
+            --max-death-year 1955 \
+            --max-candidates 0
+
+      - name: Verify known author boundaries
+        run: python3 tools/check_bartlett_regressions.py build/bartlett-curation/bartlett_candidates.jsonl
+
+      - name: Publish Bartlett summary
+        shell: bash
+        run: cat build/bartlett-curation/bartlett_report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload short-lived Bartlett review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bartlett-candidates
+          path: |
+            build/bartlett-curation/bartlett_candidates.jsonl
+            build/bartlett-curation/bartlett_report.md
+          retention-days: 3
+          compression-level: 9

@@ -1,0 +1,14 @@
+[
+  {"id":1,"text":"If there is no struggle there is no progress.","author":"Frederick Douglass","classification":"resilience"},
+  {"id":2,"text":"Habit is habit, and not to be flung out of the window by any man, but coaxed down-stairs a step at a time.","author":"Mark Twain","classification":"discipline"},
+  {"id":3,"text":"If we will be quiet and ready enough, we shall find compensation in every disappointment.","author":"Henry David Thoreau","classification":"resilience"},
+  {"id":4,"text":"Modest doubt is called the beacon of the wise.","author":"William Shakespeare","classification":"learning"},
+  {"id":5,"text":"I am a part of all that I have met.","author":"Alfred, Lord Tennyson","classification":"growth"},
+  {"id":6,"text":"Come, my friends, ’Tis not too late to seek a newer world.","author":"Alfred, Lord Tennyson","classification":"hope"},
+  {"id":7,"text":"Histories make men wise; poets, witty; the mathematics, subtile; natural philosophy, deep; moral, grave; logic and rhetoric, able to contend.","author":"Francis Bacon","classification":"learning"},
+  {"id":8,"text":"The language of Friendship is not words, but meanings.","author":"Henry David Thoreau","classification":"relationships"},
+  {"id":9,"text":"What makes life dreary is the want of motive.","author":"George Eliot","classification":"purpose"},
+  {"id":10,"text":"I conceive a knowledge of books is the basis upon which other knowledge is to be built.","author":"George Washington","classification":"learning"},
+  {"id":11,"text":"Bad times have a scientific value. These are occasions a good learner would not miss.","author":"Ralph Waldo Emerson","classification":"resilience"},
+  {"id":12,"text":"If we had no winter, the spring would not be so pleasant; if we did not sometimes taste of adversity, prosperity would not be so welcome.","author":"Anne Bradstreet","classification":"resilience"}
+]

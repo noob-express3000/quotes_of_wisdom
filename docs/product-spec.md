@@ -21,6 +21,46 @@
 - The control previously interpreted as volume is a quote-text scroll control.
 - A handwritten note contains an unfinished requirement beginning `Replay button should ...`; no additional Replay-specific UI rule is frozen until that requirement is completed.
 
+## Home interaction details
+
+- The Settings gear is placed at the top-left of the home screen and uses the active theme's accent/10 color. Do not introduce a separate Material tertiary color.
+- The FREE/PRO status chip remains at the top-right.
+- The opening quote is displayed immediately when the app opens.
+- If TTS is available and the current access state permits speech, the opening quote begins speaking approximately 2 seconds after app launch.
+- A Share icon sits at the bottom-right of the quote container, below the author line.
+- A Favorite/Bookmark icon sits at the opposite bottom-left position of the quote container, below the author line.
+- Share, Favorite, Settings, and all other controls must remain inside the active theme's exact three-color palette.
+- Favorites are local-first and persisted on-device.
+- Sharing should produce a clean, tasteful quote-sharing experience suitable for organic distribution; final shared-card treatment is designed later without changing quote authenticity or attribution.
+
+## Theme direction
+
+- Theme experimentation should draw from established visually striking three-color combinations and strong real-world color references.
+- Prioritize visual impact and premium feel while preserving the exact three-base-color and perceptual 60/30/10 rules.
+- Do not add extra colors for shadows, icon ink, animation, or Material defaults.
+
+## Retention and streak behavior
+
+- Daily quote notifications are part of the retention loop.
+- A streak day is completed by opening the app at least once during that local calendar day. No extra interaction, playback, or quote-navigation requirement is imposed.
+- Reopening the app multiple times on the same calendar day does not increment the streak more than once.
+- A missed local calendar day breaks the streak.
+- When a user breaks a streak, the app should respond with an especially strong motivational quote rather than punitive or guilt-heavy messaging.
+- Notification copy should feel distinctive and may be humorous where appropriate rather than generic app-retention copy.
+- Humor must not undermine the meaning of serious quotes or become disrespectful after a broken streak.
+
+## Accessibility baseline
+
+Accessibility should be built in as implementation hygiene rather than treated as a separate visual mode:
+
+- Respect Android font scaling and avoid clipping long quotes.
+- Provide TalkBack/content descriptions for icon-only controls.
+- Use appropriately sized touch targets.
+- Preserve readable contrast inside every three-color theme.
+- Keep all important functionality usable without relying on animation alone.
+- Touch-triggered premium animations should degrade gracefully when motion is reduced or disabled.
+- TTS failure/unavailability must not prevent reading quote text.
+
 ## Access lifecycle
 
 ### TRIAL_ACTIVE
@@ -37,6 +77,7 @@ Trial capabilities:
 - Two themes.
 - TTS enabled with one fixed voice.
 - Fixed TTS speed.
+- On each cold app launch, show the upgrade/paywall experience before home. It is dismissible while the trial is active.
 
 ### GRACE_TEXT_ONLY
 
@@ -48,6 +89,7 @@ Capabilities:
 
 - Quote text remains accessible.
 - TTS is disabled.
+- On each cold app launch, show the upgrade/paywall experience before home. It remains dismissible during this grace period.
 - Upgrade messaging is shown.
 - Upgrade notifications may be delivered.
 
@@ -56,6 +98,7 @@ Capabilities:
 Begins after the 3-day text-only grace period.
 
 - Core app access is blocked by the upgrade/paywall experience.
+- The launch paywall is no longer dismissible while no valid Pro entitlement exists.
 - Upgrade notifications continue for at least the first 4 locked days, producing at least 7 post-trial days of upgrade reminders in total.
 - The app remains locked after that period until a valid Pro entitlement is active.
 
@@ -70,14 +113,23 @@ Capabilities:
 - TTS.
 - Multiple selectable TTS voices.
 - Adjustable TTS speed.
+- No launch upgrade interruption while Pro is active.
+
+A `cold app launch` means a new app-session entry, not every Android Activity resume after temporary backgrounding or notification-shade interaction.
+
+## Pro presentation
+
+- Pro should feel premium primarily through polished themes, speech customization, and interaction quality rather than feature clutter.
+- The Pro card should have a small touch-triggered motion treatment, such as a subtle flip or spin. The exact motion is selected after visual testing.
+- The animation must stay tasteful, responsive, and compatible with reduced-motion accessibility behavior.
 
 ## Commercial products
 
 Initial target prices:
 
-- Weekly: approximately USD 0.50.
-- Monthly: approximately USD 1.00.
-- Lifetime: approximately USD 70.00.
+- Weekly: approximately USD 0.50 — paywall label: `Try It!`
+- Monthly: approximately USD 1.00 — paywall label: `Best Value!`
+- Lifetime: approximately USD 29.00 — paywall label: `Own It!`
 
 The UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
 

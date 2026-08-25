@@ -1,0 +1,97 @@
+name: Curate Quotes Database
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - quotes-database
+    paths:
+      - "tools/curate_quotes.py"
+      - "tools/refine_quote_candidates.py"
+      - "tools/build_quote_verification_queue.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-quotes.yml"
+  pull_request:
+    paths:
+      - "tools/curate_quotes.py"
+      - "tools/refine_quote_candidates.py"
+      - "tools/build_quote_verification_queue.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-quotes.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  curate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout curation branch
+        uses: actions/checkout@v4
+
+      - name: Download Quotes-500K candidate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/quotes-source
+          curl \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 30 \
+            --output /tmp/quotes-source/quotes.csv \
+            "https://huggingface.co/datasets/jstet/quotes-500k/resolve/main/quotes.csv?download=true"
+          test -s /tmp/quotes-source/quotes.csv
+          du -h /tmp/quotes-source/quotes.csv
+
+      - name: Mechanically filter candidate pool
+        run: |
+          python3 tools/curate_quotes.py \
+            /tmp/quotes-source/quotes.csv \
+            build/quote-curation \
+            --sample-per-category 12 \
+            --minimum-score 4
+
+      - name: Apply high-precision gate
+        run: |
+          python3 tools/refine_quote_candidates.py \
+            build/quote-curation/candidates.jsonl \
+            build/quote-curation \
+            --sample-per-category 15 \
+            --minimum-score 7
+
+      - name: Build attribution and rights verification queue
+        run: |
+          python3 tools/build_quote_verification_queue.py \
+            build/quote-curation/high_precision_candidates.jsonl \
+            build/quote-curation \
+            --max-per-category 15 \
+            --minimum-score 8
+
+      - name: Publish curation summaries
+        shell: bash
+        run: |
+          cat build/quote-curation/report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/quote-curation/high_precision_report.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n---\n\n' >> "$GITHUB_STEP_SUMMARY"
+          cat build/quote-curation/verification_queue.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload short-lived review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quote-curation-candidates
+          path: |
+            build/quote-curation/candidates.jsonl
+            build/quote-curation/report.json
+            build/quote-curation/report.md
+            build/quote-curation/high_precision_candidates.jsonl
+            build/quote-curation/high_precision_report.json
+            build/quote-curation/high_precision_report.md
+            build/quote-curation/verification_queue.jsonl
+            build/quote-curation/verification_queue.md
+          retention-days: 3
+          compression-level: 9

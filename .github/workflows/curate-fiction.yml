@@ -1,0 +1,64 @@
+name: Curate Public-Domain Fiction
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - quotes-database
+    paths:
+      - "tools/curate_public_domain_fiction.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-fiction.yml"
+  pull_request:
+    paths:
+      - "tools/curate_public_domain_fiction.py"
+      - "docs/quote-curation-policy.md"
+      - ".github/workflows/curate-fiction.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  curate-fiction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download NLTK public-domain Gutenberg selections
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gutenberg
+          curl \
+            --location \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --connect-timeout 30 \
+            --output /tmp/gutenberg/gutenberg.zip \
+            "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/gutenberg.zip"
+          test -s /tmp/gutenberg/gutenberg.zip
+
+      - name: Build uncapped fiction candidate pool
+        run: |
+          python3 tools/curate_public_domain_fiction.py \
+            /tmp/gutenberg/gutenberg.zip \
+            build/fiction-curation \
+            --minimum-score 8 \
+            --max-candidates 0
+
+      - name: Publish fiction summary
+        shell: bash
+        run: cat build/fiction-curation/fiction_report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload short-lived fiction review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-domain-fiction-candidates
+          path: |
+            build/fiction-curation/fiction_candidates.jsonl
+            build/fiction-curation/fiction_report.md
+          retention-days: 3
+          compression-level: 9
