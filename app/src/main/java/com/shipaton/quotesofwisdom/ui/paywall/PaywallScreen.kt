@@ -15,8 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -77,7 +75,7 @@ fun PaywallScreen(
                 fontWeight = FontWeight.Black
             )
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(32.dp))
 
             PlanCard(
                 eyebrow = "Try It!",
@@ -86,7 +84,7 @@ fun PaywallScreen(
                 onClick = { onChoosePlan("weekly") }
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(18.dp))
 
             PlanCard(
                 eyebrow = "Best Value!",
@@ -96,7 +94,7 @@ fun PaywallScreen(
                 onClick = { onChoosePlan("monthly") }
             )
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(18.dp))
 
             PlanCard(
                 eyebrow = "Own It!",
@@ -127,48 +125,34 @@ private fun PlanCard(
             color = MaterialTheme.colorScheme.secondary
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 24.dp, vertical = 26.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = eyebrow,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 13.sp
-                )
+            Text(
+                text = eyebrow,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Black,
+                fontSize = 13.sp
+            )
 
-                Spacer(Modifier.height(2.dp))
+            Text(
+                text = title,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 23.sp,
+                lineHeight = 28.sp
+            )
 
-                Text(
-                    text = title,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 21.sp
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = price,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Button(
-                onClick = onClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text("Choose")
-            }
+            Text(
+                text = price,
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
