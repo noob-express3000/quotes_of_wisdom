@@ -18,12 +18,13 @@
 - Dynamic/Material colors must not introduce a hidden fourth color.
 - The home screen does not show a redundant `Quotes of Wisdom` title.
 - Quote text is displayed without added opening/closing quotation marks.
-- v1 now ships with **50 themes**: 2 Trial themes and 48 Pro themes.
+- v1 ships with **50 themes**: 2 Trial themes and 48 Pro themes.
 - Quotes are local and carry author + classification metadata.
 
 ## Home interaction details
 
 - Settings gear: top-left, accent/10 color.
+- Daily streak: centered in the top header as a compact flame/count treatment.
 - Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background.
 - Opening quote displays immediately.
 - If TTS is available and access permits speech, narration begins about 2 seconds later.
@@ -47,7 +48,7 @@
 ## Theme direction
 
 - Theme experimentation should use visually striking, proven three-color combinations and strong real-world color references.
-- The library should include both restrained/premium palettes and bolder high-contrast combinations; avoid making the collection feel uniformly soft or "hippy".
+- The library should include both restrained/premium palettes and bolder high-contrast combinations; avoid making the collection feel uniformly soft.
 - Every theme still obeys the exact three-base-color and perceptual 60/30/10 rules.
 - Theme cards keep consistent title/border placement throughout the gallery.
 
@@ -57,10 +58,11 @@ User-facing order after the header:
 
 1. Favorites launcher.
 2. Speech controls / Pro speech upsell.
-3. Daily streak, shown with lightweight typography rather than another bordered card.
-4. Themes last.
+3. Themes.
 
-Debug-only access controls may follow the user-facing sections.
+The streak is no longer duplicated in Settings; it lives on the Home header. Debug-only access controls may follow the user-facing sections in debug builds.
+
+Settings copy should stay terse. Do not add explanatory filler around speech, streak, or debug controls unless a real usability problem requires it.
 
 ## Retention and streak behavior
 
@@ -78,7 +80,6 @@ Debug-only access controls may follow the user-facing sections.
 - Use appropriately sized touch targets.
 - Preserve readable contrast inside every three-color theme.
 - Important functionality cannot depend on animation alone.
-- Touch-triggered premium animation must degrade gracefully when motion is reduced/disabled.
 - TTS failure/unavailability must never prevent reading quote text.
 
 ## Speech behavior
@@ -147,17 +148,19 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 ## Pro / paywall presentation
 
 - Pro should feel premium through polish, themes, speech customization, and interaction quality rather than feature clutter.
+- Paywall headline: `Choose your plan`.
 - Weekly label: `Try It!`
 - Monthly label: `Best Value!`
 - Lifetime label: `Own It!`
 - Monthly retains the thicker emphasis border.
-- Pricing cards have the small touch-triggered spin interaction; the large Pro hero card stays visually stable to reduce motion clutter.
+- Each pricing card is itself the purchase target; there is no separate `Choose` button.
+- The current paywall intentionally has no spinning Pro hero, no card-spin gimmick, and no filler/explanatory copy below the plans.
 - All paywall UI follows the active three-color palette.
 
 ## App icon
 
 - Do not use a generic light-bulb icon.
-- The launcher icon is a custom three-color mark based on a bold `Q`/quote motif using the default dominant, secondary and accent colors.
+- The launcher icon is a bold minimal `Q` mark using the app's three-color visual language.
 - Adaptive and legacy launcher resources are both provided.
 
 ## Commercial products
@@ -168,7 +171,7 @@ Initial target prices:
 - Monthly: approximately USD 1.00 — `Best Value!`
 - Lifetime: approximately USD 29.00 — `Own It!`
 
-The production UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
+The physical-test build may show target-price placeholders. The production RevenueCat build must display store/RevenueCat localized pricing rather than hardcoded currency strings.
 
 All paid products grant the same RevenueCat entitlement:
 
@@ -232,6 +235,7 @@ Moving the device clock backwards must never grant additional trial time.
 - Trial/Grace/Locked/Pro access previews exist only in debug builds.
 - The selected debug demo state persists across app restarts for reliable demonstrations.
 - Release builds ignore any persisted debug override value.
+- Keep debug controls functional but visually terse; explanatory debug copy is not required.
 
 ## Known limits
 
