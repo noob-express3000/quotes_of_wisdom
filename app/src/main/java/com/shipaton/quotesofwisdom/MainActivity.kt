@@ -133,7 +133,6 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             uiState = uiState,
                             ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking,
-                            ttsSpeaking = ttsState == TtsState.Speaking,
                             onNextQuote = {
                                 ttsController.stop()
                                 homeViewModel.nextQuote()
