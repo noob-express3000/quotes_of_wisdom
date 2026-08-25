@@ -42,7 +42,7 @@ local quote corpus
 - Every theme uses exactly 3 base colors. No hidden fourth ink color.
 - Perceptual 60/30/10 hierarchy: dominant / secondary / accent.
 - v1 target: 20 themes.
-- Dynamic/material-generated colors must not undermine the three-color rule.
+- Dynamic/Material-generated colors must not undermine the three-color rule.
 - Theme experimentation should prioritize visually striking, proven three-color combinations.
 - Settings gear: top-left, using the theme accent/10 color.
 - FREE/PRO chip: top-right.
@@ -50,13 +50,15 @@ local quote corpus
 - Favorite icon: bottom-left inside quote container below author.
 - Opening quote displays immediately; TTS starts about 2 seconds later when available/allowed.
 - No decorative quote marks are added around quote text.
+- The quote-scroll control is a text-scroll control, not volume.
+- The unfinished handwritten requirement beginning `Replay button should ...` is still unresolved; do not invent extra Replay-specific UI behavior.
 
 ## Frozen retention / paywall rules
 
 - A streak day is completed by opening the app at least once during the local calendar day.
 - Multiple openings in the same day count once.
 - Missing a local calendar day breaks the streak.
-- Broken streak response uses a strong motivational quote rather than guilt-heavy messaging.
+- Broken-streak response uses a strong motivational quote rather than guilt-heavy messaging.
 - Daily notifications are in scope and copy may be humorous where appropriate.
 - During TRIAL_ACTIVE, show the upgrade/paywall experience on each cold app launch; it is dismissible.
 - During the 3-day GRACE_TEXT_ONLY period, show the launch paywall; it remains dismissible, but TTS is disabled.
@@ -73,7 +75,7 @@ Target prices, subject to store-supported localized price points:
 
 All paid products grant RevenueCat entitlement `pro_access`.
 
-The UI must display localized store/RevenueCat pricing rather than hardcoded currency values.
+The UI must display localized store/RevenueCat pricing rather than hardcoded currency values in the production RevenueCat build.
 
 Access state machine:
 
@@ -150,7 +152,7 @@ Validated on a physical Android phone.
 
 ## M1 — COMPLETE
 
-Merged PR: #4 `M1: local quote engine`
+Merged PR #4: `M1: local quote engine`.
 
 Implemented:
 
@@ -163,9 +165,9 @@ Implemented:
 - strict three-base-color default theme
 - trial identity/clock hardening specification
 
-## PRODUCTION QUOTE CORPUS — COMPLETE ON PR #8 BRANCH
+## PRODUCTION QUOTE CORPUS — COMPLETE
 
-PR #8 (`Quotes: cloud curation pipeline`) produced and promoted the release corpus on branch `quotes-database`.
+Merged PR #8 on 2026-08-25. Merge commit: `1a2363e189951bf65c7cfc34654d0c2bc1f6e55e`.
 
 Final shipping corpus:
 
@@ -206,44 +208,57 @@ Source strategy:
 - every shipped record has a matching provenance-ledger row with a traceable source URL.
 - final semantic policy rejects unresolved source labels, fragments/editorial artifacts, product-inappropriate stereotypes, sectarian/supernatural claims framed as advice, narrow political/legal material, and nihilistic/death-prescriptive lines.
 
-Last validated finalization run retained 1,063 quotes and passed `tools/validate_production_quotes.py` before automatic promotion. The auto-promoted commit is `d9006eda19c19b3a19c792ac6904d38c532fd69e`.
+The quote corpus release gate is closed. Do not reopen it casually; future corpus edits must preserve validation and provenance.
 
-PR #8 should be merged only after the latest human-authored documentation/checkpoint commit triggers and passes the normal CI checks. After merge, the quote corpus release gate is fully closed.
+## CURRENT MILESTONE — M2 PHYSICAL-DEVICE PRODUCT TEST
 
-## CURRENT MILESTONE — M2 PRODUCT TEST BUILD
+Branch: `m2-product-test`
+PR: #9 `M2: physical-device product test build`
 
-After PR #8 merges, build the real speech subsystem and the home interactions needed for physical-device testing.
+Implemented on this branch:
 
-Required M2 speech scope:
+- Android `TextToSpeech` controller with asynchronous initialization and lifecycle shutdown.
+- fixed trial/default English voice and fixed trial speed.
+- Pro mode enumerates selectable English voices installed on the device.
+- Pro speech-speed adjustment from 0.7x to 1.4x.
+- Pro voice/speed preferences persisted in DataStore.
+- current quote speaks automatically about 2 seconds after display when speech is allowed.
+- Replay restarts current quote using `QUEUE_FLUSH`.
+- Next stops active speech, advances the no-repeat deck, then normal auto-speak timing applies.
+- graceful text fallback if TTS is unavailable.
+- Android 11+ TTS service query declaration.
+- Settings gear top-left using accent color.
+- local Favorite/Bookmark persistence.
+- Android share sheet for quote + author.
+- quote-text scroll button for long quotes.
+- 20 strict three-color themes; 2 free and 18 Pro-gated.
+- Material 3 color roles are explicitly collapsed onto the active three-color palette to avoid hidden fourth colors.
+- Settings screen with theme gallery, streak display, favorites list, and Pro speech controls.
+- daily-open streak persistence.
+- deterministic startup ordering so a broken streak can select an especially motivational opening quote.
+- Trial/Grace/Locked local access shell.
+- launch paywall in Trial/Grace and non-dismissible paywall in Locked.
+- target paywall labels/prices are visible only as product-test placeholders until RevenueCat supplies localized values.
+- touch-triggered Pro-card spin treatment.
+- debug-only state selector for Trial/Grace/Locked/Pro; choosing a non-Pro state opens the corresponding paywall immediately for physical testing.
 
-1. Android `TextToSpeech` controller/wrapper.
-2. asynchronous initialization handling.
-3. one default/fixed trial voice behavior.
-4. speak current quote.
-5. Replay speaks current quote again.
-6. opening quote auto-speaks approximately 2 seconds after app launch when TTS is available and access permits speech.
-7. Next stops/flushes active speech before replacing/speaking the quote.
-8. expose speaking/ready/error state cleanly to Compose.
-9. graceful fallback when TTS engine/voice data is unavailable.
-10. proper lifecycle cleanup via `shutdown()`.
-11. Android 11+ TTS service query declaration.
-12. CI remains green and an installable debug APK is produced.
+RevenueCat purchases are deliberately not connected in PR #9. Purchase buttons must remain clearly marked as test placeholders until the RevenueCat Test Store milestone.
 
-For the broader at-home product test, it is acceptable to include the already-frozen home controls/settings/favorites/theme/persistence/paywall-shell behavior in the same test PR, provided RevenueCat itself remains isolated until M5 and the build stays independently testable.
+Do not merge PR #9 until its final branch-head Android CI is green and the debug APK has been exercised on the user's physical Android device.
 
-## Later milestone order
+## Next milestones
 
 ```text
-M2  TTS + Replay + launch-delay/interruption + home test interactions
-M3  DataStore + favorites + 20-theme system + selector + persistence
-M4  access-state controller + trial/grace/locked UI + settings/paywall shell
+M2  finish CI + physical-device test + fix findings + merge PR #9
+M3  consolidate/polish persistence, favorites, themes and share-card UX already prototyped in M2
+M4  harden access-state controller, trial clocks and paywall UX already prototyped in M2
 M5  RevenueCat Test Store + deterministic opaque ID + offerings/purchase/restore/pro_access
-M6  notifications + daily streak + trial/grace conversion flow + hardening/analytics
+M6  notifications + streak/conversion flow + hardening/analytics
 M7  store/release hardening
 M8  submission polish: license, README, demo video, BuildInPublic evidence
 ```
 
-Galaxy Store work is currently optional/deprioritized; do not let seller-verification bureaucracy block the primary Next Gen / BuildInPublic path.
+Galaxy Store work is optional/deprioritized; do not let seller-verification bureaucracy block the primary Next Gen / BuildInPublic path.
 
 ## Development discipline
 
