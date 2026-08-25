@@ -2,6 +2,7 @@ package com.shipaton.quotesofwisdom.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,7 +20,9 @@ data class AppPreferences(
     val firstSeenMillis: Long = 0L,
     val streak: Int = 0,
     val bestStreak: Int = 0,
-    val lastOpenDay: Int = 0
+    val lastOpenDay: Int = 0,
+    val proVoiceName: String = "",
+    val proSpeechRate: Float = 1.0f
 )
 
 data class StreakUpdate(
@@ -36,6 +39,8 @@ class AppPreferencesRepository(private val context: Context) {
         val streak = intPreferencesKey("streak")
         val bestStreak = intPreferencesKey("best_streak")
         val lastOpenDay = intPreferencesKey("last_open_day")
+        val proVoiceName = stringPreferencesKey("pro_voice_name")
+        val proSpeechRate = floatPreferencesKey("pro_speech_rate")
     }
 
     val preferences: Flow<AppPreferences> = context.quotesDataStore.data.map { prefs ->
@@ -48,7 +53,9 @@ class AppPreferencesRepository(private val context: Context) {
             firstSeenMillis = prefs[Keys.firstSeenMillis] ?: 0L,
             streak = prefs[Keys.streak] ?: 0,
             bestStreak = prefs[Keys.bestStreak] ?: 0,
-            lastOpenDay = prefs[Keys.lastOpenDay] ?: 0
+            lastOpenDay = prefs[Keys.lastOpenDay] ?: 0,
+            proVoiceName = prefs[Keys.proVoiceName] ?: "",
+            proSpeechRate = prefs[Keys.proSpeechRate] ?: 1.0f
         )
     }
 
@@ -65,6 +72,14 @@ class AppPreferencesRepository(private val context: Context) {
 
     suspend fun setTheme(themeId: String) {
         context.quotesDataStore.edit { it[Keys.themeId] = themeId }
+    }
+
+    suspend fun setProVoice(voiceName: String) {
+        context.quotesDataStore.edit { it[Keys.proVoiceName] = voiceName }
+    }
+
+    suspend fun setProSpeechRate(rate: Float) {
+        context.quotesDataStore.edit { it[Keys.proSpeechRate] = rate.coerceIn(0.7f, 1.4f) }
     }
 
     suspend fun toggleFavorite(quoteId: Int) {
