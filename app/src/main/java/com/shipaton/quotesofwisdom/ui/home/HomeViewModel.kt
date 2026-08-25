@@ -47,12 +47,6 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            preferencesRepository.ensureTrialStarted()
-            val streakUpdate = preferencesRepository.recordColdOpen()
-            pendingBrokenStreak = streakUpdate.brokePreviousStreak
-        }
-
-        viewModelScope.launch {
             preferencesRepository.preferences.collect { prefs ->
                 val access = LocalAccessPolicy.stateFor(prefs.firstSeenMillis)
                 _uiState.value = _uiState.value.copy(
@@ -70,6 +64,9 @@ class HomeViewModel(
         }
 
         viewModelScope.launch {
+            preferencesRepository.ensureTrialStarted()
+            pendingBrokenStreak = preferencesRepository.recordColdOpen().brokePreviousStreak
+
             runCatching { repository.loadQuotes() }
                 .onSuccess { quotes ->
                     loadedQuotes = quotes
@@ -123,7 +120,10 @@ class HomeViewModel(
     }
 
     private fun chooseBrokenStreakQuote(quotes: List<Quote>): Quote? {
-        val motivationWords = Regex("\\b(hope|courage|brave|strength|persever|endure|begin|better|fear|progress|struggle)\\w*\\b", RegexOption.IGNORE_CASE)
+        val motivationWords = Regex(
+            "\\b(hope|courage|brave|strength|persever|endure|begin|better|fear|progress|struggle)\\w*\\b",
+            RegexOption.IGNORE_CASE
+        )
         val pool = quotes
             .asSequence()
             .filter { it.classification in setOf("resilience", "courage", "hope") }
