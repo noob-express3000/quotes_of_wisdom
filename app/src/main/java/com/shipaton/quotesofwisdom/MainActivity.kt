@@ -18,6 +18,7 @@ import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.LocalAccessPolicy
 import com.shipaton.quotesofwisdom.speech.TtsController
 import com.shipaton.quotesofwisdom.speech.TtsState
+import com.shipaton.quotesofwisdom.ui.favorites.FavoritesScreen
 import com.shipaton.quotesofwisdom.ui.home.HomeScreen
 import com.shipaton.quotesofwisdom.ui.home.HomeViewModel
 import com.shipaton.quotesofwisdom.ui.paywall.PaywallScreen
@@ -26,7 +27,7 @@ import com.shipaton.quotesofwisdom.ui.theme.DefaultTheme
 import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
 import com.shipaton.quotesofwisdom.ui.theme.themeById
 
-private enum class AppScreen { HOME, SETTINGS }
+private enum class AppScreen { HOME, SETTINGS, FAVORITES }
 
 class MainActivity : ComponentActivity() {
 
@@ -90,13 +91,21 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    screenName == AppScreen.FAVORITES.name -> {
+                        FavoritesScreen(
+                            favoriteQuotes = uiState.favoriteQuotes,
+                            onClose = { screenName = AppScreen.SETTINGS.name },
+                            onRemoveFavorite = homeViewModel::toggleFavorite
+                        )
+                    }
+
                     screenName == AppScreen.SETTINGS.name -> {
                         SettingsScreen(
                             selectedThemeId = uiState.themeId,
                             accessState = access,
                             streak = uiState.streak,
                             bestStreak = uiState.bestStreak,
-                            favoriteQuotes = uiState.favoriteQuotes,
+                            favoriteCount = uiState.favoriteQuotes.size,
                             ttsVoices = ttsVoices,
                             selectedVoiceName = selectedVoiceName,
                             speechRate = speechRate,
@@ -106,6 +115,7 @@ class MainActivity : ComponentActivity() {
                                     showPaywall = true
                                 }
                             },
+                            onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
                             onSelectTheme = homeViewModel::selectTheme,
                             onSelectVoice = { voiceName ->
                                 ttsController.setProVoice(voiceName)
