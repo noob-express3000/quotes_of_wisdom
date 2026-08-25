@@ -20,10 +20,11 @@
 - Quotes are local and carry author + classification/genre metadata.
 - The control previously interpreted as volume is a quote-text scroll control.
 - A handwritten note contains an unfinished requirement beginning `Replay button should ...`; no additional Replay-specific UI rule is frozen until that requirement is completed.
-- A Settings control is required from the home experience. Exact placement is finalized during UI prototyping.
 
 ## Home interaction details
 
+- The Settings gear is placed at the top-left of the home screen and uses the active theme's accent/10 color. Do not introduce a separate Material tertiary color.
+- The FREE/PRO status chip remains at the top-right.
 - The opening quote is displayed immediately when the app opens.
 - If TTS is available and the current access state permits speech, the opening quote begins speaking approximately 2 seconds after app launch.
 - A Share icon sits at the bottom-right of the quote container, below the author line.
@@ -38,12 +39,13 @@
 - Prioritize visual impact and premium feel while preserving the exact three-base-color and perceptual 60/30/10 rules.
 - Do not add extra colors for shadows, icon ink, animation, or Material defaults.
 
-## Retention and streak direction
+## Retention and streak behavior
 
 - Daily quote notifications are part of the retention loop.
-- A daily-engagement streak mechanic is now in scope.
+- A streak day is completed by opening the app at least once during that local calendar day. No extra interaction, playback, or quote-navigation requirement is imposed.
+- Reopening the app multiple times on the same calendar day does not increment the streak more than once.
+- A missed local calendar day breaks the streak.
 - When a user breaks a streak, the app should respond with an especially strong motivational quote rather than punitive or guilt-heavy messaging.
-- The exact definition of a completed streak day, streak-break timing, and any grace behavior must be frozen before implementation.
 - Notification copy should feel distinctive and may be humorous where appropriate rather than generic app-retention copy.
 - Humor must not undermine the meaning of serious quotes or become disrespectful after a broken streak.
 
@@ -75,6 +77,7 @@ Trial capabilities:
 - Two themes.
 - TTS enabled with one fixed voice.
 - Fixed TTS speed.
+- On each cold app launch, show the upgrade/paywall experience before home. It is dismissible while the trial is active.
 
 ### GRACE_TEXT_ONLY
 
@@ -86,6 +89,7 @@ Capabilities:
 
 - Quote text remains accessible.
 - TTS is disabled.
+- On each cold app launch, show the upgrade/paywall experience before home. It remains dismissible during this grace period.
 - Upgrade messaging is shown.
 - Upgrade notifications may be delivered.
 
@@ -94,6 +98,7 @@ Capabilities:
 Begins after the 3-day text-only grace period.
 
 - Core app access is blocked by the upgrade/paywall experience.
+- The launch paywall is no longer dismissible while no valid Pro entitlement exists.
 - Upgrade notifications continue for at least the first 4 locked days, producing at least 7 post-trial days of upgrade reminders in total.
 - The app remains locked after that period until a valid Pro entitlement is active.
 
@@ -108,6 +113,9 @@ Capabilities:
 - TTS.
 - Multiple selectable TTS voices.
 - Adjustable TTS speed.
+- No launch upgrade interruption while Pro is active.
+
+A `cold app launch` means a new app-session entry, not every Android Activity resume after temporary backgrounding or notification-shade interaction.
 
 ## Pro presentation
 
