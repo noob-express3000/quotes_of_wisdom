@@ -14,52 +14,88 @@
 - The dominant/60 color owns the app canvas and the largest visible surfaces.
 - The secondary/30 color is the primary text/structural color and the background color of primary controls.
 - The accent/10 color is reserved for control labels/highlights and other small emphasis areas.
-- The home screen does not show a redundant `Quotes of Wisdom` title in the top-left corner.
-- Quote text is displayed without added opening/closing quotation marks; the bordered quote container already provides the visual framing.
-- v1 ships with 20 themes.
-- Quotes are local and carry author + classification/genre metadata.
-- The control previously interpreted as volume is a quote-text scroll control.
-- A handwritten note contains an unfinished requirement beginning `Replay button should ...`; no additional Replay-specific UI rule is frozen until that requirement is completed.
+- Unimportant/supporting copy uses the secondary color rather than consuming the accent role.
+- Dynamic/Material colors must not introduce a hidden fourth color.
+- The home screen does not show a redundant `Quotes of Wisdom` title.
+- Quote text is displayed without added opening/closing quotation marks.
+- v1 now ships with **50 themes**: 2 Trial themes and 48 Pro themes.
+- Quotes are local and carry author + classification metadata.
 
 ## Home interaction details
 
-- The Settings gear is placed at the top-left of the home screen and uses the active theme's accent/10 color. Do not introduce a separate Material tertiary color.
-- The FREE/PRO status chip remains at the top-right.
-- The opening quote is displayed immediately when the app opens.
-- If TTS is available and the current access state permits speech, the opening quote begins speaking approximately 2 seconds after app launch.
-- A Share icon sits at the bottom-right of the quote container, below the author line.
-- A Favorite/Bookmark icon sits at the opposite bottom-left position of the quote container, below the author line.
-- Share, Favorite, Settings, and all other controls must remain inside the active theme's exact three-color palette.
-- Favorites are local-first and persisted on-device.
-- Sharing should produce a clean, tasteful quote-sharing experience suitable for organic distribution; final shared-card treatment is designed later without changing quote authenticity or attribution.
+- Settings gear: top-left, accent/10 color.
+- Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background.
+- Opening quote displays immediately.
+- If TTS is available and access permits speech, narration begins about 2 seconds later.
+- Favorite/Bookmark: bottom-left inside the quote container below the author.
+- Share: bottom-right inside the quote container below the author.
+- Long quote text is directly swipe-scrollable. The extra downward-arrow scroll control is removed.
+- Replay restarts the current quote using TTS queue flush.
+- Next stops active speech before advancing.
+- Favorites are persisted locally.
+- Favorites open in their own dedicated screen from Settings, with a close control and per-item removal.
+- Sharing remains plain attributed text for the current test build; final share-card polish can follow later.
+
+## Quote personalization
+
+- The global quote deck keeps the no-repeat shuffle behavior.
+- Favoriting quotes is also a lightweight preference signal.
+- When favorites exist, the app identifies the user's three most-favorited classifications.
+- `Next` biases approximately 70% of eligible draws toward those classifications while still consuming the same global no-repeat deck.
+- The remaining draws preserve exploration and prevent the app from collapsing into a single category.
 
 ## Theme direction
 
-- Theme experimentation should draw from established visually striking three-color combinations and strong real-world color references.
-- Prioritize visual impact and premium feel while preserving the exact three-base-color and perceptual 60/30/10 rules.
-- Do not add extra colors for shadows, icon ink, animation, or Material defaults.
+- Theme experimentation should use visually striking, proven three-color combinations and strong real-world color references.
+- The library should include both restrained/premium palettes and bolder high-contrast combinations; avoid making the collection feel uniformly soft or "hippy".
+- Every theme still obeys the exact three-base-color and perceptual 60/30/10 rules.
+- Theme cards keep consistent title/border placement throughout the gallery.
+
+## Settings hierarchy
+
+User-facing order after the header:
+
+1. Favorites launcher.
+2. Speech controls / Pro speech upsell.
+3. Daily streak, shown with lightweight typography rather than another bordered card.
+4. Themes last.
+
+Debug-only access controls may follow the user-facing sections.
 
 ## Retention and streak behavior
 
 - Daily quote notifications are part of the retention loop.
-- A streak day is completed by opening the app at least once during that local calendar day. No extra interaction, playback, or quote-navigation requirement is imposed.
-- Reopening the app multiple times on the same calendar day does not increment the streak more than once.
+- A streak day is completed by opening the app at least once during that local calendar day.
+- Multiple openings in the same day count once.
 - A missed local calendar day breaks the streak.
-- When a user breaks a streak, the app should respond with an especially strong motivational quote rather than punitive or guilt-heavy messaging.
-- Notification copy should feel distinctive and may be humorous where appropriate rather than generic app-retention copy.
-- Humor must not undermine the meaning of serious quotes or become disrespectful after a broken streak.
+- Broken streak response uses an especially strong motivational quote rather than guilt-heavy messaging.
+- Notification copy should feel distinctive and may be humorous where appropriate.
 
 ## Accessibility baseline
-
-Accessibility should be built in as implementation hygiene rather than treated as a separate visual mode:
 
 - Respect Android font scaling and avoid clipping long quotes.
 - Provide TalkBack/content descriptions for icon-only controls.
 - Use appropriately sized touch targets.
 - Preserve readable contrast inside every three-color theme.
-- Keep all important functionality usable without relying on animation alone.
-- Touch-triggered premium animations should degrade gracefully when motion is reduced or disabled.
-- TTS failure/unavailability must not prevent reading quote text.
+- Important functionality cannot depend on animation alone.
+- Touch-triggered premium animation must degrade gracefully when motion is reduced/disabled.
+- TTS failure/unavailability must never prevent reading quote text.
+
+## Speech behavior
+
+### Trial
+
+- TTS enabled during `TRIAL_ACTIVE`.
+- One fixed English voice and fixed 1.0x speed.
+- The fixed voice is chosen deterministically from the device's available English voices, preferring a higher-quality **local/on-device** voice over a network-required voice.
+- OEM TTS initialization/voice-enumeration failures degrade to text-only behavior instead of crashing the app.
+
+### Pro
+
+- Selectable English voices exposed by the Android TTS engine.
+- Voice labels identify whether a voice is local or online/network-backed.
+- Adjustable speech rate from 0.7x to 1.4x.
+- Voice/rate preferences persist locally.
 
 ## Access lifecycle
 
@@ -69,83 +105,82 @@ Starts automatically on first installation. No card or subscription enrollment i
 
 Duration: 30 days.
 
-Trial capabilities:
+Capabilities:
 
 - Full quote browsing.
 - Replay and Next.
 - Quote-text scrolling.
 - Two themes.
-- TTS enabled with one fixed voice.
-- Fixed TTS speed.
-- On each cold app launch, show the upgrade/paywall experience before home. It is dismissible while the trial is active.
+- TTS with one fixed local-preferred voice and fixed speed.
+- On each cold app launch, show the upgrade/paywall experience before home. It is dismissible during Trial.
 
 ### GRACE_TEXT_ONLY
 
-Begins immediately after the 30-day trial expires.
-
-Duration: 3 days.
-
-Capabilities:
+Duration: 3 days immediately after Trial.
 
 - Quote text remains accessible.
 - TTS is disabled.
-- On each cold app launch, show the upgrade/paywall experience before home. It remains dismissible during this grace period.
-- Upgrade messaging is shown.
-- Upgrade notifications may be delivered.
+- Launch paywall is shown and remains dismissible.
+- Upgrade messaging/notifications may be shown.
 
 ### LOCKED
 
 Begins after the 3-day text-only grace period.
 
 - Core app access is blocked by the upgrade/paywall experience.
-- The launch paywall is no longer dismissible while no valid Pro entitlement exists.
-- Upgrade notifications continue for at least the first 4 locked days, producing at least 7 post-trial days of upgrade reminders in total.
-- The app remains locked after that period until a valid Pro entitlement is active.
+- Launch paywall is non-dismissible without valid Pro access.
+- Upgrade notifications continue for at least the first 4 locked days, producing at least 7 post-trial reminder days total.
 
 ### PRO
 
-Any active paid product granting the `pro_access` entitlement enters this state.
-
-Capabilities:
+Any active paid product granting `pro_access` enters this state.
 
 - Continued app access.
-- All 20 themes.
+- All 50 themes.
 - TTS.
-- Multiple selectable TTS voices.
-- Adjustable TTS speed.
-- No launch upgrade interruption while Pro is active.
+- Selectable voices.
+- Adjustable speech speed.
+- No launch upgrade interruption.
 
-A `cold app launch` means a new app-session entry, not every Android Activity resume after temporary backgrounding or notification-shade interaction.
+A `cold app launch` means a new app-session entry, not every temporary Activity resume.
 
-## Pro presentation
+## Pro / paywall presentation
 
-- Pro should feel premium primarily through polished themes, speech customization, and interaction quality rather than feature clutter.
-- The Pro card should have a small touch-triggered motion treatment, such as a subtle flip or spin. The exact motion is selected after visual testing.
-- The animation must stay tasteful, responsive, and compatible with reduced-motion accessibility behavior.
+- Pro should feel premium through polish, themes, speech customization, and interaction quality rather than feature clutter.
+- Weekly label: `Try It!`
+- Monthly label: `Best Value!`
+- Lifetime label: `Own It!`
+- Monthly retains the thicker emphasis border.
+- Pricing cards have the small touch-triggered spin interaction; the large Pro hero card stays visually stable to reduce motion clutter.
+- All paywall UI follows the active three-color palette.
+
+## App icon
+
+- Do not use a generic light-bulb icon.
+- The launcher icon is a custom three-color mark based on a bold `Q`/quote motif using the default dominant, secondary and accent colors.
+- Adaptive and legacy launcher resources are both provided.
 
 ## Commercial products
 
 Initial target prices:
 
-- Weekly: approximately USD 0.50 — paywall label: `Try It!`
-- Monthly: approximately USD 1.00 — paywall label: `Best Value!`
-- Lifetime: approximately USD 29.00 — paywall label: `Own It!`
+- Weekly: approximately USD 0.50 — `Try It!`
+- Monthly: approximately USD 1.00 — `Best Value!`
+- Lifetime: approximately USD 29.00 — `Own It!`
 
-The UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
+The production UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
 
 All paid products grant the same RevenueCat entitlement:
 
 `pro_access`
 
-The application should not branch on weekly/monthly/lifetime product identifiers when deciding feature access.
+Feature access must not branch on weekly/monthly/lifetime product identifiers.
 
 ## Trial implementation
 
-The 30-day install trial is app-controlled because it begins automatically on installation without requiring the user to enroll in an auto-renewing subscription.
+The 30-day install trial is app-controlled because it begins automatically on installation without requiring auto-renewing subscription enrollment.
 
 RevenueCat remains authoritative for paid Pro entitlement state.
-
-Internal access model:
 
 ```text
 TRIAL_ACTIVE
@@ -163,11 +198,7 @@ Any state + active pro_access -> PRO
 
 ## Trial identity hardening
 
-The app will not use RevenueCat's randomly generated anonymous ID for the final purchase/trial implementation.
-
-Instead, it will derive a stable opaque RevenueCat App User ID from app-scoped device information. The raw Android identifier must never be displayed, logged, or transmitted as the RevenueCat identifier.
-
-Conceptual derivation:
+The final purchase/trial implementation derives a stable opaque RevenueCat App User ID from app-scoped device information rather than using a random anonymous RevenueCat ID.
 
 ```text
 ANDROID_ID
@@ -181,23 +212,27 @@ SHA-256
 opaque RevenueCat App User ID
 ```
 
-This gives the same signed app on the same Android user/device a stable RevenueCat identity across normal uninstall/reinstall cycles while avoiding a custom login system.
+The raw Android identifier must never be displayed, logged, or transmitted as the RevenueCat identifier.
 
-RevenueCat customer history, including first-seen timing when available, can then be used as an external anchor for trial history. Local DataStore state remains the fast/offline cache.
+RevenueCat customer history/first-seen timing can serve as an external trial-history anchor. Local DataStore state remains the fast/offline cache.
 
 ## Clock rollback hardening
 
-Trial calculations must not trust the user-editable wall clock by itself.
-
-The implementation will track:
+Trial calculations must not trust user-editable wall time alone. Track:
 
 - local trial-start timestamp,
 - latest observed wall-clock timestamp,
 - monotonic elapsed time during a running installation,
 - RevenueCat first-seen/customer timing when available.
 
-Moving the device clock backwards must never grant additional trial time. If timestamps disagree, the access controller should choose the earliest defensible trial start / most restrictive valid elapsed state rather than extending access.
+Moving the device clock backwards must never grant additional trial time.
+
+## Debug demo behavior
+
+- Trial/Grace/Locked/Pro access previews exist only in debug builds.
+- The selected debug demo state persists across app restarts for reliable demonstrations.
+- Release builds ignore any persisted debug override value.
 
 ## Known limits
 
-This design is intended to deter casual trial resets without creating a backend or account system. It is not expected to resist factory resets, a new Android user profile, signing-key changes, rooted/device-tampered environments, or sophisticated integrity bypasses. Stronger abuse resistance would require platform attestation and/or server-side state and is intentionally outside v1 unless real-world abuse justifies it.
+This design deters casual trial resets without a backend/account system. It is not intended to resist factory resets, new Android user profiles, signing-key changes, rooted/device-tampered environments, or sophisticated integrity bypasses.
