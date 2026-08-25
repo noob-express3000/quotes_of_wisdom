@@ -37,25 +37,29 @@ local corpus
 - Exactly 3 base colors per theme; perceptual 60/30/10 dominant/secondary/accent.
 - All Material roles collapse onto those same 3 colors.
 - Supporting/unimportant copy uses secondary, not accent.
-- Theme library is now **50 themes**: 2 Trial + 48 Pro.
+- Theme library is **50 themes**: 2 Trial + 48 Pro.
 - Include stronger/bolder palettes; do not make the collection uniformly soft.
 - Settings gear: top-left, accent.
+- Streak: centered in Home header as compact flame/count treatment.
 - Access label: top-right floating accent text with no background pill.
 - Favorite: bottom-left inside quote card below author.
 - Share: bottom-right inside quote card below author.
 - Long quote text scrolls directly by touch; extra down-arrow control removed.
 - No decorative quote marks around quote text.
-- Custom three-color Q/quote launcher icon replaces generic bulb imagery.
+- Custom bold minimal Q launcher icon replaces generic bulb imagery.
 
 ## Settings hierarchy after physical-test review
 
 1. Favorites launcher first.
 2. Speech controls second.
-3. Daily streak as lightweight text/illustration-style information, not another card.
-4. Themes last among user-facing settings.
-5. Debug-only access preview may follow.
+3. Themes.
+4. Debug-only access preview may follow in debug builds.
 
-Favorites now open in a dedicated screen with close control and per-item removal.
+The streak is no longer duplicated in Settings; it lives on the Home header.
+
+Favorites open in a dedicated screen with close control and per-item removal.
+
+Settings copy is intentionally terse. Speech explanations, streak explanations, and debug explanations were removed after physical testing because they added clutter without helping the flow.
 
 ## Quote personalization
 
@@ -98,7 +102,15 @@ Pricing targets:
 - Monthly ≈ $1.00 — `Best Value!`
 - Lifetime ≈ $29 — `Own It!`
 
-Monthly keeps the thicker emphasis border. Pricing cards now carry the touch-spin interaction; the large Pro hero remains stable.
+Current paywall presentation:
+
+- headline `Choose your plan`;
+- three large clickable pricing cards;
+- no separate `Choose` buttons;
+- Monthly keeps the thicker emphasis border;
+- no spinning hero/card interaction;
+- no bottom filler/explanatory text;
+- target prices remain physical-test placeholders until RevenueCat supplies localized store pricing.
 
 All products eventually grant one RevenueCat entitlement: `pro_access`.
 
@@ -112,7 +124,7 @@ DAY 34+    LOCKED
 ANY STATE + active pro_access -> PRO
 ```
 
-Debug Trial/Grace/Locked/Pro overrides are debug-only and now persist across app restarts for reliable demonstrations. Release builds ignore persisted debug overrides.
+Debug Trial/Grace/Locked/Pro overrides are debug-only and persist across app restarts for reliable demonstrations. Release builds ignore persisted debug overrides.
 
 ## Trial hardening plan for RevenueCat milestone
 
@@ -166,35 +178,43 @@ Do not casually reopen the corpus gate.
 Branch: `m2-product-test`
 PR: #9 `M2: physical-device product test build`
 
-Originally tested build exposed the following physical-test feedback, now addressed on branch:
+Latest physical-test UI code checkpoint before this documentation sync: `1f87f0c3d7ed5e7dea9bf53b95b725cab1f4507c`.
+
+GitHub Actions run #130 (`32884550888`) passed on that code checkpoint.
+
+Physical-test feedback currently addressed on branch:
 
 - remove down-arrow from quote card -> **done**; direct swipe remains;
 - floating FREE/PRO text instead of background pill -> **done**;
-- Settings hierarchy felt too busy -> **done**; Favorites first, Speech second, streak simplified, Themes last;
+- move streak out of Settings and into Home header -> **done**;
+- Settings hierarchy felt too busy -> **done**; Favorites first, Speech second, Themes last;
+- remove filler/explanatory Settings copy -> **done**;
 - Favorites should have own window -> **done**;
 - add more/bolder themes -> **done**, 50 total;
 - bias quotes toward classifications the user favorites -> **done**;
 - default voice disliked -> **done**, local/high-quality voice preferred;
 - identify local versus online voices -> **done**;
-- generic/missing launcher icon -> **done**, custom Q/quote icon;
-- spin pricing cards rather than hero -> **done**;
+- generic/missing launcher icon -> **done**, bold minimal Q icon;
+- simplify subscription page -> **done**, headline + three large cards only;
+- remove subscription `Choose` buttons -> **done**, full card is clickable;
+- remove subscription filler copy -> **done**;
+- remove spin treatment from subscription presentation -> **done**;
 - preserve monthly thick border -> **kept**;
 - debug/demo access state should survive restart -> **done**;
+- remove debug explanation text while keeping controls -> **done**;
 - locked-feature paywall behavior was liked -> **preserved**.
 
-One hardware note remains to verify on-device: the handwritten test mentions the app not running on a `V50 Lite`. Public specs for the vivo V50 Lite are Android 15, so minSdk is not the obvious cause. TTS initialization is now hardened, but if the next APK still fails on that phone, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
+One hardware note remains to verify on-device: the handwritten test mentioned the app not running on a `V50 Lite`. Public specs for the vivo V50 Lite are Android 15, so minSdk is not the obvious cause. TTS initialization is hardened, but if a current build still fails on that phone, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
 
-RevenueCat purchase buttons are still explicit placeholders in PR #9.
+RevenueCat purchase buttons are still placeholders in PR #9.
 
 ## Immediate next action
 
-1. Run branch-head Android CI after these physical-test fixes.
-2. Inspect actual compiler/build logs.
-3. Download the new `quotes-of-wisdom-debug` artifact.
-4. User installs/tests this revised APK, including V50 Lite if available.
-5. Fix any remaining findings.
-6. Merge PR #9 only after physical-device signoff.
-7. Begin RevenueCat Test Store milestone.
+1. Keep PR #9 open until the newest physical-device UI is signed off.
+2. Test the current branch-head APK on the primary Android device and V50 Lite if available.
+3. Fix any remaining findings.
+4. Merge PR #9 only after physical-device signoff and green branch-head CI.
+5. Begin RevenueCat Test Store milestone.
 
 ## Later milestones
 
