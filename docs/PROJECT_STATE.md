@@ -2,272 +2,217 @@
 
 _Last updated: 2026-08-25_
 
-This file is the handoff checkpoint for continuing development from any ChatGPT window, computer, Codespace, or local checkout. Read this file first, then `docs/product-spec.md`, before making product or architecture changes.
+This is the handoff checkpoint. Read this file, then `docs/product-spec.md`, before changing product behavior.
 
 ## Working mode
 
-This project is intentionally vibe-coded.
+This project is intentionally vibe-coded. The user/product owner defines behavior, tests real-device builds, reviews source, and proposes changes. ChatGPT performs most implementation, architecture, testing scaffolding, CI maintenance, and debugging.
 
-The user/product owner defines product behavior, tests builds on real hardware, reads/reviews the source, and may propose improvements. ChatGPT is expected to perform the coding, architecture implementation, testing scaffolding, CI maintenance, and debugging.
-
-The user/product owner intends to handle the public development/storytelling narrative personally, including how the AI-assisted implementation process is presented.
-
-Do not redesign the product idea unless explicitly asked. Preserve the frozen concept and optimize execution.
+Do not redesign the product idea unless explicitly asked.
 
 ## Repository
 
 Canonical repo: `noob-express3000/quotes_of_wisdom`
 
-GitHub is the source of truth. The project is set up to work from Windows, Linux/macOS, GitHub Codespaces/browser, and GitHub Actions. The canonical clean build is GitHub Actions.
+GitHub is source of truth. GitHub Actions is the canonical clean Android build.
 
 ## Product summary
 
-Android-only, local-first quote application using Android Text-to-Speech and RevenueCat for paid entitlement management.
+Android-only, local-first quote app using Android Text-to-Speech and RevenueCat for paid entitlement management.
 
 No login, registration, custom backend, or user account system.
 
-Core loop:
-
 ```text
-local quote corpus
-    -> shuffled/no-repeat quote selection
-    -> quote displayed
-    -> TTS reads quote
-    -> replay / next / text scroll
-    -> repeated use
+local corpus
+ -> global shuffled/no-repeat deck
+ -> favorites lightly personalize classifications
+ -> quote display
+ -> TTS
+ -> replay / next / direct text scroll
+ -> favorites / share / themes / streak
 ```
 
 ## Frozen visual / interaction rules
 
-- Every theme uses exactly 3 base colors. No hidden fourth ink color.
-- Perceptual 60/30/10 hierarchy: dominant / secondary / accent.
-- v1 target: 20 themes.
-- Dynamic/Material-generated colors must not undermine the three-color rule.
-- Theme experimentation should prioritize visually striking, proven three-color combinations.
-- Settings gear: top-left, using the theme accent/10 color.
-- FREE/PRO chip: top-right.
-- Share icon: bottom-right inside quote container below author.
-- Favorite icon: bottom-left inside quote container below author.
-- Opening quote displays immediately; TTS starts about 2 seconds later when available/allowed.
-- No decorative quote marks are added around quote text.
-- The quote-scroll control is a text-scroll control, not volume.
-- The unfinished handwritten requirement beginning `Replay button should ...` is still unresolved; do not invent extra Replay-specific UI behavior.
+- Exactly 3 base colors per theme; perceptual 60/30/10 dominant/secondary/accent.
+- All Material roles collapse onto those same 3 colors.
+- Supporting/unimportant copy uses secondary, not accent.
+- Theme library is now **50 themes**: 2 Trial + 48 Pro.
+- Include stronger/bolder palettes; do not make the collection uniformly soft.
+- Settings gear: top-left, accent.
+- Access label: top-right floating accent text with no background pill.
+- Favorite: bottom-left inside quote card below author.
+- Share: bottom-right inside quote card below author.
+- Long quote text scrolls directly by touch; extra down-arrow control removed.
+- No decorative quote marks around quote text.
+- Custom three-color Q/quote launcher icon replaces generic bulb imagery.
 
-## Frozen retention / paywall rules
+## Settings hierarchy after physical-test review
 
-- A streak day is completed by opening the app at least once during the local calendar day.
-- Multiple openings in the same day count once.
-- Missing a local calendar day breaks the streak.
-- Broken-streak response uses a strong motivational quote rather than guilt-heavy messaging.
-- Daily notifications are in scope and copy may be humorous where appropriate.
-- During TRIAL_ACTIVE, show the upgrade/paywall experience on each cold app launch; it is dismissible.
-- During the 3-day GRACE_TEXT_ONLY period, show the launch paywall; it remains dismissible, but TTS is disabled.
-- During LOCKED, the paywall is non-dismissible until `pro_access` becomes active.
-- Temporary Activity resumes/background returns do not count as a new cold launch.
+1. Favorites launcher first.
+2. Speech controls second.
+3. Daily streak as lightweight text/illustration-style information, not another card.
+4. Themes last among user-facing settings.
+5. Debug-only access preview may follow.
 
-## Frozen commercial/access model
+Favorites now open in a dedicated screen with close control and per-item removal.
 
-Target prices, subject to store-supported localized price points:
+## Quote personalization
 
-- approximately USD 0.50 weekly — `Try It!`
-- approximately USD 1.00 monthly — `Best Value!`
-- approximately USD 29 lifetime — `Own It!`
+The production corpus remains globally shuffled with no repeats during a cycle. Favorites are additionally used as a lightweight taste signal:
 
-All paid products grant RevenueCat entitlement `pro_access`.
+- determine the user's top 3 favorited classifications;
+- approximately 70% of eligible `Next` draws are biased toward those classifications;
+- the same global deck is still consumed, preserving exploration and no-repeat behavior.
 
-The UI must display localized store/RevenueCat pricing rather than hardcoded currency values in the production RevenueCat build.
+## Speech rules
 
-Access state machine:
+Trial:
 
-```text
-DAY 0-30
-TRIAL_ACTIVE
-- full quote browsing
-- replay / next / scrolling
-- TTS enabled
-- 1 fixed TTS voice
-- fixed TTS speed
-- 2 themes
+- one fixed English voice + 1.0x speed;
+- trial voice prefers the best available **local/on-device** English voice using Android TTS quality/latency metadata;
+- OEM TTS constructor, voice enumeration, and playback failures degrade to text instead of taking down the app.
 
-DAY 31-33
-GRACE_TEXT_ONLY
-- quote text remains accessible
-- TTS disabled
-- upgrade messaging/notifications
+Pro:
 
-DAY 34+
-LOCKED
-- core app locked behind upgrade/paywall
-- upgrade notifications continue for at least first 4 locked days
-- combined post-trial upgrade reminder period >= 7 days
+- installed English voices are selectable;
+- labels indicate `local` versus `online`;
+- rate 0.7x–1.4x;
+- voice/rate persist in DataStore.
 
-ANY STATE + active `pro_access`
-PRO
-- full access
-- all 20 themes
-- TTS
-- multiple selectable voices
-- adjustable TTS speed
-```
+## Retention / paywall
 
-The 30-day trial starts automatically on installation. No card/subscription enrollment is required to begin it.
+- streak day = opening app at least once in local calendar day;
+- multiple opens same day count once;
+- missed day breaks streak;
+- broken streak gets strong motivational opening quote;
+- daily notifications still to be implemented;
+- Trial launch paywall: dismissible;
+- 3-day Grace launch paywall: dismissible, TTS off;
+- Locked: paywall non-dismissible;
+- Pro: no launch paywall.
 
-## Trial-abuse hardening decision
+Pricing targets:
 
-Do not rely solely on a local installation timestamp.
+- Weekly ≈ $0.50 — `Try It!`
+- Monthly ≈ $1.00 — `Best Value!`
+- Lifetime ≈ $29 — `Own It!`
 
-When RevenueCat is integrated, use a deterministic opaque device-scoped App User ID rather than a random RevenueCat anonymous ID.
+Monthly keeps the thicker emphasis border. Pricing cards now carry the touch-spin interaction; the large Pro hero remains stable.
 
-Planned identity concept:
+All products eventually grant one RevenueCat entitlement: `pro_access`.
+
+## Access state machine
 
 ```text
-ANDROID_ID + app/package/signing context
-    -> one-way hash
-    -> opaque RevenueCat App User ID
+DAY 0-30   TRIAL_ACTIVE
+DAY 31-33  GRACE_TEXT_ONLY
+DAY 34+    LOCKED
+
+ANY STATE + active pro_access -> PRO
 ```
 
-Never transmit/store the raw Android ID unnecessarily.
+Debug Trial/Grace/Locked/Pro overrides are debug-only and now persist across app restarts for reliable demonstrations. Release builds ignore persisted debug overrides.
 
-Use RevenueCat customer history/first-seen information as an external anchor where suitable so ordinary reinstall does not trivially reset the trial.
+## Trial hardening plan for RevenueCat milestone
 
-Use layered time checks to resist manual wall-clock rollback:
+Use a deterministic opaque device-scoped App User ID:
 
-- persisted last-seen wall time
-- monotonic `SystemClock.elapsedRealtime()` while the boot session exists
-- RevenueCat/external first-seen anchor when online
+```text
+ANDROID_ID + package + signing certificate fingerprint
+ -> SHA-256
+ -> opaque RevenueCat App User ID
+```
 
-Known residual edge cases such as factory reset/new Android user/rooted-device manipulation are acceptable for v1.
+Never expose/transmit the raw Android ID as the RevenueCat identifier.
+
+Layer trial clocks using persisted wall time, monotonic elapsed time, and RevenueCat first-seen/customer timing so clock rollback cannot extend the trial.
 
 ## M0 — COMPLETE
 
-Validated on a physical Android phone.
-
-- Kotlin Android project
-- Jetpack Compose + Material 3
+- Kotlin + Compose Android project
 - API 36 toolchain
-- GitHub Actions APK build
-- APK installs and launches on physical Android
-- home-screen shell
-- universal dev environment / Codespaces support
+- Actions APK build
+- physical-device launch validated
 
 ## M1 — COMPLETE
 
-Merged PR #4: `M1: local quote engine`.
+Merged PR #4.
 
-Implemented:
-
-- local bundled `quotes.json`
-- quote model with author + classification metadata
-- asset-backed quote repository
-- shuffle/no-repeat quote deck
-- `HomeViewModel` using `StateFlow`
-- working `Next` button
-- strict three-base-color default theme
-- trial identity/clock hardening specification
+- asset quote repository
+- quote model
+- global shuffled/no-repeat deck
+- StateFlow ViewModel
+- Next button
+- strict three-color default theme
 
 ## PRODUCTION QUOTE CORPUS — COMPLETE
 
-Merged PR #8 on 2026-08-25. Merge commit: `1a2363e189951bf65c7cfc34654d0c2bc1f6e55e`.
+Merged PR #8, merge commit `1a2363e189951bf65c7cfc34654d0c2bc1f6e55e`.
 
-Final shipping corpus:
+- 1,063 shipping quotes
+- 356 authors
+- 12 categories, each >=20
+- per-author cap 20
+- exact schema `id`, `text`, `author`, `classification`
+- provenance ledger for every shipped record
+- Project Gutenberg / individually verified public-domain source strategy
+- production validator and Android CI passed
 
-- **1,063 quotes**
-- **356 distinct authors**
-- per-author cap: **20**
-- all 12 controlled categories represented with at least 20 entries
-- exact Android schema preserved: `id`, `text`, `author`, `classification`
-- contiguous IDs and normalized-text uniqueness validated
+Do not casually reopen the corpus gate.
 
-Final category counts:
-
-- courage 69
-- discipline 60
-- focus 31
-- growth 86
-- hope 97
-- learning 156
-- perspective 117
-- purpose 24
-- relationships 126
-- resilience 94
-- self-mastery 109
-- work 94
-
-Release files:
-
-- `app/src/main/assets/quotes.json`
-- `docs/production-quote-sources.jsonl`
-- `docs/quote-curation-results.md`
-- `tools/verified_seed_quotes.json`
-
-Source strategy:
-
-- `jstet/quotes-500k` remains discovery-only and is not the shipping source database.
-- 12 individually source-verified public-domain quotes seed deterministic generation.
-- the large production lane uses James Wood, *Dictionary of Quotations* (1893), Project Gutenberg eBook #48105.
-- every shipped record has a matching provenance-ledger row with a traceable source URL.
-- final semantic policy rejects unresolved source labels, fragments/editorial artifacts, product-inappropriate stereotypes, sectarian/supernatural claims framed as advice, narrow political/legal material, and nihilistic/death-prescriptive lines.
-
-The quote corpus release gate is closed. Do not reopen it casually; future corpus edits must preserve validation and provenance.
-
-## CURRENT MILESTONE — M2 PHYSICAL-DEVICE PRODUCT TEST
+## CURRENT — PR #9 PHYSICAL-DEVICE PRODUCT TEST
 
 Branch: `m2-product-test`
 PR: #9 `M2: physical-device product test build`
 
-Implemented on this branch:
+Originally tested build exposed the following physical-test feedback, now addressed on branch:
 
-- Android `TextToSpeech` controller with asynchronous initialization and lifecycle shutdown.
-- fixed trial/default English voice and fixed trial speed.
-- Pro mode enumerates selectable English voices installed on the device.
-- Pro speech-speed adjustment from 0.7x to 1.4x.
-- Pro voice/speed preferences persisted in DataStore.
-- current quote speaks automatically about 2 seconds after display when speech is allowed.
-- Replay restarts current quote using `QUEUE_FLUSH`.
-- Next stops active speech, advances the no-repeat deck, then normal auto-speak timing applies.
-- graceful text fallback if TTS is unavailable.
-- Android 11+ TTS service query declaration.
-- Settings gear top-left using accent color.
-- local Favorite/Bookmark persistence.
-- Android share sheet for quote + author.
-- quote-text scroll button for long quotes.
-- 20 strict three-color themes; 2 free and 18 Pro-gated.
-- Material 3 color roles are explicitly collapsed onto the active three-color palette to avoid hidden fourth colors.
-- Settings screen with theme gallery, streak display, favorites list, and Pro speech controls.
-- daily-open streak persistence.
-- deterministic startup ordering so a broken streak can select an especially motivational opening quote.
-- Trial/Grace/Locked local access shell.
-- launch paywall in Trial/Grace and non-dismissible paywall in Locked.
-- target paywall labels/prices are visible only as product-test placeholders until RevenueCat supplies localized values.
-- touch-triggered Pro-card spin treatment.
-- debug-only state selector for Trial/Grace/Locked/Pro; choosing a non-Pro state opens the corresponding paywall immediately for physical testing.
+- remove down-arrow from quote card -> **done**; direct swipe remains;
+- floating FREE/PRO text instead of background pill -> **done**;
+- Settings hierarchy felt too busy -> **done**; Favorites first, Speech second, streak simplified, Themes last;
+- Favorites should have own window -> **done**;
+- add more/bolder themes -> **done**, 50 total;
+- bias quotes toward classifications the user favorites -> **done**;
+- default voice disliked -> **done**, local/high-quality voice preferred;
+- identify local versus online voices -> **done**;
+- generic/missing launcher icon -> **done**, custom Q/quote icon;
+- spin pricing cards rather than hero -> **done**;
+- preserve monthly thick border -> **kept**;
+- debug/demo access state should survive restart -> **done**;
+- locked-feature paywall behavior was liked -> **preserved**.
 
-RevenueCat purchases are deliberately not connected in PR #9. Purchase buttons must remain clearly marked as test placeholders until the RevenueCat Test Store milestone.
+One hardware note remains to verify on-device: the handwritten test mentions the app not running on a `V50 Lite`. Public specs for the vivo V50 Lite are Android 15, so minSdk is not the obvious cause. TTS initialization is now hardened, but if the next APK still fails on that phone, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
 
-Do not merge PR #9 until its final branch-head Android CI is green and the debug APK has been exercised on the user's physical Android device.
+RevenueCat purchase buttons are still explicit placeholders in PR #9.
 
-## Next milestones
+## Immediate next action
+
+1. Run branch-head Android CI after these physical-test fixes.
+2. Inspect actual compiler/build logs.
+3. Download the new `quotes-of-wisdom-debug` artifact.
+4. User installs/tests this revised APK, including V50 Lite if available.
+5. Fix any remaining findings.
+6. Merge PR #9 only after physical-device signoff.
+7. Begin RevenueCat Test Store milestone.
+
+## Later milestones
 
 ```text
-M2  finish CI + physical-device test + fix findings + merge PR #9
-M3  consolidate/polish persistence, favorites, themes and share-card UX already prototyped in M2
-M4  harden access-state controller, trial clocks and paywall UX already prototyped in M2
-M5  RevenueCat Test Store + deterministic opaque ID + offerings/purchase/restore/pro_access
+M3  consolidate/polish persistence, favorites, themes and share UX prototyped in M2
+M4  harden access/trial clocks/paywall shell prototyped in M2
+M5  RevenueCat Test Store + deterministic ID + offerings/purchase/restore/pro_access
 M6  notifications + streak/conversion flow + hardening/analytics
-M7  store/release hardening
-M8  submission polish: license, README, demo video, BuildInPublic evidence
+M7  Google Play/store release hardening
+M8  license/README/demo/BuildInPublic + Next Gen submission polish
 ```
 
-Galaxy Store work is optional/deprioritized; do not let seller-verification bureaucracy block the primary Next Gen / BuildInPublic path.
+Galaxy Store remains optional/deprioritized.
 
 ## Development discipline
 
-Use a branch/PR per meaningful milestone or subsystem. Run GitHub Actions before merging. Do not merge known-broken builds.
-
-Preferred loop:
-
 ```text
-spec -> implement small subsystem -> CI -> physical-device test -> review -> merge -> next subsystem
+spec -> implement -> CI -> physical-device test -> review -> merge
 ```
 
-Avoid unnecessary frameworks, backend expansion, or architecture ceremony. The project is intentionally small.
+No giant framework expansion, backend creep, or unverified merges.
