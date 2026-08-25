@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
             val ttsState by ttsController.state.collectAsState()
+            val ttsVoices by ttsController.voices.collectAsState()
+            val selectedVoiceName by ttsController.selectedVoiceName.collectAsState()
+            val speechRate by ttsController.speechRate.collectAsState()
             var screenName by rememberSaveable { mutableStateOf(AppScreen.HOME.name) }
             var showPaywall by rememberSaveable { mutableStateOf(true) }
 
@@ -54,6 +58,19 @@ class MainActivity : ComponentActivity() {
                 requestedPalette
             } else {
                 DefaultTheme
+            }
+
+            LaunchedEffect(access, ttsState, uiState.proVoiceName, uiState.proSpeechRate) {
+                if (ttsState == TtsState.Ready || ttsState == TtsState.Speaking) {
+                    if (access == AccessState.PRO) {
+                        ttsController.applyProSettings(
+                            voiceName = uiState.proVoiceName,
+                            rate = uiState.proSpeechRate
+                        )
+                    } else {
+                        ttsController.applyTrialDefaults()
+                    }
+                }
             }
 
             QuotesOfWisdomTheme(palette = palette) {
@@ -80,6 +97,9 @@ class MainActivity : ComponentActivity() {
                             streak = uiState.streak,
                             bestStreak = uiState.bestStreak,
                             favoriteQuotes = uiState.favoriteQuotes,
+                            ttsVoices = ttsVoices,
+                            selectedVoiceName = selectedVoiceName,
+                            speechRate = speechRate,
                             onBack = {
                                 screenName = AppScreen.HOME.name
                                 if (uiState.effectiveAccessState == AccessState.LOCKED) {
@@ -87,6 +107,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onSelectTheme = homeViewModel::selectTheme,
+                            onSelectVoice = { voiceName ->
+                                ttsController.setProVoice(voiceName)
+                                homeViewModel.selectProVoice(voiceName)
+                            },
+                            onSpeechRateChange = { rate ->
+                                ttsController.setProSpeechRate(rate)
+                                homeViewModel.setProSpeechRate(rate)
+                            },
+                            onPreviewSpeech = {
+                                if (access == AccessState.PRO) {
+                                    uiState.quote?.let { ttsController.speak(it.text) }
+                                }
+                            },
                             onOpenPaywall = { showPaywall = true },
                             onDebugAccess = { state ->
                                 homeViewModel.setDebugAccessOverride(state)
