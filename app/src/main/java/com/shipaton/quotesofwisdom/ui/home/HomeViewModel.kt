@@ -3,6 +3,7 @@ package com.shipaton.quotesofwisdom.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.QuoteDeck
 import com.shipaton.quotesofwisdom.data.QuoteRepository
@@ -48,14 +49,24 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             preferencesRepository.preferences.collect { prefs ->
+                val favoriteQuotes = loadedQuotes.filter { it.id in prefs.favoriteIds }
                 val access = LocalAccessPolicy.stateFor(prefs.firstSeenMillis)
+                val debugOverride = if (BuildConfig.DEBUG) {
+                    prefs.debugAccessOverride
+                        .takeIf { it.isNotBlank() }
+                        ?.let { runCatching { AccessState.valueOf(it) }.getOrNull() }
+                } else {
+                    null
+                }
+
                 _uiState.value = _uiState.value.copy(
                     favoriteIds = prefs.favoriteIds,
-                    favoriteQuotes = loadedQuotes.filter { it.id in prefs.favoriteIds },
+                    favoriteQuotes = favoriteQuotes,
                     themeId = prefs.themeId,
                     streak = prefs.streak,
                     bestStreak = prefs.bestStreak,
                     accessState = access,
+                    debugAccessOverride = debugOverride,
                     proVoiceName = prefs.proVoiceName,
                     proSpeechRate = prefs.proSpeechRate,
                     streakBrokenOnLaunch = pendingBrokenStreak || _uiState.value.streakBrokenOnLaunch
@@ -94,7 +105,19 @@ class HomeViewModel(
     }
 
     fun nextQuote() {
-        val next = deck?.next() ?: return
+        val preferredClassifications = _uiState.value.favoriteQuotes
+            .groupingBy { it.classification }
+            .eachCount()
+            .entries
+            .sortedByDescending { it.value }
+            .take(3)
+            .map { it.key }
+            .toSet()
+
+        val next = deck?.nextPreferred(
+            preferredClassifications = preferredClassifications,
+            preferenceChance = 0.70
+        ) ?: return
         _uiState.value = _uiState.value.copy(quote = next)
     }
 
@@ -116,7 +139,11 @@ class HomeViewModel(
     }
 
     fun setDebugAccessOverride(state: AccessState?) {
+        if (!BuildConfig.DEBUG) return
         _uiState.value = _uiState.value.copy(debugAccessOverride = state)
+        viewModelScope.launch {
+            preferencesRepository.setDebugAccessOverride(state?.name)
+        }
     }
 
     private fun chooseBrokenStreakQuote(quotes: List<Quote>): Quote? {
