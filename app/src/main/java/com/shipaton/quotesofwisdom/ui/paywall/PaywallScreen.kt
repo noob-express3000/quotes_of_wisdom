@@ -111,7 +111,7 @@ fun PaywallScreen(
 
             Spacer(Modifier.height(22.dp))
             Text(
-                "Pro includes all 20 themes, multiple TTS voices, adjustable speech speed, and continued access.",
+                "Pro includes all 50 themes, multiple local/device TTS voices, adjustable speech speed, and continued access.",
                 color = MaterialTheme.colorScheme.secondary,
                 textAlign = TextAlign.Center,
                 fontSize = 13.sp,
@@ -119,8 +119,8 @@ fun PaywallScreen(
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                "Product-test build: purchase buttons will connect to RevenueCat Test Store in M5; production prices will be localized from the store.",
-                color = MaterialTheme.colorScheme.primary,
+                "Product-test build: purchase buttons connect to RevenueCat Test Store in M5; production prices will be localized from the store.",
+                color = MaterialTheme.colorScheme.secondary,
                 textAlign = TextAlign.Center,
                 fontSize = 11.sp,
                 lineHeight = 16.sp
@@ -131,24 +131,14 @@ fun PaywallScreen(
 
 @Composable
 private fun ProHeroCard() {
-    var spins by remember { mutableIntStateOf(0) }
-    val rotation by animateFloatAsState(
-        targetValue = spins * 360f,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = 170f),
-        label = "pro-card-spin"
-    )
-
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer { rotationZ = rotation }
-            .clickable { spins += 1 },
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -164,11 +154,6 @@ private fun ProHeroCard() {
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
-            Text(
-                "tap the card",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 10.sp
-            )
         }
     }
 }
@@ -181,8 +166,18 @@ private fun PlanCard(
     emphasized: Boolean = false,
     onClick: () -> Unit
 ) {
+    var spins by remember { mutableIntStateOf(0) }
+    val rotation by animateFloatAsState(
+        targetValue = spins * 360f,
+        animationSpec = spring(dampingRatio = 0.68f, stiffness = 190f),
+        label = "plan-card-spin"
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { rotationZ = rotation }
+            .clickable { spins += 1 },
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         border = BorderStroke(if (emphasized) 3.dp else 1.dp, MaterialTheme.colorScheme.secondary)
