@@ -123,8 +123,13 @@ class MainActivity : ComponentActivity() {
                             onOpenPaywall = { showPaywall = true },
                             onDebugAccess = { state ->
                                 homeViewModel.setDebugAccessOverride(state)
-                                if (state == AccessState.PRO) showPaywall = false
-                                if (state == AccessState.LOCKED) showPaywall = true
+                                showPaywall = when (state) {
+                                    AccessState.PRO -> false
+                                    AccessState.TRIAL_ACTIVE,
+                                    AccessState.GRACE_TEXT_ONLY,
+                                    AccessState.LOCKED -> true
+                                    null -> uiState.accessState != AccessState.PRO
+                                }
                             }
                         )
                     }
