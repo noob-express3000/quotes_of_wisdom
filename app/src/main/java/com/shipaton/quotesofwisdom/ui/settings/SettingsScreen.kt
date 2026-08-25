@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.model.AccessState
-import com.shipaton.quotesofwisdom.model.Quote
 import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
 import com.shipaton.quotesofwisdom.ui.theme.AppThemes
@@ -56,11 +57,12 @@ fun SettingsScreen(
     accessState: AccessState,
     streak: Int,
     bestStreak: Int,
-    favoriteQuotes: List<Quote>,
+    favoriteCount: Int,
     ttsVoices: List<VoiceOption>,
     selectedVoiceName: String,
     speechRate: Float,
     onBack: () -> Unit,
+    onOpenFavorites: () -> Unit,
     onSelectTheme: (String) -> Unit,
     onSelectVoice: (String) -> Unit,
     onSpeechRateChange: (Float) -> Unit,
@@ -72,7 +74,7 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item {
                 Row(
@@ -96,52 +98,44 @@ fun SettingsScreen(
             }
 
             item {
-                InfoCard {
-                    Text("Daily streak", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        if (streak == 1) "1 day" else "$streak days",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                    Text(
-                        "Best: $bestStreak · Opening the app once today keeps it alive.",
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        "Themes",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    AppThemes.chunked(2).forEach { pair ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            pair.forEach { palette ->
-                                ThemeTile(
-                                    palette = palette,
-                                    selected = palette.id == selectedThemeId,
-                                    locked = !palette.isFree && accessState != AccessState.PRO,
-                                    onClick = {
-                                        if (palette.isFree || accessState == AccessState.PRO) {
-                                            onSelectTheme(palette.id)
-                                        } else {
-                                            onOpenPaywall()
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            if (pair.size == 1) Spacer(Modifier.weight(1f))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenFavorites),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Rounded.Favorite,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.size(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Favorites",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                            Text(
+                                if (favoriteCount == 1) "1 saved quote" else "$favoriteCount saved quotes",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 13.sp
+                            )
                         }
+                        Icon(
+                            Icons.Rounded.ChevronRight,
+                            contentDescription = "Open favorites",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -153,7 +147,7 @@ fun SettingsScreen(
 
                     if (accessState == AccessState.PRO) {
                         Text(
-                            "Choose any English voice installed on this device and tune the narration speed.",
+                            "Choose an English voice installed on this device and tune the narration speed.",
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Spacer(Modifier.height(14.dp))
@@ -203,7 +197,7 @@ fun SettingsScreen(
                         }
                     } else {
                         Text(
-                            "Trial speech uses one fixed voice and speed. Pro unlocks voice and speed controls.",
+                            "Trial speech uses one fixed local voice and speed. Pro unlocks voice and speed controls.",
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Spacer(Modifier.height(12.dp))
@@ -219,40 +213,60 @@ fun SettingsScreen(
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                ) {
                     Text(
-                        "Favorites (${favoriteQuotes.size})",
+                        "Daily streak",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        if (streak == 1) "1 day" else "$streak days",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        "Best: $bestStreak · Open the app once each day to keep it alive.",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        "Themes",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    if (favoriteQuotes.isEmpty()) {
-                        Text(
-                            "Tap the bookmark under a quote and it will appear here.",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        favoriteQuotes.take(20).forEach { quote ->
-                            InfoCard {
-                                Text(
-                                    quote.text,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    maxLines = 3,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    "— ${quote.author}",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 12.sp
+                    AppThemes.chunked(2).forEach { pair ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            pair.forEach { palette ->
+                                ThemeTile(
+                                    palette = palette,
+                                    selected = palette.id == selectedThemeId,
+                                    locked = !palette.isFree && accessState != AccessState.PRO,
+                                    onClick = {
+                                        if (palette.isFree || accessState == AccessState.PRO) {
+                                            onSelectTheme(palette.id)
+                                        } else {
+                                            onOpenPaywall()
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
-                        }
-                        if (favoriteQuotes.size > 20) {
-                            Text(
-                                "+${favoriteQuotes.size - 20} more saved locally",
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                            if (pair.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
                 }
@@ -267,7 +281,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "Debug build only. Inspect trial, grace, locked and Pro UI without waiting 34 days.",
+                            "Debug only. The selected demo state now survives app restarts.",
                             color = MaterialTheme.colorScheme.secondary,
                             fontSize = 13.sp
                         )
