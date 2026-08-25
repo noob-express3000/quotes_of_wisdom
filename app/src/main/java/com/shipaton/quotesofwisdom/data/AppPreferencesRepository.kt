@@ -22,7 +22,8 @@ data class AppPreferences(
     val bestStreak: Int = 0,
     val lastOpenDay: Int = 0,
     val proVoiceName: String = "",
-    val proSpeechRate: Float = 1.0f
+    val proSpeechRate: Float = 1.0f,
+    val debugAccessOverride: String = ""
 )
 
 data class StreakUpdate(
@@ -41,6 +42,7 @@ class AppPreferencesRepository(private val context: Context) {
         val lastOpenDay = intPreferencesKey("last_open_day")
         val proVoiceName = stringPreferencesKey("pro_voice_name")
         val proSpeechRate = floatPreferencesKey("pro_speech_rate")
+        val debugAccessOverride = stringPreferencesKey("debug_access_override")
     }
 
     val preferences: Flow<AppPreferences> = context.quotesDataStore.data.map { prefs ->
@@ -55,7 +57,8 @@ class AppPreferencesRepository(private val context: Context) {
             bestStreak = prefs[Keys.bestStreak] ?: 0,
             lastOpenDay = prefs[Keys.lastOpenDay] ?: 0,
             proVoiceName = prefs[Keys.proVoiceName] ?: "",
-            proSpeechRate = prefs[Keys.proSpeechRate] ?: 1.0f
+            proSpeechRate = prefs[Keys.proSpeechRate] ?: 1.0f,
+            debugAccessOverride = prefs[Keys.debugAccessOverride] ?: ""
         )
     }
 
@@ -80,6 +83,16 @@ class AppPreferencesRepository(private val context: Context) {
 
     suspend fun setProSpeechRate(rate: Float) {
         context.quotesDataStore.edit { it[Keys.proSpeechRate] = rate.coerceIn(0.7f, 1.4f) }
+    }
+
+    suspend fun setDebugAccessOverride(stateName: String?) {
+        context.quotesDataStore.edit { prefs ->
+            if (stateName.isNullOrBlank()) {
+                prefs.remove(Keys.debugAccessOverride)
+            } else {
+                prefs[Keys.debugAccessOverride] = stateName
+            }
+        }
     }
 
     suspend fun toggleFavorite(quoteId: Int) {
