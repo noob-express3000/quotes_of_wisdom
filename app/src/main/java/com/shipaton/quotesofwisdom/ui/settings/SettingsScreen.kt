@@ -3,6 +3,7 @@ package com.shipaton.quotesofwisdom.ui.settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,12 +23,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
+import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
 import com.shipaton.quotesofwisdom.ui.theme.AppThemes
 
@@ -48,8 +57,14 @@ fun SettingsScreen(
     streak: Int,
     bestStreak: Int,
     favoriteQuotes: List<Quote>,
+    ttsVoices: List<VoiceOption>,
+    selectedVoiceName: String,
+    speechRate: Float,
     onBack: () -> Unit,
     onSelectTheme: (String) -> Unit,
+    onSelectVoice: (String) -> Unit,
+    onSpeechRateChange: (Float) -> Unit,
+    onPreviewSpeech: () -> Unit,
     onOpenPaywall: () -> Unit,
     onDebugAccess: (AccessState?) -> Unit
 ) {
@@ -135,15 +150,62 @@ fun SettingsScreen(
                 InfoCard {
                     Text("Speech", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
-                    Text(
-                        if (accessState == AccessState.PRO) {
-                            "Pro speech controls: selectable voices and adjustable speed."
-                        } else {
-                            "Trial speech uses one fixed voice and speed. Pro unlocks voice and speed controls."
-                        },
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    if (accessState != AccessState.PRO) {
+
+                    if (accessState == AccessState.PRO) {
+                        Text(
+                            "Choose any English voice installed on this device and tune the narration speed.",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.height(14.dp))
+
+                        VoicePicker(
+                            voices = ttsVoices,
+                            selectedVoiceName = selectedVoiceName,
+                            onSelectVoice = onSelectVoice
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Speech speed", color = MaterialTheme.colorScheme.secondary)
+                            Text(
+                                "%.2fx".format(speechRate),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Slider(
+                            value = speechRate.coerceIn(0.7f, 1.4f),
+                            onValueChange = onSpeechRateChange,
+                            valueRange = 0.7f..1.4f,
+                            steps = 6
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Calm", color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
+                            Text("Fast", color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = onPreviewSpeech,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("Preview current quote")
+                        }
+                    } else {
+                        Text(
+                            "Trial speech uses one fixed voice and speed. Pro unlocks voice and speed controls.",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = onOpenPaywall,
@@ -227,6 +289,55 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoicePicker(
+    voices: List<VoiceOption>,
+    selectedVoiceName: String,
+    onSelectVoice: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = voices.firstOrNull { it.name == selectedVoiceName }?.label
+        ?: voices.firstOrNull()?.label
+        ?: "No English voices found"
+
+    Text("Voice", color = MaterialTheme.colorScheme.secondary, fontSize = 13.sp)
+    Spacer(Modifier.height(6.dp))
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { expanded = true },
+            enabled = voices.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text(selectedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            voices.forEach { voice ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            voice.label,
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelectVoice(voice.name)
+                    }
+                )
             }
         }
     }
