@@ -51,7 +51,7 @@ Target prices, subject to store-supported localized price points:
 
 - approximately USD 0.50 weekly
 - approximately USD 1.00 monthly
-- approximately USD 45 lifetime
+- approximately USD 29 lifetime
 
 All paid products grant RevenueCat entitlement `pro_access`.
 
