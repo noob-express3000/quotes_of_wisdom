@@ -20,6 +20,44 @@
 - Quotes are local and carry author + classification/genre metadata.
 - The control previously interpreted as volume is a quote-text scroll control.
 - A handwritten note contains an unfinished requirement beginning `Replay button should ...`; no additional Replay-specific UI rule is frozen until that requirement is completed.
+- A Settings control is required from the home experience. Exact placement is finalized during UI prototyping.
+
+## Home interaction details
+
+- The opening quote is displayed immediately when the app opens.
+- If TTS is available and the current access state permits speech, the opening quote begins speaking approximately 2 seconds after app launch.
+- A Share icon sits at the bottom-right of the quote container, below the author line.
+- A Favorite/Bookmark icon sits at the opposite bottom-left position of the quote container, below the author line.
+- Share, Favorite, Settings, and all other controls must remain inside the active theme's exact three-color palette.
+- Favorites are local-first and persisted on-device.
+- Sharing should produce a clean, tasteful quote-sharing experience suitable for organic distribution; final shared-card treatment is designed later without changing quote authenticity or attribution.
+
+## Theme direction
+
+- Theme experimentation should draw from established visually striking three-color combinations and strong real-world color references.
+- Prioritize visual impact and premium feel while preserving the exact three-base-color and perceptual 60/30/10 rules.
+- Do not add extra colors for shadows, icon ink, animation, or Material defaults.
+
+## Retention and streak direction
+
+- Daily quote notifications are part of the retention loop.
+- A daily-engagement streak mechanic is now in scope.
+- When a user breaks a streak, the app should respond with an especially strong motivational quote rather than punitive or guilt-heavy messaging.
+- The exact definition of a completed streak day, streak-break timing, and any grace behavior must be frozen before implementation.
+- Notification copy should feel distinctive and may be humorous where appropriate rather than generic app-retention copy.
+- Humor must not undermine the meaning of serious quotes or become disrespectful after a broken streak.
+
+## Accessibility baseline
+
+Accessibility should be built in as implementation hygiene rather than treated as a separate visual mode:
+
+- Respect Android font scaling and avoid clipping long quotes.
+- Provide TalkBack/content descriptions for icon-only controls.
+- Use appropriately sized touch targets.
+- Preserve readable contrast inside every three-color theme.
+- Keep all important functionality usable without relying on animation alone.
+- Touch-triggered premium animations should degrade gracefully when motion is reduced or disabled.
+- TTS failure/unavailability must not prevent reading quote text.
 
 ## Access lifecycle
 
@@ -71,13 +109,19 @@ Capabilities:
 - Multiple selectable TTS voices.
 - Adjustable TTS speed.
 
+## Pro presentation
+
+- Pro should feel premium primarily through polished themes, speech customization, and interaction quality rather than feature clutter.
+- The Pro card should have a small touch-triggered motion treatment, such as a subtle flip or spin. The exact motion is selected after visual testing.
+- The animation must stay tasteful, responsive, and compatible with reduced-motion accessibility behavior.
+
 ## Commercial products
 
 Initial target prices:
 
-- Weekly: approximately USD 0.50.
-- Monthly: approximately USD 1.00.
-- Lifetime: approximately USD 29.00.
+- Weekly: approximately USD 0.50 — paywall label: `Try It!`
+- Monthly: approximately USD 1.00 — paywall label: `Best Value!`
+- Lifetime: approximately USD 29.00 — paywall label: `Own It!`
 
 The UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
 
