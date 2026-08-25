@@ -143,15 +143,9 @@ fun SettingsScreen(
             item {
                 InfoCard {
                     Text("Speech", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(10.dp))
 
                     if (accessState == AccessState.PRO) {
-                        Text(
-                            "Choose an English voice installed on this device and tune the narration speed.",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Spacer(Modifier.height(14.dp))
-
                         VoicePicker(
                             voices = ttsVoices,
                             selectedVoiceName = selectedVoiceName,
@@ -196,45 +190,15 @@ fun SettingsScreen(
                             Text("Preview current quote")
                         }
                     } else {
-                        Text(
-                            "Trial speech uses one fixed local voice and speed. Pro unlocks voice and speed controls.",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = onOpenPaywall,
+                            modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,
                                 contentColor = MaterialTheme.colorScheme.primary
                             )
                         ) { Text("See Pro") }
                     }
-                }
-            }
-
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp)
-                ) {
-                    Text(
-                        "Daily streak",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        if (streak == 1) "1 day" else "$streak days",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                    Text(
-                        "Best: $bestStreak · Open the app once each day to keep it alive.",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 13.sp
-                    )
                 }
             }
 
@@ -279,11 +243,6 @@ fun SettingsScreen(
                             "Developer access preview",
                             color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "Debug only. The selected demo state now survives app restarts.",
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontSize = 13.sp
                         )
                         listOf(
                             "Real state" to null,
