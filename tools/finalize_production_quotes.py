@@ -12,6 +12,8 @@ AUTHOR_ALIASES = {
     "Meas. for Meas": "William Shakespeare",
     "Tit. Andron": "William Shakespeare",
     "Jul. Cæs": "William Shakespeare",
+    "Mid. N.'s Dream": "William Shakespeare",
+    "All's Well": "William Shakespeare",
     "Tennyson": "Alfred, Lord Tennyson",
     "Lincoln": "Abraham Lincoln",
     "Washington": "George Washington",
@@ -45,6 +47,17 @@ AUTHOR_ALIASES = {
     "Salis": "Johann Gaudenz von Salis-Seewis",
     "Howell": "James Howell",
     "Prof. Blackie": "John Stuart Blackie",
+    "Lord Bacon": "Francis Bacon",
+    "Mrs. Browning": "Elizabeth Barrett Browning",
+    "Hor. Smith": "Horace Smith",
+    "W. Lloyd Garrison": "William Lloyd Garrison",
+    "W. von Humboldt": "Wilhelm von Humboldt",
+    "Sir T. Browne": "Thomas Browne",
+    "Sir Walter Raleigh": "Walter Raleigh",
+    "Sir Edwin Arnold": "Edwin Arnold",
+    "Gen. Lee": "Robert E. Lee",
+    "J. Sterling": "John Sterling",
+    "Fénélon": "François Fénelon",
 }
 
 REJECT_AUTHORS = {
@@ -58,6 +71,17 @@ REJECT_AUTHORS = {
     "Unknown",
     "Anonymous",
     "Anon",
+    "The Vedas",
+    "St. Peter",
+    "St. Ambrose",
+    "S. Augustine",
+    "S. Bern",
+    "Lactantius",
+    "Mahomet",
+    "Cor",
+    "Mar",
+    "Syr",
+    "Nigu",
 }
 
 REJECT_AUTHOR_PATTERNS = (
@@ -65,7 +89,9 @@ REJECT_AUTHOR_PATTERNS = (
     r"\bProverb\b",
     r"\bLit\.?\s*Col\b",
     r"^[A-Z]\.?\s*[A-Z]?\.?$",
-    r"^(?:Dr|General|Bp)\.?(?:\s|$)",
+    r"^(?:Dr|General|Gen|Bp)\.?(?:\s|$)",
+    r"^Quoted\b",
+    r"\b(?:Act|Scene)\b",
 )
 
 REJECT_TEXT_PATTERNS = (
@@ -73,8 +99,12 @@ REJECT_TEXT_PATTERNS = (
     r"\b(?:god|gods|goddess|christ|jesus|heaven|hell|devil|satan|church|prayer|pray|sin|salvation|bible|gospel|saint|saints|providence|divine|religion|religious|worship|spiritually|immortality)\b",
     # Gender generalizations are poor universal wisdom and age badly.
     r"\b(?:female|male|women|woman|wives|wife|husband|husbands|sexes?)\b",
+    r"\byoung ladies?\b",
+    r"\bmaidens?\b",
+    r"\beffeminate\b",
+    r"\bmarriage\b",
     # Product-inappropriate violence, racial language, intoxication, and crime/punishment material.
-    r"\b(?:negro|savage|slave|slavery)\b",
+    r"\b(?:negro|savage|slave|slaves|slavery)\b",
     r"\b(?:kill|slay|murder|dagger|bloodshed)\b",
     r"\b(?:wine|ale|drunk|drunken|tobacco)\b",
     r"\b(?:crime|criminal|offender)\b",
@@ -89,15 +119,52 @@ REJECT_TEXT_PATTERNS = (
     r"\bonly error is life\b.*\bknowledge is death\b",
     r"\blife is (?:only |nothing but )?(?:misery|suffering)\b",
     r"\blittle hope of release\b",
+    r"\bhuman life is everywhere a state in which much is to be endured and little to be enjoyed\b",
+    r"\bdeath is a friend of ours\b",
+    r"\bthe running waves of eager life end on .* death\b",
     # Claims that depend on obsolete hierarchy or broad stereotypes.
     r"\bsuperiors?\b.{0,40}\brule\b.{0,40}\binferiors?\b",
     r"\bwarlike people\b",
-    # Very narrow factual/political/legal material is not the app's purpose.
-    r"\b(?:national morality|political party|constitution|legislature|parliament)\b",
+    # Narrow political/legal material is not the app's purpose.
+    r"\b(?:national morality|political party|constitution|legislator|legislature|parliament|government|commonwealth|nation|judge|laws?|clan)\b",
+    # Known context-dependent/metaphysical tail from the Wood corpus.
+    r"\bevery man hath a good and a bad angel\b",
+    r"\blife is the jailer, death the angel\b",
+    r"\bhow beautiful is death\b",
+    r"\bbetter to be joined in death\b",
+    r"\bhe is greedy of life who is unwilling to die\b",
+    r"\bfor grief indeed is love\b",
+    r"\bwhen two loving hearts are torn asunder\b",
+    r"\bin life there is no present\b",
+    r"\bonly an artist can interpret the meaning of life\b",
+    r"\bpoor watchdog\b",
+    r"\bthe past alone is eternal and unchangeable like death\b",
+    r"\blife is a plant that grows out of death\b",
+    r"\blife is a kind of sleep\b.*\bto die\b",
+    r"\bon the brink of the waters of life and truth\b",
+    r"\bdeserves to die a beggar\b",
+    r"\bdifficulty is not so great to die for a friend\b",
+    r"\ba knowledge of mankind tends to induce a want of faith in virtue and probity\b",
 )
 
 # Historical editorial artifacts and context fragments that should never reach the UI.
 FORBIDDEN_MARKERS = ("...", "…", "_", "[", "]", "(", ")", " / ", "--")
+
+WOOD_SOURCE_URL = "https://www.gutenberg.org/ebooks/48105"
+SEED_SOURCE_URLS = {
+    1: "https://www.loc.gov/item/2023632632/",
+    2: "https://www.gutenberg.org/files/102/old/102-h/102-h.htm",
+    3: "https://www.gutenberg.org/cache/epub/57393/pg57393-images.html",
+    4: "https://www.folger.edu/explore/shakespeares-works/troilus-and-cressida/read/2/2/",
+    5: "https://www.gutenberg.org/files/8601/8601-h/8601-h.htm",
+    6: "https://www.gutenberg.org/files/8601/8601-h/8601-h.htm",
+    7: "https://www.gutenberg.org/files/575/575-h/575-h.htm",
+    8: "https://www.gutenberg.org/files/4232/4232-h/4232-h.htm",
+    9: "https://www.gutenberg.org/cache/epub/7469/pg7469-images.html",
+    10: "https://tile.loc.gov/storage-services/service/mss/mgw/mgw5/116/116_0373_0628.pdf",
+    11: "https://www.gutenberg.org/cache/epub/39827/pg39827-images.html",
+    12: "https://www.gutenberg.org/cache/epub/6854/pg6854.html",
+}
 
 
 def key(text: str) -> str:
@@ -117,9 +184,23 @@ def reject(author: str, text: str) -> str | None:
         return "unresolved_or_collection_attribution"
     if any(marker in text for marker in FORBIDDEN_MARKERS):
         return "editorial_or_context_artifact"
+    if re.search(r"(?:^|\s)\d+\s*$", text):
+        return "editorial_or_context_artifact"
     for pattern in REJECT_TEXT_PATTERNS:
         if re.search(pattern, text, re.I):
             return "product_policy_semantic_rejection"
+    return None
+
+
+def source_url_for(original_ledger: dict, original_id: int) -> str | None:
+    existing = original_ledger.get("source_url")
+    if existing:
+        return existing
+    collection = original_ledger.get("source_collection", "")
+    if collection == "individually_verified_seed":
+        return SEED_SOURCE_URLS.get(original_id)
+    if "James Wood" in collection:
+        return WOOD_SOURCE_URL
     return None
 
 
@@ -169,13 +250,17 @@ def main() -> int:
             "author": author,
             "classification": quote["classification"],
         })
-        kept_ledger.append({
+        ledger_row = {
             **original_ledger,
             "id": new_id,
             "text": text,
             "author": author,
             "classification": quote["classification"],
-        })
+        }
+        source_url = source_url_for(original_ledger, quote["id"])
+        if source_url:
+            ledger_row["source_url"] = source_url
+        kept_ledger.append(ledger_row)
         seen.add(normalized)
         author_counts[author] += 1
         category_counts[quote["classification"]] += 1
