@@ -77,7 +77,7 @@ Initial target prices:
 
 - Weekly: approximately USD 0.50.
 - Monthly: approximately USD 1.00.
-- Lifetime: approximately USD 45.00.
+- Lifetime: approximately USD 29.00.
 
 The UI must display store/RevenueCat localized pricing rather than hardcoded currency strings.
 
