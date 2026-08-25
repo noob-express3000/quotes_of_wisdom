@@ -9,33 +9,63 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
-import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    ttsReady: Boolean,
+    ttsSpeaking: Boolean,
     onNextQuote: () -> Unit,
-    onReplay: () -> Unit
+    onReplay: () -> Unit,
+    onAutoSpeak: () -> Unit,
+    onSettings: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onShare: () -> Unit
 ) {
+    val access = uiState.effectiveAccessState
+    val ttsAllowed = access == AccessState.TRIAL_ACTIVE || access == AccessState.PRO
+
+    LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed) {
+        if (uiState.quote != null && ttsReady && ttsAllowed) {
+            delay(2_000)
+            onAutoSpeak()
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -45,9 +75,21 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 22.dp, vertical = 20.dp)
         ) {
-            Header()
+            Header(accessState = access, onSettings = onSettings)
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(22.dp))
+
+            if (uiState.streakBrokenOnLaunch) {
+                Text(
+                    "Streak gone. Comeback starts now.",
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
+                Spacer(Modifier.height(8.dp))
+            }
 
             Box(
                 modifier = Modifier
@@ -58,13 +100,33 @@ fun HomeScreen(
                 when {
                     uiState.isLoading -> LoadingCard()
                     uiState.errorMessage != null -> MessageCard(uiState.errorMessage)
-                    uiState.quote != null -> QuoteCard(uiState.quote)
+                    uiState.quote != null -> QuoteCard(
+                        quote = uiState.quote,
+                        isFavorite = uiState.isCurrentFavorite,
+                        onToggleFavorite = onToggleFavorite,
+                        onShare = onShare
+                    )
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(18.dp))
+
+            if (!ttsAllowed) {
+                Text(
+                    if (access == AccessState.GRACE_TEXT_ONLY) "Text-only grace period · TTS is paused"
+                    else "Upgrade to continue",
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(8.dp))
+            }
 
             Controls(
+                replayEnabled = ttsAllowed && ttsReady,
+                ttsSpeaking = ttsSpeaking,
                 onReplay = onReplay,
                 onNextQuote = onNextQuote
             )
@@ -73,18 +135,31 @@ fun HomeScreen(
 }
 
 @Composable
-private fun Header() {
+private fun Header(accessState: AccessState, onSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        IconButton(onClick = onSettings) {
+            Icon(
+                Icons.Rounded.Settings,
+                contentDescription = "Settings",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
         Surface(
             shape = RoundedCornerShape(999.dp),
             color = MaterialTheme.colorScheme.secondary
         ) {
             Text(
-                text = "FREE",
+                text = when (accessState) {
+                    AccessState.PRO -> "PRO"
+                    AccessState.GRACE_TEXT_ONLY -> "GRACE"
+                    AccessState.LOCKED -> "LOCKED"
+                    AccessState.TRIAL_ACTIVE -> "FREE"
+                },
                 modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -95,35 +170,98 @@ private fun Header() {
 }
 
 @Composable
-private fun QuoteCard(quote: Quote) {
+private fun QuoteCard(
+    quote: Quote,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onShare: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(quote.id) { scrollState.scrollTo(0) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 28.dp, vertical = 38.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = quote.text,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center,
-                fontSize = 26.sp,
-                lineHeight = 36.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 330.dp)
+                    .verticalScroll(scrollState),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = quote.text,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.Center,
+                    fontSize = 26.sp,
+                    lineHeight = 36.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(20.dp))
 
             Text(
                 text = "— ${quote.author}",
                 color = MaterialTheme.colorScheme.secondary,
-                fontStyle = FontStyle.Italic
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center
             )
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onToggleFavorite) {
+                    Icon(
+                        if (isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                        contentDescription = if (isFavorite) "Remove favorite" else "Save favorite",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            if (scrollState.value >= scrollState.maxValue) {
+                                scrollState.animateScrollTo(0)
+                            } else {
+                                scrollState.animateScrollTo(
+                                    (scrollState.value + 180).coerceAtMost(scrollState.maxValue)
+                                )
+                            }
+                        }
+                    },
+                    enabled = scrollState.maxValue > 0
+                ) {
+                    Icon(
+                        Icons.Rounded.ExpandMore,
+                        contentDescription = "Scroll quote text",
+                        tint = if (scrollState.maxValue > 0) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+                IconButton(onClick = onShare) {
+                    Icon(
+                        Icons.Rounded.Share,
+                        contentDescription = "Share quote",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
@@ -138,9 +276,7 @@ private fun MessageCard(message: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
     ) {
         Text(
@@ -156,6 +292,8 @@ private fun MessageCard(message: String) {
 
 @Composable
 private fun Controls(
+    replayEnabled: Boolean,
+    ttsSpeaking: Boolean,
     onReplay: () -> Unit,
     onNextQuote: () -> Unit
 ) {
@@ -165,13 +303,16 @@ private fun Controls(
     ) {
         Button(
             onClick = onReplay,
+            enabled = replayEnabled,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.secondary,
+                disabledContentColor = MaterialTheme.colorScheme.primary
             )
         ) {
-            Text("↻  Replay")
+            Text(if (ttsSpeaking) "■  Stop / Replay" else "↻  Replay")
         }
 
         Button(
@@ -184,25 +325,5 @@ private fun Controls(
         ) {
             Text("Next  →")
         }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 760)
-@Composable
-private fun HomeScreenPreview() {
-    QuotesOfWisdomTheme {
-        HomeScreen(
-            uiState = HomeUiState(
-                quote = Quote(
-                    id = 1,
-                    text = "Begin with the smallest action that makes the next action easier.",
-                    author = "Quotes of Wisdom",
-                    classification = "progress"
-                ),
-                isLoading = false
-            ),
-            onNextQuote = {},
-            onReplay = {}
-        )
     }
 }
