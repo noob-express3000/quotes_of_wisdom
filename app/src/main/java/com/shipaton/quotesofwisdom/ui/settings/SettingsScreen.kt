@@ -4,12 +4,15 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,7 +56,7 @@ fun SettingsScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
+            contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item {
@@ -202,7 +205,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "Debug build only. Use these to inspect trial/grace/locked/Pro UI without waiting 34 days.",
+                            "Debug build only. Inspect trial, grace, locked and Pro UI without waiting 34 days.",
                             color = MaterialTheme.colorScheme.secondary,
                             fontSize = 13.sp
                         )
@@ -247,7 +250,7 @@ private fun ThemeTile(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 ColorDot(palette.dominant, palette.secondary)
                 ColorDot(palette.secondary, palette.secondary)
                 ColorDot(palette.accent, palette.secondary)
@@ -275,7 +278,7 @@ private fun ThemeTile(
 @Composable
 private fun ColorDot(color: Color, border: Color) {
     Surface(
-        modifier = Modifier.height(18.dp).fillMaxWidth(0.16f),
+        modifier = Modifier.size(20.dp),
         color = color,
         shape = RoundedCornerShape(999.dp),
         border = BorderStroke(1.dp, border)
@@ -283,7 +286,7 @@ private fun ColorDot(color: Color, border: Color) {
 }
 
 @Composable
-private fun InfoCard(content: @Composable Column.() -> Unit) {
+private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
