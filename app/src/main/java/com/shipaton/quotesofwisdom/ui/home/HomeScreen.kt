@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
-import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
@@ -31,7 +30,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
@@ -42,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -147,23 +144,18 @@ private fun Header(accessState: AccessState, onSettings: () -> Unit) {
             )
         }
 
-        Surface(
-            shape = RoundedCornerShape(999.dp),
-            color = MaterialTheme.colorScheme.secondary
-        ) {
-            Text(
-                text = when (accessState) {
-                    AccessState.PRO -> "PRO"
-                    AccessState.GRACE_TEXT_ONLY -> "GRACE"
-                    AccessState.LOCKED -> "LOCKED"
-                    AccessState.TRIAL_ACTIVE -> "FREE"
-                },
-                modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
-        }
+        Text(
+            text = when (accessState) {
+                AccessState.PRO -> "PRO"
+                AccessState.GRACE_TEXT_ONLY -> "GRACE"
+                AccessState.LOCKED -> "LOCKED"
+                AccessState.TRIAL_ACTIVE -> "FREE"
+            },
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
     }
 }
 
@@ -175,7 +167,6 @@ private fun QuoteCard(
     onShare: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(quote.id) { scrollState.scrollTo(0) }
 
@@ -227,28 +218,6 @@ private fun QuoteCard(
                         if (isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                         contentDescription = if (isFavorite) "Remove favorite" else "Save favorite",
                         tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                IconButton(
-                    onClick = {
-                        scope.launch {
-                            if (scrollState.value >= scrollState.maxValue) {
-                                scrollState.animateScrollTo(0)
-                            } else {
-                                scrollState.animateScrollTo(
-                                    (scrollState.value + 180).coerceAtMost(scrollState.maxValue)
-                                )
-                            }
-                        }
-                    },
-                    enabled = scrollState.maxValue > 0
-                ) {
-                    Icon(
-                        Icons.Rounded.ExpandMore,
-                        contentDescription = "Scroll quote text",
-                        tint = if (scrollState.maxValue > 0) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.secondary
                     )
                 }
 
