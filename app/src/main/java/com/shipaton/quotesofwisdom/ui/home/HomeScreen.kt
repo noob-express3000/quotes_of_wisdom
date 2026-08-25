@@ -71,21 +71,13 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 22.dp, vertical = 20.dp)
         ) {
-            Header(accessState = access, onSettings = onSettings)
+            Header(
+                accessState = access,
+                streak = uiState.streak,
+                onSettings = onSettings
+            )
 
             Spacer(Modifier.height(22.dp))
-
-            if (uiState.streakBrokenOnLaunch) {
-                Text(
-                    "Streak gone. Comeback starts now.",
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-                Spacer(Modifier.height(8.dp))
-            }
 
             Box(
                 modifier = Modifier
@@ -107,19 +99,6 @@ fun HomeScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            if (!ttsAllowed) {
-                Text(
-                    if (access == AccessState.GRACE_TEXT_ONLY) "Text-only grace period · TTS is paused"
-                    else "Upgrade to continue",
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(8.dp))
-            }
-
             Controls(
                 replayEnabled = ttsAllowed && ttsReady,
                 onReplay = onReplay,
@@ -130,7 +109,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun Header(accessState: AccessState, onSettings: () -> Unit) {
+private fun Header(
+    accessState: AccessState,
+    streak: Int,
+    onSettings: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -141,6 +124,19 @@ private fun Header(accessState: AccessState, onSettings: () -> Unit) {
                 Icons.Rounded.Settings,
                 contentDescription = "Settings",
                 tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = MaterialTheme.colorScheme.secondary
+        ) {
+            Text(
+                text = "🔥 $streak",
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Black,
+                fontSize = 13.sp
             )
         }
 
