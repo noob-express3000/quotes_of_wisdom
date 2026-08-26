@@ -86,19 +86,35 @@ Settings copy stays terse.
 
 ## Speech behavior
 
+The app uses Android's installed Text-to-Speech ecosystem rather than bundling its own neural model for v1.
+
 ### Trial
 
 - TTS enabled during `TRIAL_ACTIVE`.
+- Trial uses the device's system-default TTS engine.
 - One fixed English voice and fixed 1.0x speed.
 - Prefer a higher-quality local/on-device English voice over a network-required voice.
 - OEM TTS initialization/voice-enumeration failures degrade to text-only behavior instead of crashing the app.
+- `Get more voices` is available as a device-compatibility action even outside Pro; it is not treated as a premium feature.
 
 ### Pro
 
-- Selectable English voices exposed by the Android TTS engine.
+- Enumerate every installed Android TTS engine reported by `TextToSpeech.getEngines()`.
+- Expose an Engine selector above the Voice selector.
+- Engine selection persists locally and reinitializes Android TTS against the selected engine package.
+- After an engine switch, reload that engine's installed English voices.
 - Voice labels identify local versus online/network-backed voices.
+- Voices marked by Android as not yet installed are not presented as ready-to-use choices.
 - Adjustable speech rate from 0.7x to 1.4x.
-- Voice/rate preferences persist locally.
+- Engine/voice/rate preferences persist locally.
+
+### Additional device voices
+
+- `Get more voices` first launches `TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA` scoped to the currently selected engine when possible.
+- If the selected engine does not expose a voice-data installer, retry the generic Android TTS install-data action.
+- If neither installer is available, fall back to system Settings rather than failing the app.
+- When the external installer/settings UI returns, reinitialize the active TTS engine so newly downloaded voices appear in the app.
+- Custom bundled/downloadable neural voice models are deferred beyond v1 unless real user demand justifies the additional inference, model-storage, licensing and device-performance complexity.
 
 ## Access lifecycle
 
@@ -139,7 +155,7 @@ Any active paid product granting `pro_access` enters this state.
 - Continued app access.
 - All 100 themes.
 - TTS.
-- Selectable voices.
+- Selectable installed TTS engines and English voices.
 - Adjustable speech speed.
 - No launch upgrade interruption.
 
