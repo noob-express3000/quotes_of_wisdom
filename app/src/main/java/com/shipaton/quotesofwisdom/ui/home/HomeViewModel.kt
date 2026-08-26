@@ -27,6 +27,7 @@ data class HomeUiState(
     val streakBrokenOnLaunch: Boolean = false,
     val accessState: AccessState = AccessState.TRIAL_ACTIVE,
     val debugAccessOverride: AccessState? = null,
+    val proEnginePackage: String = "",
     val proVoiceName: String = "",
     val proSpeechRate: Float = 1.0f
 ) {
@@ -67,6 +68,7 @@ class HomeViewModel(
                     bestStreak = prefs.bestStreak,
                     accessState = access,
                     debugAccessOverride = debugOverride,
+                    proEnginePackage = prefs.proEnginePackage,
                     proVoiceName = prefs.proVoiceName,
                     proSpeechRate = prefs.proSpeechRate,
                     streakBrokenOnLaunch = pendingBrokenStreak || _uiState.value.streakBrokenOnLaunch
@@ -132,6 +134,10 @@ class HomeViewModel(
 
     fun selectTheme(themeId: String) {
         viewModelScope.launch { preferencesRepository.setTheme(themeId) }
+    }
+
+    fun selectProEngine(enginePackage: String) {
+        viewModelScope.launch { preferencesRepository.setProEngine(enginePackage) }
     }
 
     fun selectProVoice(voiceName: String) {
