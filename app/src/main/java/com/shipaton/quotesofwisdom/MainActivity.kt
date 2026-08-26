@@ -2,6 +2,8 @@ package com.shipaton.quotesofwisdom
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
+import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +34,7 @@ private enum class AppScreen { HOME, SETTINGS, FAVORITES }
 class MainActivity : ComponentActivity() {
 
     private lateinit var ttsController: TtsController
+    private var refreshTtsAfterExternalVoiceUi = false
 
     private val homeViewModel: HomeViewModel by viewModels {
         HomeViewModel.Factory(
@@ -47,6 +50,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
             val ttsState by ttsController.state.collectAsState()
+            val ttsEngines by ttsController.engines.collectAsState()
+            val selectedEnginePackage by ttsController.selectedEnginePackage.collectAsState()
             val ttsVoices by ttsController.voices.collectAsState()
             val selectedVoiceName by ttsController.selectedVoiceName.collectAsState()
             val speechRate by ttsController.speechRate.collectAsState()
@@ -61,10 +66,17 @@ class MainActivity : ComponentActivity() {
                 DefaultTheme
             }
 
-            LaunchedEffect(access, ttsState, uiState.proVoiceName, uiState.proSpeechRate) {
+            LaunchedEffect(
+                access,
+                ttsState,
+                uiState.proEnginePackage,
+                uiState.proVoiceName,
+                uiState.proSpeechRate
+            ) {
                 if (ttsState == TtsState.Ready || ttsState == TtsState.Speaking) {
                     if (access == AccessState.PRO) {
                         ttsController.applyProSettings(
+                            enginePackage = uiState.proEnginePackage,
                             voiceName = uiState.proVoiceName,
                             rate = uiState.proSpeechRate
                         )
@@ -106,6 +118,8 @@ class MainActivity : ComponentActivity() {
                             streak = uiState.streak,
                             bestStreak = uiState.bestStreak,
                             favoriteCount = uiState.favoriteQuotes.size,
+                            ttsEngines = ttsEngines,
+                            selectedEnginePackage = selectedEnginePackage,
                             ttsVoices = ttsVoices,
                             selectedVoiceName = selectedVoiceName,
                             speechRate = speechRate,
@@ -117,6 +131,10 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
                             onSelectTheme = homeViewModel::selectTheme,
+                            onSelectEngine = { enginePackage ->
+                                ttsController.selectEngine(enginePackage)
+                                homeViewModel.selectProEngine(enginePackage)
+                            },
                             onSelectVoice = { voiceName ->
                                 ttsController.setProVoice(voiceName)
                                 homeViewModel.selectProVoice(voiceName)
@@ -130,6 +148,7 @@ class MainActivity : ComponentActivity() {
                                     uiState.quote?.let { ttsController.speak(it.text) }
                                 }
                             },
+                            onGetMoreVoices = ::openMoreVoices,
                             onOpenPaywall = { showPaywall = true },
                             onDebugAccess = { state ->
                                 homeViewModel.setDebugAccessOverride(state)
@@ -182,6 +201,44 @@ class MainActivity : ComponentActivity() {
             putExtra(Intent.EXTRA_TEXT, "$text\n\n— $author")
         }
         startActivity(Intent.createChooser(shareIntent, "Share quote"))
+    }
+
+    private fun openMoreVoices() {
+        val enginePackage = ttsController.selectedEnginePackage.value
+
+        if (enginePackage.isNotBlank()) {
+            val engineInstaller = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).apply {
+                setPackage(enginePackage)
+            }
+            if (tryStartVoiceUi(engineInstaller)) return
+        }
+
+        if (tryStartVoiceUi(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA))) return
+
+        if (!tryStartVoiceUi(Intent(Settings.ACTION_SETTINGS))) {
+            Toast.makeText(
+                this,
+                "Voice download settings are not available on this device.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    private fun tryStartVoiceUi(intent: Intent): Boolean = try {
+        refreshTtsAfterExternalVoiceUi = true
+        startActivity(intent)
+        true
+    } catch (_: Throwable) {
+        refreshTtsAfterExternalVoiceUi = false
+        false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (refreshTtsAfterExternalVoiceUi && ::ttsController.isInitialized) {
+            refreshTtsAfterExternalVoiceUi = false
+            ttsController.refreshCurrentEngine()
+        }
     }
 
     override fun onDestroy() {
