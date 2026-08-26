@@ -70,18 +70,35 @@ The production corpus remains globally shuffled with no repeats during a cycle. 
 
 ## Speech rules
 
+Android/system TTS remains the v1 speech backend; custom neural model packs are deferred.
+
 Trial:
 
+- uses the system-default TTS engine;
 - one fixed English voice + 1.0x speed;
 - prefer the best available local/on-device English voice using Android TTS quality/latency metadata;
-- OEM TTS failures degrade to text instead of taking down the app.
+- OEM TTS failures degrade to text instead of taking down the app;
+- `Get more voices` remains available as a compatibility action and is not Pro-gated.
 
 Pro:
 
-- installed English voices selectable;
-- labels identify local versus online;
+- enumerate all installed Android TTS engines;
+- engine selector appears above the voice selector;
+- selected engine persists in DataStore;
+- changing engine reinitializes TTS against that package and refreshes installed English voices;
+- installed English voices selectable, with local versus online labels;
+- voices Android marks as not yet installed are excluded from the ready-to-use list;
 - rate 0.7x–1.4x;
-- voice/rate persist in DataStore.
+- engine/voice/rate persist in DataStore.
+
+Voice-data flow:
+
+- `Get more voices` first launches the selected engine's `ACTION_INSTALL_TTS_DATA` activity;
+- falls back to the generic Android TTS install-data action;
+- falls back to system Settings if neither installer exists;
+- returning to the app reinitializes the current engine so new voice data is rediscovered.
+
+The multi-engine/voice-data code checkpoint `44387c239a2ce5b4b3fb89f392e62acb88d17c89` passed GitHub Actions run #142 (`32978068593`), including production quote validation, debug APK build and artifact upload.
 
 ## Retention / access
 
@@ -186,7 +203,11 @@ Latest requested refinements implemented on branch:
 - plan cards centered horizontally and as a centered screen group;
 - accent/tertiary borders enforced across Home, Favorites, Settings/theme tiles and paywall;
 - secondary text role retained for readable copy;
-- top-left accent/tertiary paywall info control added with state-aware immediate-upgrade value copy.
+- top-left accent/tertiary paywall info control added with state-aware immediate-upgrade value copy;
+- all installed Android TTS engines are now discoverable;
+- Pro can switch TTS engine and persist the choice;
+- changing engine refreshes that engine's installed English voice catalog;
+- `Get more voices` opens engine/system voice-data installation and refreshes TTS on return.
 
 One hardware note remains to verify on-device: an earlier physical test mentioned the app not running on a `V50 Lite`. Android version/minSdk is not the obvious cause. If a current APK still fails there, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
 
@@ -194,12 +215,14 @@ RevenueCat purchase actions are still placeholders in PR #9.
 
 ## Immediate next action
 
-1. Run final branch-head Android CI.
+1. Run final branch-head Android CI after this documentation checkpoint.
 2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Install/test the revised APK on the primary device and V50 Lite if available.
-4. Fix any remaining findings.
-5. Merge PR #9 only after physical-device signoff and green branch-head CI.
-6. Begin RevenueCat Test Store milestone.
+3. Install/test the revised APK, specifically TTS engine switching and `Get more voices` on the Samsung device.
+4. Verify newly downloaded voices appear after returning to the app.
+5. Test the V50 Lite if available and capture exact failure details if it still fails.
+6. Fix any remaining findings.
+7. Merge PR #9 only after physical-device signoff and green branch-head CI.
+8. Begin RevenueCat Test Store milestone.
 
 ## Later milestones
 
