@@ -85,7 +85,7 @@ fun SettingsScreen(
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.tertiary
                         )
                     }
                     Text(
@@ -104,7 +104,7 @@ fun SettingsScreen(
                         .clickable(onClick = onOpenFavorites),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
                 ) {
                     Row(
                         modifier = Modifier
@@ -115,7 +115,7 @@ fun SettingsScreen(
                         Icon(
                             Icons.Rounded.Favorite,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.tertiary
                         )
                         Spacer(Modifier.size(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -134,7 +134,7 @@ fun SettingsScreen(
                         Icon(
                             Icons.Rounded.ChevronRight,
                             contentDescription = "Open favorites",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.tertiary
                         )
                     }
                 }
@@ -161,7 +161,7 @@ fun SettingsScreen(
                             Text("Speech speed", color = MaterialTheme.colorScheme.secondary)
                             Text(
                                 "%.2fx".format(speechRate),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -184,7 +184,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.primary
+                                contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) {
                             Text("Preview current quote")
@@ -195,7 +195,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.primary
+                                contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) { Text("See Pro") }
                     }
@@ -256,7 +256,7 @@ fun SettingsScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
-                                    contentColor = MaterialTheme.colorScheme.primary
+                                    contentColor = MaterialTheme.colorScheme.tertiary
                                 )
                             ) { Text(label) }
                         }
@@ -287,7 +287,7 @@ private fun VoicePicker(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text(selectedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -328,16 +328,16 @@ private fun ThemeTile(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = palette.dominant),
-        border = BorderStroke(if (selected) 3.dp else 1.dp, palette.secondary)
+        border = BorderStroke(if (selected) 3.dp else 1.dp, palette.accent)
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                ColorDot(palette.dominant, palette.secondary)
-                ColorDot(palette.secondary, palette.secondary)
-                ColorDot(palette.accent, palette.secondary)
+                ColorDot(palette.dominant, palette.accent)
+                ColorDot(palette.secondary, palette.accent)
+                ColorDot(palette.accent, palette.accent)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -375,7 +375,7 @@ private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
     ) {
         Column(modifier = Modifier.padding(18.dp), content = content)
     }
