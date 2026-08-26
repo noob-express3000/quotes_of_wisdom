@@ -21,6 +21,7 @@ data class AppPreferences(
     val streak: Int = 0,
     val bestStreak: Int = 0,
     val lastOpenDay: Int = 0,
+    val proEnginePackage: String = "",
     val proVoiceName: String = "",
     val proSpeechRate: Float = 1.0f,
     val debugAccessOverride: String = ""
@@ -40,6 +41,7 @@ class AppPreferencesRepository(private val context: Context) {
         val streak = intPreferencesKey("streak")
         val bestStreak = intPreferencesKey("best_streak")
         val lastOpenDay = intPreferencesKey("last_open_day")
+        val proEnginePackage = stringPreferencesKey("pro_engine_package")
         val proVoiceName = stringPreferencesKey("pro_voice_name")
         val proSpeechRate = floatPreferencesKey("pro_speech_rate")
         val debugAccessOverride = stringPreferencesKey("debug_access_override")
@@ -56,6 +58,7 @@ class AppPreferencesRepository(private val context: Context) {
             streak = prefs[Keys.streak] ?: 0,
             bestStreak = prefs[Keys.bestStreak] ?: 0,
             lastOpenDay = prefs[Keys.lastOpenDay] ?: 0,
+            proEnginePackage = prefs[Keys.proEnginePackage] ?: "",
             proVoiceName = prefs[Keys.proVoiceName] ?: "",
             proSpeechRate = prefs[Keys.proSpeechRate] ?: 1.0f,
             debugAccessOverride = prefs[Keys.debugAccessOverride] ?: ""
@@ -75,6 +78,13 @@ class AppPreferencesRepository(private val context: Context) {
 
     suspend fun setTheme(themeId: String) {
         context.quotesDataStore.edit { it[Keys.themeId] = themeId }
+    }
+
+    suspend fun setProEngine(enginePackage: String) {
+        context.quotesDataStore.edit { prefs ->
+            prefs[Keys.proEnginePackage] = enginePackage
+            prefs.remove(Keys.proVoiceName)
+        }
     }
 
     suspend fun setProVoice(voiceName: String) {
