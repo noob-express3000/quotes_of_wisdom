@@ -123,7 +123,7 @@ private fun Header(
             Icon(
                 Icons.Rounded.Settings,
                 contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.tertiary
             )
         }
 
@@ -134,7 +134,7 @@ private fun Header(
             Text(
                 text = "🔥 $streak",
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Black,
                 fontSize = 13.sp
             )
@@ -148,7 +148,7 @@ private fun Header(
                 AccessState.TRIAL_ACTIVE -> "FREE"
             },
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.tertiary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp
         )
@@ -170,7 +170,7 @@ private fun QuoteCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
@@ -213,7 +213,7 @@ private fun QuoteCard(
                     Icon(
                         if (isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                         contentDescription = if (isFavorite) "Remove favorite" else "Save favorite",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
 
@@ -221,7 +221,7 @@ private fun QuoteCard(
                     Icon(
                         Icons.Rounded.Share,
                         contentDescription = "Share quote",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
@@ -240,7 +240,7 @@ private fun MessageCard(message: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
     ) {
         Text(
             text = message,
@@ -269,9 +269,9 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.tertiary,
                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContentColor = MaterialTheme.colorScheme.primary
+                disabledContentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text("↻  Replay")
@@ -282,7 +282,7 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text("Next  →")
