@@ -68,20 +68,14 @@ fun FavoritesScreen(
                     Icon(
                         Icons.Rounded.Close,
                         contentDescription = "Close favorites",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
 
             Spacer(Modifier.height(18.dp))
 
-            if (favoriteQuotes.isEmpty()) {
-                Text(
-                    "Bookmark quotes you want to keep and they will live here.",
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 16.sp
-                )
-            } else {
+            if (favoriteQuotes.isNotEmpty()) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -92,7 +86,7 @@ fun FavoritesScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.background
                             ),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
                         ) {
                             Column(
                                 modifier = Modifier.padding(18.dp)
@@ -120,7 +114,7 @@ fun FavoritesScreen(
                                         Icon(
                                             Icons.Rounded.DeleteOutline,
                                             contentDescription = "Remove from favorites",
-                                            tint = MaterialTheme.colorScheme.primary
+                                            tint = MaterialTheme.colorScheme.tertiary
                                         )
                                     }
                                 }
