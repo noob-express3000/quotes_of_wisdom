@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -75,6 +76,8 @@ fun SettingsScreen(
     onOpenPaywall: () -> Unit,
     onDebugAccess: (AccessState?) -> Unit
 ) {
+    val themeRows = remember { AppThemes.chunked(2) }
+
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -222,36 +225,38 @@ fun SettingsScreen(
             }
 
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        "Themes",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    AppThemes.chunked(2).forEach { pair ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            pair.forEach { palette ->
-                                ThemeTile(
-                                    palette = palette,
-                                    selected = palette.id == selectedThemeId,
-                                    locked = !palette.isFree && accessState != AccessState.PRO,
-                                    onClick = {
-                                        if (palette.isFree || accessState == AccessState.PRO) {
-                                            onSelectTheme(palette.id)
-                                        } else {
-                                            onOpenPaywall()
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            if (pair.size == 1) Spacer(Modifier.weight(1f))
-                        }
+                Text(
+                    "Themes",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            items(
+                items = themeRows,
+                key = { pair -> pair.first().id }
+            ) { pair ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    pair.forEach { palette ->
+                        ThemeTile(
+                            palette = palette,
+                            selected = palette.id == selectedThemeId,
+                            locked = !palette.isFree && accessState != AccessState.PRO,
+                            onClick = {
+                                if (palette.isFree || accessState == AccessState.PRO) {
+                                    onSelectTheme(palette.id)
+                                } else {
+                                    onOpenPaywall()
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
 
