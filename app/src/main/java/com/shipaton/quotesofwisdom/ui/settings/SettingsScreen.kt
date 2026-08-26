@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.model.AccessState
+import com.shipaton.quotesofwisdom.speech.TtsEngineOption
 import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
 import com.shipaton.quotesofwisdom.ui.theme.AppThemes
@@ -58,15 +59,19 @@ fun SettingsScreen(
     streak: Int,
     bestStreak: Int,
     favoriteCount: Int,
+    ttsEngines: List<TtsEngineOption>,
+    selectedEnginePackage: String,
     ttsVoices: List<VoiceOption>,
     selectedVoiceName: String,
     speechRate: Float,
     onBack: () -> Unit,
     onOpenFavorites: () -> Unit,
     onSelectTheme: (String) -> Unit,
+    onSelectEngine: (String) -> Unit,
     onSelectVoice: (String) -> Unit,
     onSpeechRateChange: (Float) -> Unit,
     onPreviewSpeech: () -> Unit,
+    onGetMoreVoices: () -> Unit,
     onOpenPaywall: () -> Unit,
     onDebugAccess: (AccessState?) -> Unit
 ) {
@@ -146,11 +151,22 @@ fun SettingsScreen(
                     Spacer(Modifier.height(10.dp))
 
                     if (accessState == AccessState.PRO) {
+                        EnginePicker(
+                            engines = ttsEngines,
+                            selectedEnginePackage = selectedEnginePackage,
+                            onSelectEngine = onSelectEngine
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
                         VoicePicker(
                             voices = ttsVoices,
                             selectedVoiceName = selectedVoiceName,
                             onSelectVoice = onSelectVoice
                         )
+
+                        Spacer(Modifier.height(12.dp))
+                        VoiceDataButton(onClick = onGetMoreVoices)
 
                         Spacer(Modifier.height(16.dp))
                         Row(
@@ -198,6 +214,9 @@ fun SettingsScreen(
                                 contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) { Text("See Pro") }
+
+                        Spacer(Modifier.height(12.dp))
+                        VoiceDataButton(onClick = onGetMoreVoices)
                     }
                 }
             }
@@ -268,6 +287,60 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun EnginePicker(
+    engines: List<TtsEngineOption>,
+    selectedEnginePackage: String,
+    onSelectEngine: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = engines.firstOrNull { it.packageName == selectedEnginePackage }
+        ?: engines.firstOrNull { it.isDefault }
+        ?: engines.firstOrNull()
+
+    Text("Engine", color = MaterialTheme.colorScheme.secondary, fontSize = 13.sp)
+    Spacer(Modifier.height(6.dp))
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { expanded = true },
+            enabled = engines.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            Text(
+                selected?.let { if (it.isDefault) "${it.label} · default" else it.label }
+                    ?: "No TTS engine found",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            engines.forEach { engine ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            if (engine.isDefault) "${engine.label} · default" else engine.label,
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelectEngine(engine.packageName)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun VoicePicker(
     voices: List<VoiceOption>,
     selectedVoiceName: String,
@@ -313,6 +386,21 @@ private fun VoicePicker(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun VoiceDataButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.secondary
+        )
+    ) {
+        Text("Get more voices")
     }
 }
 
