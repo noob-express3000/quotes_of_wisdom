@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.shipaton.quotesofwisdom.model.AccessState
 
 @Composable
@@ -60,7 +61,7 @@ fun PaywallScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { showInfo = !showInfo }) {
+                IconButton(onClick = { showInfo = true }) {
                     Icon(
                         Icons.Rounded.Info,
                         contentDescription = "Why upgrade now",
@@ -96,30 +97,6 @@ fun PaywallScreen(
                     fontWeight = FontWeight.Black
                 )
 
-                if (showInfo) {
-                    Spacer(Modifier.height(18.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(0.88f),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
-                    ) {
-                        Text(
-                            text = when (accessState) {
-                                AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, voice selection and speed control immediately, with no launch upgrade interruption."
-                                AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, selectable voices and speed control."
-                                AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes and full voice controls."
-                                AccessState.PRO -> "Pro already unlocks all 100 themes, selectable voices, speed control and uninterrupted access."
-                            },
-                            modifier = Modifier.padding(18.dp),
-                            color = MaterialTheme.colorScheme.secondary,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp
-                        )
-                    }
-                }
-
                 Spacer(Modifier.height(30.dp))
 
                 PlanCard(
@@ -143,6 +120,65 @@ fun PaywallScreen(
                     title = "Lifetime",
                     price = "$29 once",
                     onClick = { onChoosePlan("lifetime") }
+                )
+            }
+        }
+    }
+
+    if (showInfo) {
+        UpgradeInfoDialog(
+            accessState = accessState,
+            onDismiss = { showInfo = false }
+        )
+    }
+}
+
+@Composable
+private fun UpgradeInfoDialog(
+    accessState: AccessState,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 22.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Pro access",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 19.sp
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            Icons.Rounded.Close,
+                            contentDescription = "Close information",
+                            tint = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+
+                Text(
+                    text = when (accessState) {
+                        AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, voice selection and speed control immediately, with no launch upgrade interruption."
+                        AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, selectable voices and speed control."
+                        AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes and full voice controls."
+                        AccessState.PRO -> "Pro already unlocks all 100 themes, selectable voices, speed control and uninterrupted access."
+                    },
+                    modifier = Modifier.padding(end = 8.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp
                 )
             }
         }
