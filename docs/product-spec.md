@@ -22,14 +22,14 @@
 - v1 ships with **100 themes**: 2 Trial themes and 98 Pro themes.
 - Theme display names are color-accurate and use at most two words.
 - The app uses immersive full-screen rendering: the active dominant theme color owns the entire display, Android status/navigation bars are hidden during normal use, and system bars may be revealed transiently with the platform edge gesture/swipe.
-- App content continues to respect display-cutout/safe-drawing insets where needed.
+- The window is allowed to render into short-edge display-cutout regions. Controls are placed around likely camera/cutout areas instead of reserving one global safe-drawing band across the entire screen.
 - Quotes are local and carry author + classification metadata.
 
 ## Home interaction details
 
-- Settings gear: top-left, accent/tertiary color.
-- Daily streak: centered in the top header as a compact flame/count treatment.
-- Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background.
+- Settings gear: top-left, accent/tertiary color, positioned close to the physical top edge.
+- Daily streak: centered below the top camera/cutout line as a compact flame/count treatment.
+- Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background, positioned close to the physical top edge.
 - Opening quote displays immediately.
 - If TTS is available and access permits speech, narration begins as soon as the quote is visible and the TTS engine is ready; there is no artificial app-side delay.
 - Favorite/Bookmark: bottom-left inside the quote container below the author.
@@ -59,6 +59,7 @@
 - Theme display names use no more than two words and must describe the actual palette rather than legacy/internal IDs.
 - Theme cards use accent borders and secondary text.
 - Theme rows are lazily composed so the 100-theme library does not build all tiles at once.
+- Theme rows expose a stable content type for lazy reuse, and each tile draws its three color swatches in one lightweight Canvas rather than composing three separate Material surfaces.
 - Use immersive full-screen presentation so the dominant theme color visually owns the complete device display rather than stopping at persistent system-bar regions.
 
 ## Settings hierarchy
@@ -178,16 +179,17 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - Paywall headline: `Choose your plan`.
 - Show only plan name + price on each pricing card; remove `Try It!`, `Best Value!`, `Own It!` and similar eyebrow statements.
 - Weekly, Monthly and Lifetime cards are horizontally centered and the plan group is centered in the screen.
-- Physical-test placeholder price formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / lifetime`.
+- Physical-test placeholder price formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / once`.
 - Monthly retains the thicker emphasis border.
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
 - Each pricing card is itself the purchase target; there is no separate `Choose` button.
 - No spinning Pro hero/card interaction.
 - No filler/explanatory copy beneath the plans.
-- A small top-left info button uses active accent/tertiary and opens a compact centered information dialog rather than expanding/reflowing the paywall itself.
-- The dialog explains the immediate value of upgrading: immediate Pro access, all 100 themes, engine/voice selection, additional voice downloads, speed controls, restored speech/access where applicable, and no launch upgrade interruption.
-- The info dialog can be dismissed with its close control or by tapping outside it.
+- A small top-left info button uses active accent/tertiary and opens a prominent full-width Pro access card near the top of the display rather than expanding/reflowing the paywall itself.
+- The Pro access card uses a stronger 2dp accent border, larger heading/body type, respects the display cutout itself, and is intentionally attention-grabbing without becoming a second paywall.
+- The card explains the immediate value of upgrading: immediate Pro access, all 100 themes, engine/voice selection, additional voice downloads, speed controls, restored speech/access where applicable, and no launch upgrade interruption.
+- The info card can be dismissed with its close control or by tapping outside it.
 - All paywall UI follows the active three-color palette.
 
 ## App icon
