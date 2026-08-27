@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.shipaton.quotesofwisdom.model.AccessState
 
 @Composable
@@ -52,7 +56,7 @@ fun PaywallScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp, vertical = 18.dp)
+                .padding(horizontal = 22.dp, vertical = 8.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -118,7 +122,7 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Lifetime",
-                    price = "$29 / lifetime",
+                    price = "$29 / once",
                     onClick = { onChoosePlan("lifetime") }
                 )
             }
@@ -138,48 +142,66 @@ private fun UpgradeInfoDialog(
     accessState: AccessState,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.displayCutout)
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Column(
-                modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 22.dp)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(start = 24.dp, end = 14.dp, top = 14.dp, bottom = 28.dp)
                 ) {
-                    Text(
-                        text = "Pro access",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 19.sp
-                    )
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = "Close information",
-                            tint = MaterialTheme.colorScheme.tertiary
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Pro access",
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 25.sp,
+                            lineHeight = 30.sp
                         )
+                        IconButton(onClick = onDismiss) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = "Close information",
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
                     }
-                }
 
-                Text(
-                    text = when (accessState) {
-                        AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, engine and voice selection, additional voice downloads and speed control immediately, with no launch upgrade interruption."
-                        AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, engine and voice selection, additional voice downloads and speed control."
-                        AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes, additional voice downloads and full voice controls."
-                        AccessState.PRO -> "Pro already unlocks all 100 themes, engine and voice selection, additional voice downloads, speed control and uninterrupted access."
-                    },
-                    modifier = Modifier.padding(end = 8.dp),
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp
-                )
+                    Spacer(Modifier.height(6.dp))
+
+                    Text(
+                        text = when (accessState) {
+                            AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, engine and voice selection, additional voice downloads and speed control immediately, with no launch upgrade interruption."
+                            AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, engine and voice selection, additional voice downloads and speed control."
+                            AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes, additional voice downloads and full voice controls."
+                            AccessState.PRO -> "Pro already unlocks all 100 themes, engine and voice selection, additional voice downloads, speed control and uninterrupted access."
+                        },
+                        modifier = Modifier.padding(end = 10.dp),
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 16.sp,
+                        lineHeight = 24.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
