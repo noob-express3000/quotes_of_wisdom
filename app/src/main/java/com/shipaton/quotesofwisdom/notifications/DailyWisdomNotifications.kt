@@ -168,11 +168,9 @@ object DailyWisdomNotifications {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.priority = if (highPriority) {
-                Notification.PRIORITY_HIGH
-            } else {
-                Notification.PRIORITY_DEFAULT
-            }
+            builder.setPriority(
+                if (highPriority) Notification.PRIORITY_HIGH else Notification.PRIORITY_DEFAULT
+            )
             if (highPriority) builder.setDefaults(Notification.DEFAULT_ALL)
         }
 
