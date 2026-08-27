@@ -17,8 +17,13 @@ import java.util.Calendar
 object DailyWisdomNotifications {
     internal const val ACTION_DAILY = "com.shipaton.quotesofwisdom.action.DAILY_WISDOM"
 
+    const val DEFAULT_REMINDER_HOUR = 9
+    const val DEFAULT_REMINDER_MINUTE = 0
+
     private const val PREFS_NAME = "daily_wisdom_notifications"
     private const val KEY_ENABLED = "enabled"
+    private const val KEY_REMINDER_HOUR = "reminder_hour"
+    private const val KEY_REMINDER_MINUTE = "reminder_minute"
     private const val DAILY_CHANNEL_ID = "daily_wisdom"
     private const val DEMO_CHANNEL_ID = "demo_wisdom"
     private const val DAILY_NOTIFICATION_ID = 4100
@@ -39,6 +44,29 @@ object DailyWisdomNotifications {
     fun isEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getBoolean(KEY_ENABLED, false)
+
+    fun reminderHour(context: Context): Int =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_REMINDER_HOUR, DEFAULT_REMINDER_HOUR)
+            .coerceIn(0, 23)
+
+    fun reminderMinute(context: Context): Int =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_REMINDER_MINUTE, DEFAULT_REMINDER_MINUTE)
+            .coerceIn(0, 59)
+
+    fun setReminderTime(context: Context, hour: Int, minute: Int) {
+        val safeHour = hour.coerceIn(0, 23)
+        val safeMinute = minute.coerceIn(0, 59)
+
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_REMINDER_HOUR, safeHour)
+            .putInt(KEY_REMINDER_MINUTE, safeMinute)
+            .apply()
+
+        if (isEnabled(context)) scheduleNext(context)
+    }
 
     fun setEnabled(context: Context, enabled: Boolean) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -81,8 +109,8 @@ object DailyWisdomNotifications {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val now = Calendar.getInstance()
         val next = (now.clone() as Calendar).apply {
-            set(Calendar.HOUR_OF_DAY, 9)
-            set(Calendar.MINUTE, 0)
+            set(Calendar.HOUR_OF_DAY, reminderHour(context))
+            set(Calendar.MINUTE, reminderMinute(context))
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
             if (timeInMillis <= now.timeInMillis) add(Calendar.DAY_OF_YEAR, 1)
