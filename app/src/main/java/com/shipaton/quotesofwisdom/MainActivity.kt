@@ -27,6 +27,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.shipaton.quotesofwisdom.billing.BillingResult
+import com.shipaton.quotesofwisdom.billing.PurchasePlan
+import com.shipaton.quotesofwisdom.billing.RevenueCatController
 import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
 import com.shipaton.quotesofwisdom.model.AccessState
@@ -49,6 +52,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var ttsController: TtsController
     private var refreshTtsAfterExternalVoiceUi = false
 
+    private val revenueCatController: RevenueCatController by lazy {
+        (application as QuotesApplication).revenueCatController
+    }
+
     private val homeViewModel: HomeViewModel by viewModels {
         HomeViewModel.Factory(
             repository = AssetQuoteRepository(applicationContext),
@@ -63,6 +70,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
+            val revenueCatState by revenueCatController.state.collectAsState()
             val ttsState by ttsController.state.collectAsState()
             val ttsEngines by ttsController.engines.collectAsState()
             val selectedEnginePackage by ttsController.selectedEnginePackage.collectAsState()
@@ -80,6 +88,13 @@ class MainActivity : ComponentActivity() {
                 DefaultTheme
             }
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
+
+            LaunchedEffect(revenueCatState.hasPro) {
+                homeViewModel.setRevenueCatPro(revenueCatState.hasPro)
+                if (revenueCatState.hasPro && uiState.debugAccessOverride == null) {
+                    showPaywall = false
+                }
+            }
 
             SideEffect {
                 val useDarkSystemIcons = palette.dominant.luminance() > 0.5f
@@ -120,13 +135,79 @@ class MainActivity : ComponentActivity() {
                             PaywallScreen(
                                 accessState = access,
                                 canDismiss = LocalAccessPolicy.canDismissLaunchPaywall(access),
+                                weeklyPrice = revenueCatState.weeklyPrice,
+                                monthlyPrice = revenueCatState.monthlyPrice,
+                                lifetimePrice = revenueCatState.lifetimePrice,
+                                billingBusy = revenueCatState.busy,
                                 onDismiss = { showPaywall = false },
                                 onChoosePlan = { plan ->
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        "${plan.replaceFirstChar { it.uppercase() }} purchase will connect to RevenueCat Test Store in M5.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    val purchasePlan = when (plan) {
+                                        "weekly" -> PurchasePlan.WEEKLY
+                                        "monthly" -> PurchasePlan.MONTHLY
+                                        "lifetime" -> PurchasePlan.LIFETIME
+                                        else -> null
+                                    }
+                                    if (purchasePlan != null) {
+                                        revenueCatController.purchase(
+                                            activity = this@MainActivity,
+                                            plan = purchasePlan
+                                        ) { result ->
+                                            runOnUiThread {
+                                                when (result) {
+                                                    BillingResult.Success -> {
+                                                        if (revenueCatController.state.value.hasPro) {
+                                                            homeViewModel.setDebugAccessOverride(null)
+                                                            homeViewModel.setRevenueCatPro(true)
+                                                            showPaywall = false
+                                                            Toast.makeText(
+                                                                this@MainActivity,
+                                                                "Pro access active.",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+                                                    }
+                                                    BillingResult.Cancelled -> Unit
+                                                    is BillingResult.Error -> Toast.makeText(
+                                                        this@MainActivity,
+                                                        result.message,
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                onRestorePurchases = {
+                                    revenueCatController.restore { result ->
+                                        runOnUiThread {
+                                            when (result) {
+                                                BillingResult.Success -> {
+                                                    if (revenueCatController.state.value.hasPro) {
+                                                        homeViewModel.setDebugAccessOverride(null)
+                                                        homeViewModel.setRevenueCatPro(true)
+                                                        showPaywall = false
+                                                        Toast.makeText(
+                                                            this@MainActivity,
+                                                            "Pro access restored.",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    } else {
+                                                        Toast.makeText(
+                                                            this@MainActivity,
+                                                            "No active Pro purchase found.",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                }
+                                                BillingResult.Cancelled -> Unit
+                                                is BillingResult.Error -> Toast.makeText(
+                                                    this@MainActivity,
+                                                    result.message,
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                    }
                                 }
                             )
                         }
