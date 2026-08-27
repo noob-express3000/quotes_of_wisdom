@@ -1,6 +1,6 @@
 # Quotes of Wisdom — Canonical Project State
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-08-27_
 
 This is the handoff checkpoint. Read this file, then `docs/product-spec.md`, before changing product behavior.
 
@@ -40,6 +40,10 @@ local corpus
 - Card/container borders use accent/tertiary.
 - Primary readable text uses secondary.
 - Theme library is **100 themes**: 2 Trial + 98 Pro.
+- Theme display names are audited to a maximum of two words and must match the actual palette.
+- Theme rows are first-class `LazyColumn` items so off-screen theme tiles are not all composed at once.
+- Window rendering is edge-to-edge: the active dominant color extends behind Android system bars while app content respects safe drawing insets.
+- Status/navigation icon brightness adapts to the active dominant color; Android system bars are not hidden.
 - Settings gear: top-left, accent/tertiary.
 - Streak: centered in Home header as compact flame/count treatment.
 - Access label: top-right floating accent text with no background pill.
@@ -58,6 +62,7 @@ local corpus
 - Streak is not duplicated in Settings.
 - Favorites open in a dedicated screen with close control and per-item removal.
 - Empty Favorites shows no explanatory bookmark message.
+- Tapping a saved favorite plays that quote through TTS when the current access state permits speech and TTS is ready.
 - Settings copy stays terse.
 
 ## Quote personalization
@@ -71,6 +76,12 @@ The production corpus remains globally shuffled with no repeats during a cycle. 
 ## Speech rules
 
 Android/system TTS remains the v1 speech backend; custom neural model packs are deferred.
+
+Opening narration:
+
+- quote text appears immediately;
+- narration begins as soon as TTS is ready and access permits speech;
+- there is no artificial 2-second app-side delay.
 
 Trial:
 
@@ -97,8 +108,6 @@ Voice-data flow:
 - falls back to the generic Android TTS install-data action;
 - falls back to system Settings if neither installer exists;
 - returning to the app reinitializes the current engine so new voice data is rediscovered.
-
-The multi-engine/voice-data code checkpoint `44387c239a2ce5b4b3fb89f392e62acb88d17c89` passed GitHub Actions run #142 (`32978068593`), including production quote validation, debug APK build and artifact upload.
 
 ## Retention / access
 
@@ -139,7 +148,8 @@ Current UI:
 - Monthly retains the thicker emphasis border;
 - plan-card borders use accent/tertiary;
 - plan-card text uses secondary;
-- small top-left accent/tertiary info button explains the immediate value of upgrading, with state-aware copy for Trial/Grace/Locked;
+- small top-left accent/tertiary info button opens a compact centered dialog instead of expanding/reflowing the paywall;
+- dialog copy is state-aware for Trial/Grace/Locked and can be dismissed by its close control or outside tap;
 - production RevenueCat build must replace placeholder target prices with localized store pricing.
 
 All products eventually grant the single RevenueCat entitlement `pro_access`.
@@ -197,17 +207,17 @@ PR: #9 `M2: physical-device product test build`
 
 Latest requested refinements implemented on branch:
 
-- 50 -> 100 strict three-color themes;
+- 100 strict three-color themes, with theme gallery lazily composed by row;
+- theme labels audited to two words maximum, including inaccurate legacy labels corrected without changing persisted theme IDs;
+- app now renders edge-to-edge with dominant theme color behind system bars and safe content insets;
+- system bar icon brightness follows the active theme background;
+- opening TTS artificial 2-second delay removed;
+- all installed Android TTS engines discoverable and Pro-switchable;
+- `Get more voices` opens engine/system voice-data installation and refreshes TTS on return;
+- tapping a favorite speaks the saved quote when speech is permitted;
+- paywall info control now opens a compact modal dialog rather than inserting copy into the pricing layout;
 - empty Favorites explanatory text removed;
-- paywall eyebrow statements removed;
-- plan cards centered horizontally and as a centered screen group;
-- accent/tertiary borders enforced across Home, Favorites, Settings/theme tiles and paywall;
-- secondary text role retained for readable copy;
-- top-left accent/tertiary paywall info control added with state-aware immediate-upgrade value copy;
-- all installed Android TTS engines are now discoverable;
-- Pro can switch TTS engine and persist the choice;
-- changing engine refreshes that engine's installed English voice catalog;
-- `Get more voices` opens engine/system voice-data installation and refreshes TTS on return.
+- plan cards centered, simplified and strict three-color styling retained.
 
 One hardware note remains to verify on-device: an earlier physical test mentioned the app not running on a `V50 Lite`. Android version/minSdk is not the obvious cause. If a current APK still fails there, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
 
@@ -215,14 +225,13 @@ RevenueCat purchase actions are still placeholders in PR #9.
 
 ## Immediate next action
 
-1. Run final branch-head Android CI after this documentation checkpoint.
+1. Run final branch-head Android CI after this polish checkpoint.
 2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Install/test the revised APK, specifically TTS engine switching and `Get more voices` on the Samsung device.
-4. Verify newly downloaded voices appear after returning to the app.
-5. Test the V50 Lite if available and capture exact failure details if it still fails.
-6. Fix any remaining findings.
-7. Merge PR #9 only after physical-device signoff and green branch-head CI.
-8. Begin RevenueCat Test Store milestone.
+3. Physically verify immediate narration, online/offline TTS, engine switching, `Get more voices`, favorite tap playback, edge-to-edge rendering, system bar contrast, theme labels/scrolling and paywall info dialog.
+4. Test the V50 Lite if available and capture exact failure details if it still fails.
+5. Fix any remaining findings.
+6. Merge PR #9 only after physical-device signoff and green branch-head CI.
+7. Begin RevenueCat Test Store milestone.
 
 ## Later milestones
 
