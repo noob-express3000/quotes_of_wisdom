@@ -21,7 +21,8 @@
 - Quote text is displayed without added opening/closing quotation marks.
 - v1 ships with **100 themes**: 2 Trial themes and 98 Pro themes.
 - Theme display names are color-accurate and use at most two words.
-- The active dominant theme color extends edge-to-edge behind Android system bars; app content respects safe drawing insets and system bar icons adapt for contrast.
+- The app uses immersive full-screen rendering: the active dominant theme color owns the entire display, Android status/navigation bars are hidden during normal use, and system bars may be revealed transiently with the platform edge gesture/swipe.
+- App content continues to respect display-cutout/safe-drawing insets where needed.
 - Quotes are local and carry author + classification metadata.
 
 ## Home interaction details
@@ -58,7 +59,7 @@
 - Theme display names use no more than two words and must describe the actual palette rather than legacy/internal IDs.
 - Theme cards use accent borders and secondary text.
 - Theme rows are lazily composed so the 100-theme library does not build all tiles at once.
-- Use edge-to-edge window drawing so the dominant theme color continues behind the status/navigation regions without hiding Android system navigation.
+- Use immersive full-screen presentation so the dominant theme color visually owns the complete device display rather than stopping at persistent system-bar regions.
 
 ## Settings hierarchy
 
@@ -87,7 +88,7 @@ Settings copy stays terse.
 - Provide TalkBack/content descriptions for icon-only controls.
 - Use appropriately sized touch targets.
 - Preserve readable contrast inside every three-color theme.
-- System bar icon brightness must remain readable against the active dominant color.
+- Transient Android system bars remain reachable through platform gestures and use readable icon appearance against the active dominant color.
 - Important functionality cannot depend on animation alone.
 - TTS failure/unavailability must never prevent reading quote text.
 
@@ -102,7 +103,7 @@ The app uses Android's installed Text-to-Speech ecosystem rather than bundling i
 - One fixed English voice and fixed 1.0x speed.
 - Prefer a higher-quality local/on-device English voice over a network-required voice.
 - OEM TTS initialization/voice-enumeration failures degrade to text-only behavior instead of crashing the app.
-- `Get more voices` is available as a device-compatibility action even outside Pro; it is not treated as a premium feature.
+- Additional voice-data installation is not exposed in Trial settings.
 
 ### Pro
 
@@ -112,12 +113,14 @@ The app uses Android's installed Text-to-Speech ecosystem rather than bundling i
 - After an engine switch, reload that engine's installed English voices.
 - Voice labels identify local versus online/network-backed voices.
 - Voices marked by Android as not yet installed are not presented as ready-to-use choices.
+- `Get more voices` is a Pro feature and exposes the platform/engine voice-data installation flow.
 - Adjustable speech rate from 0.7x to 1.4x.
 - Engine/voice/rate preferences persist locally.
 
 ### Additional device voices
 
-- `Get more voices` first launches `TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA` scoped to the currently selected engine when possible.
+- The `Get more voices` action is visible only while the effective access state is Pro.
+- It first launches `TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA` scoped to the currently selected engine when possible.
 - If the selected engine does not expose a voice-data installer, retry the generic Android TTS install-data action.
 - If neither installer is available, fall back to system Settings rather than failing the app.
 - When the external installer/settings UI returns, reinitialize the active TTS engine so newly downloaded voices appear in the app.
@@ -163,6 +166,7 @@ Any active paid product granting `pro_access` enters this state.
 - All 100 themes.
 - TTS.
 - Selectable installed TTS engines and English voices.
+- Additional device voice-data installation through `Get more voices`.
 - Adjustable speech speed.
 - No launch upgrade interruption.
 
@@ -174,6 +178,7 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - Paywall headline: `Choose your plan`.
 - Show only plan name + price on each pricing card; remove `Try It!`, `Best Value!`, `Own It!` and similar eyebrow statements.
 - Weekly, Monthly and Lifetime cards are horizontally centered and the plan group is centered in the screen.
+- Physical-test placeholder price formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / lifetime`.
 - Monthly retains the thicker emphasis border.
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
@@ -181,7 +186,7 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - No spinning Pro hero/card interaction.
 - No filler/explanatory copy beneath the plans.
 - A small top-left info button uses active accent/tertiary and opens a compact centered information dialog rather than expanding/reflowing the paywall itself.
-- The dialog explains the immediate value of upgrading: immediate Pro access, all 100 themes, voice selection/speed controls, restored speech/access where applicable, and no launch upgrade interruption.
+- The dialog explains the immediate value of upgrading: immediate Pro access, all 100 themes, engine/voice selection, additional voice downloads, speed controls, restored speech/access where applicable, and no launch upgrade interruption.
 - The info dialog can be dismissed with its close control or by tapping outside it.
 - All paywall UI follows the active three-color palette.
 
