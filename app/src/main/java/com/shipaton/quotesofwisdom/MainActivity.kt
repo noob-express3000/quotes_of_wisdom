@@ -34,6 +34,7 @@ import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.LocalAccessPolicy
+import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
 import com.shipaton.quotesofwisdom.speech.TtsController
 import com.shipaton.quotesofwisdom.speech.TtsState
 import com.shipaton.quotesofwisdom.ui.favorites.FavoritesScreen
@@ -67,6 +68,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enterImmersiveMode()
         ttsController = TtsController(applicationContext)
+        val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
+        val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
 
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
@@ -79,6 +82,8 @@ class MainActivity : ComponentActivity() {
             val speechRate by ttsController.speechRate.collectAsState()
             var screenName by rememberSaveable { mutableStateOf(AppScreen.HOME.name) }
             var showPaywall by rememberSaveable { mutableStateOf(true) }
+            var reminderHour by rememberSaveable { mutableStateOf(initialReminderHour) }
+            var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
 
             val access = uiState.effectiveAccessState
             val requestedPalette = themeById(uiState.themeId)
@@ -238,6 +243,8 @@ class MainActivity : ComponentActivity() {
                                 ttsVoices = ttsVoices,
                                 selectedVoiceName = selectedVoiceName,
                                 speechRate = speechRate,
+                                reminderHour = reminderHour,
+                                reminderMinute = reminderMinute,
                                 onBack = {
                                     screenName = AppScreen.HOME.name
                                     if (uiState.effectiveAccessState == AccessState.LOCKED) {
@@ -257,6 +264,17 @@ class MainActivity : ComponentActivity() {
                                 onSpeechRateChange = { rate ->
                                     ttsController.setProSpeechRate(rate)
                                     homeViewModel.setProSpeechRate(rate)
+                                },
+                                onReminderTimeChange = { hour, minute ->
+                                    if (access == AccessState.PRO) {
+                                        reminderHour = hour
+                                        reminderMinute = minute
+                                        DailyWisdomNotifications.setReminderTime(
+                                            this@MainActivity,
+                                            hour,
+                                            minute
+                                        )
+                                    }
                                 },
                                 onPreviewSpeech = {
                                     if (access == AccessState.PRO) {
