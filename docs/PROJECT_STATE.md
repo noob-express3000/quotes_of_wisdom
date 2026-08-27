@@ -42,8 +42,9 @@ local corpus
 - Theme library is **100 themes**: 2 Trial + 98 Pro.
 - Theme display names are audited to a maximum of two words and must match the actual palette.
 - Theme rows are first-class `LazyColumn` items so off-screen theme tiles are not all composed at once.
-- Window rendering is edge-to-edge: the active dominant color extends behind Android system bars while app content respects safe drawing insets.
-- Status/navigation icon brightness adapts to the active dominant color; Android system bars are not hidden.
+- App presentation is immersive full-screen: Android status/navigation bars are hidden during normal use so the dominant theme color owns the complete display.
+- Platform system bars remain transiently reachable with the normal edge gesture/swipe and re-hide afterward.
+- App content still respects safe drawing/display-cutout insets where required.
 - Settings gear: top-left, accent/tertiary.
 - Streak: centered in Home header as compact flame/count treatment.
 - Access label: top-right floating accent text with no background pill.
@@ -89,7 +90,7 @@ Trial:
 - one fixed English voice + 1.0x speed;
 - prefer the best available local/on-device English voice using Android TTS quality/latency metadata;
 - OEM TTS failures degrade to text instead of taking down the app;
-- `Get more voices` remains available as a compatibility action and is not Pro-gated.
+- additional voice-data installation is not exposed in Trial settings.
 
 Pro:
 
@@ -99,12 +100,13 @@ Pro:
 - changing engine reinitializes TTS against that package and refreshes installed English voices;
 - installed English voices selectable, with local versus online labels;
 - voices Android marks as not yet installed are excluded from the ready-to-use list;
+- `Get more voices` is Pro-only;
 - rate 0.7x–1.4x;
 - engine/voice/rate persist in DataStore.
 
 Voice-data flow:
 
-- `Get more voices` first launches the selected engine's `ACTION_INSTALL_TTS_DATA` activity;
+- Pro `Get more voices` first launches the selected engine's `ACTION_INSTALL_TTS_DATA` activity;
 - falls back to the generic Android TTS install-data action;
 - falls back to system Settings if neither installer exists;
 - returning to the app reinitializes the current engine so new voice data is rediscovered.
@@ -139,6 +141,12 @@ Target prices remain:
 - Monthly ≈ $1.00
 - Lifetime ≈ $29
 
+Current physical-test placeholders:
+
+- Weekly: `$0.50 / week`
+- Monthly: `$1 / month`
+- Lifetime: `$29 / lifetime`
+
 Current UI:
 
 - headline `Choose your plan`;
@@ -149,7 +157,7 @@ Current UI:
 - plan-card borders use accent/tertiary;
 - plan-card text uses secondary;
 - small top-left accent/tertiary info button opens a compact centered dialog instead of expanding/reflowing the paywall;
-- dialog copy is state-aware for Trial/Grace/Locked and can be dismissed by its close control or outside tap;
+- dialog copy is state-aware for Trial/Grace/Locked, includes Pro voice-download value, and can be dismissed by its close control or outside tap;
 - production RevenueCat build must replace placeholder target prices with localized store pricing.
 
 All products eventually grant the single RevenueCat entitlement `pro_access`.
@@ -209,13 +217,13 @@ Latest requested refinements implemented on branch:
 
 - 100 strict three-color themes, with theme gallery lazily composed by row;
 - theme labels audited to two words maximum, including inaccurate legacy labels corrected without changing persisted theme IDs;
-- app now renders edge-to-edge with dominant theme color behind system bars and safe content insets;
-- system bar icon brightness follows the active theme background;
+- app now uses immersive full-screen mode so the dominant theme color occupies the complete display and Android system bars are transient-by-swipe;
 - opening TTS artificial 2-second delay removed;
 - all installed Android TTS engines discoverable and Pro-switchable;
-- `Get more voices` opens engine/system voice-data installation and refreshes TTS on return;
+- `Get more voices` moved behind Pro and opens engine/system voice-data installation only in Pro settings;
 - tapping a favorite speaks the saved quote when speech is permitted;
-- paywall info control now opens a compact modal dialog rather than inserting copy into the pricing layout;
+- paywall info control opens a compact modal dialog rather than inserting copy into the pricing layout;
+- placeholder plan formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / lifetime`;
 - empty Favorites explanatory text removed;
 - plan cards centered, simplified and strict three-color styling retained.
 
@@ -227,11 +235,14 @@ RevenueCat purchase actions are still placeholders in PR #9.
 
 1. Run final branch-head Android CI after this polish checkpoint.
 2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Physically verify immediate narration, online/offline TTS, engine switching, `Get more voices`, favorite tap playback, edge-to-edge rendering, system bar contrast, theme labels/scrolling and paywall info dialog.
-4. Test the V50 Lite if available and capture exact failure details if it still fails.
-5. Fix any remaining findings.
-6. Merge PR #9 only after physical-device signoff and green branch-head CI.
-7. Begin RevenueCat Test Store milestone.
+3. Physically verify immersive full-screen behavior on both three-button and gesture-navigation devices, including transient system-bar reveal/re-hide.
+4. Verify Trial Settings no longer exposes `Get more voices`, while Pro still does and refreshes TTS after returning.
+5. Verify consistent paywall placeholder formatting and the updated info dialog copy.
+6. Re-check immediate narration, favorite tap playback, theme labels/scrolling and TTS engine switching.
+7. Test the V50 Lite if available and capture exact failure details if it still fails.
+8. Fix any remaining findings.
+9. Merge PR #9 only after physical-device signoff and green branch-head CI.
+10. Begin RevenueCat Test Store milestone.
 
 ## Later milestones
 
