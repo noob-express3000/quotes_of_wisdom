@@ -115,9 +115,9 @@ class RevenueCatController(private val context: Context) {
 
                 _state.value = _state.value.copy(
                     loading = false,
-                    weeklyPrice = packages[PurchasePlan.WEEKLY]?.storeProduct?.price?.formatted,
-                    monthlyPrice = packages[PurchasePlan.MONTHLY]?.storeProduct?.price?.formatted,
-                    lifetimePrice = packages[PurchasePlan.LIFETIME]?.storeProduct?.price?.formatted,
+                    weeklyPrice = packages[PurchasePlan.WEEKLY]?.product?.price?.formatted,
+                    monthlyPrice = packages[PurchasePlan.MONTHLY]?.product?.price?.formatted,
+                    lifetimePrice = packages[PurchasePlan.LIFETIME]?.product?.price?.formatted,
                     errorMessage = if (packages.isEmpty()) {
                         "No RevenueCat packages are attached to the current offering."
                     } else {
@@ -195,7 +195,7 @@ class RevenueCatController(private val context: Context) {
 
     private fun planFor(rcPackage: Package): PurchasePlan? {
         val packageId = rcPackage.identifier.lowercase()
-        val productId = rcPackage.storeProduct.id.lowercase()
+        val productId = rcPackage.product.id.lowercase()
         return when {
             packageId.contains("weekly") || productId == PRODUCT_WEEKLY -> PurchasePlan.WEEKLY
             packageId.contains("monthly") || productId == PRODUCT_MONTHLY -> PurchasePlan.MONTHLY
@@ -238,7 +238,7 @@ private object DeviceScopedRevenueCatId {
             )
         }
 
-        val certificateBytes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val certificateBytes: ByteArray = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             packageInfo.signingInfo
                 ?.apkContentsSigners
                 ?.firstOrNull()
@@ -246,13 +246,13 @@ private object DeviceScopedRevenueCatId {
         } else {
             @Suppress("DEPRECATION")
             packageInfo.signatures?.firstOrNull()?.toByteArray()
-        }.orEmpty()
+        } ?: byteArrayOf()
 
-        return certificateBytes.joinToString(separator = "") { byte -> "%02x".format(byte) }
+        return certificateBytes.joinToString(separator = "") { byte: Byte -> "%02x".format(byte) }
     }
 
     private fun sha256(value: String): String =
         MessageDigest.getInstance("SHA-256")
             .digest(value.toByteArray(Charsets.UTF_8))
-            .joinToString(separator = "") { byte -> "%02x".format(byte) }
+            .joinToString(separator = "") { byte: Byte -> "%02x".format(byte) }
 }
