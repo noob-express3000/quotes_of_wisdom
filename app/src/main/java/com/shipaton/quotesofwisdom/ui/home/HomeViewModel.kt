@@ -46,12 +46,18 @@ class HomeViewModel(
     private var deck: QuoteDeck? = null
     private var loadedQuotes: List<Quote> = emptyList()
     private var pendingBrokenStreak = false
+    private var lastFirstSeenMillis = 0L
+    private var hasRevenueCatPro = false
 
     init {
         viewModelScope.launch {
             preferencesRepository.preferences.collect { prefs ->
+                lastFirstSeenMillis = prefs.firstSeenMillis
                 val favoriteQuotes = loadedQuotes.filter { it.id in prefs.favoriteIds }
-                val access = LocalAccessPolicy.stateFor(prefs.firstSeenMillis)
+                val access = LocalAccessPolicy.stateFor(
+                    firstSeenMillis = prefs.firstSeenMillis,
+                    hasPro = hasRevenueCatPro
+                )
                 val debugOverride = if (BuildConfig.DEBUG) {
                     prefs.debugAccessOverride
                         .takeIf { it.isNotBlank() }
@@ -104,6 +110,17 @@ class HomeViewModel(
                     )
                 }
         }
+    }
+
+    fun setRevenueCatPro(hasPro: Boolean) {
+        if (hasRevenueCatPro == hasPro && _uiState.value.accessState == AccessState.PRO == hasPro) return
+        hasRevenueCatPro = hasPro
+        _uiState.value = _uiState.value.copy(
+            accessState = LocalAccessPolicy.stateFor(
+                firstSeenMillis = lastFirstSeenMillis,
+                hasPro = hasRevenueCatPro
+            )
+        )
     }
 
     fun nextQuote() {
