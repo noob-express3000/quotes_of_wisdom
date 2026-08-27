@@ -20,7 +20,7 @@ android {
             buildConfigField(
                 "String",
                 "REVENUECAT_API_KEY",
-                "\"test_NmoqmpFgyxXIJEUgSIfjJoQwUKe\""
+                "\"test_ogkhePOVXjqcVYNHtDMYXrytVkm\""
             )
         }
         release {
