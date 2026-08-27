@@ -113,7 +113,7 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Weekly",
-                    price = "${weeklyPrice ?: "$0.50"} / week",
+                    price = "${weeklyPrice ?: "$0.99"} / week",
                     enabled = !billingBusy,
                     onClick = { onChoosePlan("weekly") }
                 )
@@ -122,7 +122,7 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Monthly",
-                    price = "${monthlyPrice ?: "$1"} / month",
+                    price = "${monthlyPrice ?: "$2.99"} / month",
                     emphasized = true,
                     enabled = !billingBusy,
                     onClick = { onChoosePlan("monthly") }
@@ -132,7 +132,7 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Lifetime",
-                    price = "${lifetimePrice ?: "$29"} / once",
+                    price = "${lifetimePrice ?: "$29.99"} / once",
                     enabled = !billingBusy,
                     onClick = { onChoosePlan("lifetime") }
                 )
