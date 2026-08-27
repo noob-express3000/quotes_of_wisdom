@@ -29,7 +29,9 @@
 
 - Settings gear: top-left, accent/tertiary color, positioned close to the physical top edge.
 - Daily streak: centered below the top camera/cutout line as a compact flame/count treatment.
+- Tapping the streak triggers one short full-screen flame surge (about 820 ms). The effect uses only colors from the active three-color palette, does not change streak state, and has no continuously running particle system.
 - Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background, positioned close to the physical top edge.
+- When the access label is `PRO`, tapping it performs one in-place 360-degree spin with a small scale pulse. It is purely decorative and causes no navigation or entitlement/state change.
 - Opening quote displays immediately.
 - If TTS is available and access permits speech, narration begins as soon as the quote is visible and the TTS engine is ready; there is no artificial app-side delay.
 - Favorite/Bookmark: bottom-left inside the quote container below the author.
@@ -91,6 +93,7 @@ Settings copy stays terse.
 - Preserve readable contrast inside every three-color theme.
 - Transient Android system bars remain reachable through platform gestures and use readable icon appearance against the active dominant color.
 - Important functionality cannot depend on animation alone.
+- The streak flame surge and Pro spin are decorative microinteractions only; all underlying actions/state remain usable without seeing the animation.
 - TTS failure/unavailability must never prevent reading quote text.
 
 ## Speech behavior
@@ -184,7 +187,7 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
 - Each pricing card is itself the purchase target; there is no separate `Choose` button.
-- No spinning Pro hero/card interaction.
+- No continuous/spinning paywall hero or Pro card interaction; the one-shot Home `PRO` label spin is a separate decorative microinteraction.
 - No filler/explanatory copy beneath the plans.
 - A small top-left info button uses active accent/tertiary and opens a prominent full-width Pro access card near the top of the display rather than expanding/reflowing the paywall itself.
 - The Pro access card uses a stronger 2dp accent border, larger heading/body type, respects the display cutout itself, and is intentionally attention-grabbing without becoming a second paywall.
@@ -236,7 +239,7 @@ Any state + active pro_access -> PRO
 
 ## Trial identity hardening
 
-The final purchase/trial implementation derives a stable opaque RevenueCat App User ID from app-scoped device information rather than using a random anonymous RevenueCat ID.
+The final purchase/trial implementation derives a stable opaque device-scoped App User ID from app-scoped device information rather than using a random anonymous RevenueCat ID.
 
 ```text
 ANDROID_ID
