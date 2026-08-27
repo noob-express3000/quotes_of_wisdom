@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
-import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -57,7 +56,6 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed) {
         if (uiState.quote != null && ttsReady && ttsAllowed) {
-            delay(2_000)
             onAutoSpeak()
         }
     }
