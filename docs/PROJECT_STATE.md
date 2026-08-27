@@ -47,8 +47,8 @@ local corpus
 - Platform system bars remain transiently reachable with the normal edge gesture/swipe and re-hide afterward.
 - The window is allowed into short-edge display-cutout regions. Home gear/access controls sit close to the physical top corners while the centered streak sits below the likely camera line; screens no longer reserve one global safe-drawing strip.
 - Settings gear: top-left, accent/tertiary.
-- Streak: centered in Home header as compact flame/count treatment. Tapping it launches one approximately 820 ms full-screen flame surge using only the active palette; no streak state changes and no continuous particle loop.
-- Access label: top-right floating accent text with no background pill. When the label is `PRO`, tapping it performs one 360-degree in-place spin with a subtle scale pulse; it is decorative only.
+- Streak: centered in Home header as compact flame/count treatment. Tapping it launches one approximately 1.2-second full-screen surge built from dense, layered flame walls, curved tongues and embers using only the active palette; no streak state changes and no continuous particle loop.
+- Access label: top-right floating accent text with no background pill. When the label is `PRO`, tapping it performs one 360-degree in-place text spin. The interaction has no ripple, scale pulse, background change, navigation or entitlement/state change.
 - Favorite: bottom-left inside quote card below author.
 - Share: bottom-right inside quote card below author.
 - Long quote text scrolls directly by touch.
@@ -223,8 +223,8 @@ Latest requested refinements implemented on branch:
 - theme-gallery scrolling tuned further for weaker hardware by giving lazy rows a shared content type and replacing three separate swatch surfaces per tile with one Canvas draw;
 - app uses immersive full-screen mode so the dominant theme color occupies the complete display and Android system bars are transient-by-swipe;
 - global safe-drawing padding removed; the window uses the display-cutout region and places top-corner controls around the likely camera area while keeping the streak below the center camera line;
-- tapping the streak runs a short full-screen palette-aware flame surge with no persistent animation workload;
-- tapping the Home `PRO` label performs one 360-degree spin and subtle scale pulse without changing state or navigation;
+- tapping the streak runs a dense layered full-screen palette-aware flame surge with no persistent animation workload;
+- tapping the Home `PRO` label rotates only the text through one 360-degree spin, with no ripple, scale pulse, background change, state change or navigation;
 - opening TTS artificial 2-second delay removed;
 - all installed Android TTS engines discoverable and Pro-switchable;
 - `Get more voices` moved behind Pro and opens engine/system voice-data installation only in Pro settings;
@@ -244,8 +244,8 @@ RevenueCat purchase actions are still placeholders in PR #9.
 
 1. Run final branch-head Android CI after this polish checkpoint.
 2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Physically verify the streak flame surge on the Samsung and itel, checking visual coverage and whether the short animation remains smooth enough on the weaker device.
-4. Verify the Home `PRO` label performs exactly one spin/scale pulse per tap and remains purely decorative.
+3. Physically verify the dense streak flame surge on the Samsung and itel, checking true full-screen coverage and whether the one-shot animation remains smooth enough on the weaker device.
+4. Verify the Home `PRO` label performs exactly one text-only spin per tap with no ripple, pulse or background change.
 5. Re-test the camera/cutout-aware top layout on both devices and check that no header control overlaps the front camera.
 6. Verify the larger top-positioned Pro access info card and `$29 / once` placeholder.
 7. Re-test theme scrolling on the Samsung and compare it with the previous APK; treat small remaining debug-build jank separately from release-build performance.

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
@@ -103,8 +105,8 @@ fun HomeScreen(
                             flameProgress.animateTo(
                                 targetValue = 1f,
                                 animationSpec = tween(
-                                    durationMillis = 820,
-                                    easing = LinearOutSlowInEasing
+                                    durationMillis = 1180,
+                                    easing = FastOutSlowInEasing
                                 )
                             )
                             flameProgress.snapTo(0f)
@@ -158,7 +160,7 @@ private fun Header(
     onStreakTap: () -> Unit
 ) {
     val proRotation = remember { Animatable(0f) }
-    val proScale = remember { Animatable(1f) }
+    val proInteractionSource = remember { MutableInteractionSource() }
     val scope = rememberCoroutineScope()
 
     Box(
@@ -182,30 +184,21 @@ private fun Header(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                .clickable(enabled = accessState == AccessState.PRO) {
+                .clickable(
+                    interactionSource = proInteractionSource,
+                    indication = null,
+                    enabled = accessState == AccessState.PRO
+                ) {
                     scope.launch {
                         proRotation.snapTo(0f)
-                        proScale.snapTo(1f)
-                        launch {
-                            proRotation.animateTo(
-                                targetValue = 360f,
-                                animationSpec = tween(
-                                    durationMillis = 460,
-                                    easing = FastOutSlowInEasing
-                                )
+                        proRotation.animateTo(
+                            targetValue = 360f,
+                            animationSpec = tween(
+                                durationMillis = 520,
+                                easing = FastOutSlowInEasing
                             )
-                            proRotation.snapTo(0f)
-                        }
-                        launch {
-                            proScale.animateTo(
-                                targetValue = 1.14f,
-                                animationSpec = tween(durationMillis = 220)
-                            )
-                            proScale.animateTo(
-                                targetValue = 1f,
-                                animationSpec = tween(durationMillis = 220)
-                            )
-                        }
+                        )
+                        proRotation.snapTo(0f)
                     }
                 },
             contentAlignment = Alignment.Center
@@ -219,8 +212,6 @@ private fun Header(
                 },
                 modifier = Modifier.graphicsLayer {
                     rotationZ = proRotation.value
-                    scaleX = proScale.value
-                    scaleY = proScale.value
                 },
                 color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Bold,
@@ -255,81 +246,174 @@ private fun FlameSurgeOverlay(
     if (progress <= 0f) return
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val envelope = sin(PI * progress).toFloat().coerceIn(0f, 1f)
-        drawRect(accent.copy(alpha = 0.09f * envelope))
+        val attack = (progress / 0.36f).coerceIn(0f, 1f)
+        val release = ((1f - progress) / 0.24f).coerceIn(0f, 1f)
+        val intensity = minOf(attack, release)
+        val phase = progress * 8.5f
+        val fullHeight = size.height * (0.30f + 1.02f * attack)
 
-        repeat(32) { index ->
-            val phase = ((index * 37) % 100) / 250f
-            val local = (progress * 1.38f - phase).coerceIn(0f, 1f)
+        drawRect(accent.copy(alpha = 0.18f * intensity))
+
+        drawFlameWall(
+            height = fullHeight,
+            tongues = 11,
+            valleyRatio = 0.34f,
+            phase = phase,
+            color = accent.copy(alpha = 0.88f * intensity)
+        )
+        drawFlameWall(
+            height = fullHeight * 0.82f,
+            tongues = 14,
+            valleyRatio = 0.42f,
+            phase = phase + 0.85f,
+            color = inner.copy(alpha = 0.78f * intensity)
+        )
+
+        repeat(20) { index ->
+            val laneWidth = size.width / 20f
+            val pulse = 0.74f +
+                0.26f * ((sin((index * 1.41f + phase) * PI) + 1.0) * 0.5).toFloat()
+            val height = fullHeight * (0.46f + 0.48f * pulse)
+            val width = laneWidth * (1.15f + (index % 4) * 0.16f)
+            val lean = sin((index * 0.83f + phase * 0.72f) * PI).toFloat() * 0.68f
+            val centerX = laneWidth * (index + 0.5f)
+
+            drawFlameTongue(
+                centerX = centerX,
+                baseY = size.height + 6f,
+                width = width,
+                height = height,
+                lean = lean,
+                outer = accent.copy(alpha = 0.92f * intensity),
+                inner = inner.copy(alpha = 0.84f * intensity)
+            )
+        }
+
+        repeat(28) { index ->
+            val delay = (index % 9) * 0.035f
+            val local = ((progress - delay) * 1.34f).coerceIn(0f, 1f)
             if (local <= 0f || local >= 1f) return@repeat
 
-            val flameHeight = 120f + (index % 7) * 18f
-            val flameWidth = 44f + (index % 5) * 9f
-            val lane = (index + 0.5f) / 32f
-            val sway = sin((local * 3.2f + index) * PI).toFloat() * 18f
-            val x = size.width * lane + sway
-            val y = size.height + flameHeight - local * (size.height + flameHeight * 2.1f)
-            val flameAlpha = (envelope * (0.72f + (index % 4) * 0.06f)).coerceIn(0f, 0.95f)
+            val xBase = size.width * ((index * 47 % 101) / 100f)
+            val drift = sin((local * 2.8f + index) * PI).toFloat() * 22f
+            val y = size.height * (1.04f - local * 1.14f)
+            val emberAlpha = intensity * (1f - local) * 0.92f
 
-            drawFlame(
-                centerX = x,
-                baseY = y,
-                width = flameWidth,
-                height = flameHeight,
-                outer = accent.copy(alpha = flameAlpha),
-                inner = inner.copy(alpha = flameAlpha * 0.86f)
+            drawCircle(
+                color = accent.copy(alpha = emberAlpha),
+                radius = 2.5f + (index % 4) * 1.4f,
+                center = Offset(xBase + drift, y)
             )
         }
     }
 }
 
-private fun DrawScope.drawFlame(
+private fun DrawScope.drawFlameWall(
+    height: Float,
+    tongues: Int,
+    valleyRatio: Float,
+    phase: Float,
+    color: Color
+) {
+    val bottom = size.height + 8f
+    val laneWidth = size.width / tongues
+
+    fun valleyY(index: Int): Float {
+        val wobble = sin((index * 1.19f + phase * 0.54f) * PI).toFloat() * 0.055f
+        return bottom - height * (valleyRatio + wobble)
+    }
+
+    val path = Path().apply {
+        moveTo(0f, bottom)
+        lineTo(0f, valleyY(0))
+
+        repeat(tongues) { index ->
+            val x0 = index * laneWidth
+            val tipX = x0 + laneWidth * 0.5f
+            val x1 = x0 + laneWidth
+            val pulse =
+                0.76f +
+                    0.24f *
+                    ((sin((index * 1.73f + phase) * PI) + 1.0) * 0.5).toFloat()
+            val tipY = bottom - height * pulse
+            val nextValleyY = valleyY(index + 1)
+
+            cubicTo(
+                x0 + laneWidth * 0.18f,
+                valleyY(index) - height * 0.10f,
+                tipX - laneWidth * 0.14f,
+                tipY + height * 0.10f,
+                tipX,
+                tipY
+            )
+            cubicTo(
+                tipX + laneWidth * 0.16f,
+                tipY + height * 0.12f,
+                x1 - laneWidth * 0.18f,
+                nextValleyY - height * 0.08f,
+                x1,
+                nextValleyY
+            )
+        }
+
+        lineTo(size.width, bottom)
+        close()
+    }
+
+    drawPath(path, color)
+}
+
+private fun DrawScope.drawFlameTongue(
     centerX: Float,
     baseY: Float,
     width: Float,
     height: Float,
+    lean: Float,
     outer: Color,
     inner: Color
 ) {
+    val tipX = centerX + lean * width
+
     val outerPath = Path().apply {
-        moveTo(centerX, baseY - height)
+        moveTo(centerX - width * 0.62f, baseY)
         cubicTo(
-            centerX + width * 0.58f,
-            baseY - height * 0.62f,
-            centerX + width * 0.72f,
-            baseY - height * 0.18f,
-            centerX,
-            baseY
+            centerX - width * 0.92f,
+            baseY - height * 0.24f,
+            tipX - width * 0.30f,
+            baseY - height * 0.68f,
+            tipX,
+            baseY - height
         )
         cubicTo(
-            centerX - width * 0.72f,
-            baseY - height * 0.18f,
-            centerX - width * 0.58f,
-            baseY - height * 0.62f,
-            centerX,
-            baseY - height
+            tipX + width * 0.38f,
+            baseY - height * 0.64f,
+            centerX + width * 0.92f,
+            baseY - height * 0.22f,
+            centerX + width * 0.62f,
+            baseY
         )
         close()
     }
     drawPath(outerPath, outer)
 
+    val innerTipX = centerX + lean * width * 0.48f
     val innerPath = Path().apply {
-        moveTo(centerX, baseY - height * 0.68f)
+        moveTo(centerX - width * 0.34f, baseY)
         cubicTo(
-            centerX + width * 0.34f,
-            baseY - height * 0.42f,
-            centerX + width * 0.38f,
-            baseY - height * 0.14f,
-            centerX,
-            baseY - height * 0.05f
+            centerX - width * 0.45f,
+            baseY - height * 0.17f,
+            innerTipX - width * 0.18f,
+            baseY - height * 0.44f,
+            innerTipX,
+            baseY - height * 0.68f
         )
         cubicTo(
-            centerX - width * 0.38f,
-            baseY - height * 0.14f,
-            centerX - width * 0.34f,
+            innerTipX + width * 0.22f,
             baseY - height * 0.42f,
-            centerX,
-            baseY - height * 0.68f
+            centerX + width * 0.48f,
+            baseY - height * 0.16f,
+            centerX + width * 0.34f,
+            baseY
         )
         close()
     }
