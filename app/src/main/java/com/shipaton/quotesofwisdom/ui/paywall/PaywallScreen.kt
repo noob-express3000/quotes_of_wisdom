@@ -118,7 +118,7 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Lifetime",
-                    price = "$29 once",
+                    price = "$29 / lifetime",
                     onClick = { onChoosePlan("lifetime") }
                 )
             }
@@ -170,10 +170,10 @@ private fun UpgradeInfoDialog(
 
                 Text(
                     text = when (accessState) {
-                        AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, voice selection and speed control immediately, with no launch upgrade interruption."
-                        AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, selectable voices and speed control."
-                        AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes and full voice controls."
-                        AccessState.PRO -> "Pro already unlocks all 100 themes, selectable voices, speed control and uninterrupted access."
+                        AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, engine and voice selection, additional voice downloads and speed control immediately, with no launch upgrade interruption."
+                        AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, engine and voice selection, additional voice downloads and speed control."
+                        AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes, additional voice downloads and full voice controls."
+                        AccessState.PRO -> "Pro already unlocks all 100 themes, engine and voice selection, additional voice downloads, speed control and uninterrupted access."
                     },
                     modifier = Modifier.padding(end = 8.dp),
                     color = MaterialTheme.colorScheme.secondary,
