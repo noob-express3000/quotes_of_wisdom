@@ -1,5 +1,7 @@
 package com.shipaton.quotesofwisdom.ui.settings
 
+import android.app.TimePickerDialog
+import android.text.format.DateFormat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -49,16 +51,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.model.AccessState
+import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
 import com.shipaton.quotesofwisdom.speech.TtsEngineOption
 import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
 import com.shipaton.quotesofwisdom.ui.theme.AppThemes
+import java.util.Calendar
 
 @Composable
 fun SettingsScreen(
@@ -72,18 +77,29 @@ fun SettingsScreen(
     ttsVoices: List<VoiceOption>,
     selectedVoiceName: String,
     speechRate: Float,
+    reminderHour: Int,
+    reminderMinute: Int,
     onBack: () -> Unit,
     onOpenFavorites: () -> Unit,
     onSelectTheme: (String) -> Unit,
     onSelectEngine: (String) -> Unit,
     onSelectVoice: (String) -> Unit,
     onSpeechRateChange: (Float) -> Unit,
+    onReminderTimeChange: (Int, Int) -> Unit,
     onPreviewSpeech: () -> Unit,
     onGetMoreVoices: () -> Unit,
     onOpenPaywall: () -> Unit,
     onDebugAccess: (AccessState?) -> Unit
 ) {
     val themeRows = remember { AppThemes.chunked(2) }
+    val context = LocalContext.current
+    val reminderTimeLabel = remember(context, reminderHour, reminderMinute) {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, reminderHour)
+            set(Calendar.MINUTE, reminderMinute)
+        }
+        DateFormat.getTimeFormat(context).format(calendar.time)
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         LazyColumn(
@@ -152,6 +168,72 @@ fun SettingsScreen(
                             Icons.Rounded.ChevronRight,
                             contentDescription = "Open favorites",
                             tint = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+            }
+
+            item {
+                InfoCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Daily reminder",
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (accessState != AccessState.PRO) {
+                            Icon(
+                                Icons.Rounded.Lock,
+                                contentDescription = "Pro reminder time",
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        if (accessState == AccessState.PRO) {
+                            "Choose when your one daily thought arrives."
+                        } else {
+                            "The free reminder arrives at 09:00. Pro lets you choose the time."
+                        },
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 13.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            if (accessState == AccessState.PRO) {
+                                TimePickerDialog(
+                                    context,
+                                    { _, hour, minute -> onReminderTimeChange(hour, minute) },
+                                    reminderHour,
+                                    reminderMinute,
+                                    DateFormat.is24HourFormat(context)
+                                ).show()
+                            } else {
+                                onOpenPaywall()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    ) {
+                        if (accessState != AccessState.PRO) {
+                            Icon(Icons.Rounded.Lock, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(
+                            if (accessState == AccessState.PRO) {
+                                "Reminder time · $reminderTimeLabel"
+                            } else {
+                                "09:00 · Choose with Pro"
+                            }
                         )
                     }
                 }
