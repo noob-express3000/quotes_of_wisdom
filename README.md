@@ -109,7 +109,7 @@ Local Android builds also require an Android SDK containing API 36. If you do no
 - Pro unlocks all themes, voice selection and adjustable speech speed
 - RevenueCat `pro_access` entitlement for all paid products
 - deterministic opaque device-scoped RevenueCat identity planned for reinstall-resistant trial history
-- approximate pricing targets: $0.50 weekly, $1 monthly, $70 lifetime
+- pricing: $0.99 weekly, $2.99 monthly, $29.99 lifetime; production UI uses RevenueCat/store-localized pricing
 - quote text scroll control
 
 ## Next checkpoint: M2
