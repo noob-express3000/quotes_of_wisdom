@@ -1,6 +1,7 @@
 package com.shipaton.quotesofwisdom.ui.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,11 +10,17 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,12 +88,14 @@ fun SettingsScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(20.dp),
+            contentPadding = PaddingValues(start = 20.dp, top = 6.dp, end = 20.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBack) {
@@ -232,7 +241,8 @@ fun SettingsScreen(
 
             items(
                 items = themeRows,
-                key = { pair -> pair.first().id }
+                key = { pair -> pair.first().id },
+                contentType = { "themeRow" }
             ) { pair ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -424,11 +434,7 @@ private fun ThemeTile(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                ColorDot(palette.dominant, palette.accent)
-                ColorDot(palette.secondary, palette.accent)
-                ColorDot(palette.accent, palette.accent)
-            }
+            ThemeSwatches(palette)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     palette.name,
@@ -450,13 +456,32 @@ private fun ThemeTile(
 }
 
 @Composable
-private fun ColorDot(color: Color, border: Color) {
-    Surface(
-        modifier = Modifier.size(20.dp),
-        color = color,
-        shape = RoundedCornerShape(999.dp),
-        border = BorderStroke(1.dp, border)
-    ) {}
+private fun ThemeSwatches(palette: AppThemePalette) {
+    Canvas(
+        modifier = Modifier
+            .width(72.dp)
+            .height(20.dp)
+    ) {
+        val radius = size.height / 2f
+        val gap = 6.dp.toPx()
+        val borderWidth = 1.dp.toPx()
+        val centers = listOf(
+            radius,
+            radius * 3f + gap,
+            radius * 5f + gap * 2f
+        )
+        val colors = listOf(palette.dominant, palette.secondary, palette.accent)
+
+        colors.forEachIndexed { index, color ->
+            drawCircle(color = color, radius = radius, center = androidx.compose.ui.geometry.Offset(centers[index], radius))
+            drawCircle(
+                color = palette.accent,
+                radius = radius - borderWidth / 2f,
+                center = androidx.compose.ui.geometry.Offset(centers[index], radius),
+                style = Stroke(width = borderWidth)
+            )
+        }
+    }
 }
 
 @Composable
