@@ -1,6 +1,7 @@
 package com.shipaton.quotesofwisdom.ui.favorites
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +35,9 @@ import com.shipaton.quotesofwisdom.model.Quote
 @Composable
 fun FavoritesScreen(
     favoriteQuotes: List<Quote>,
+    playbackEnabled: Boolean,
     onClose: () -> Unit,
+    onPlayFavorite: (Quote) -> Unit,
     onRemoveFavorite: (Int) -> Unit
 ) {
     Surface(
@@ -81,7 +84,11 @@ fun FavoritesScreen(
                 ) {
                     items(favoriteQuotes, key = { it.id }) { quote ->
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = playbackEnabled) {
+                                    onPlayFavorite(quote)
+                                },
                             shape = RoundedCornerShape(20.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.background
