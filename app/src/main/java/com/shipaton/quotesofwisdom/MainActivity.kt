@@ -2,9 +2,11 @@ package com.shipaton.quotesofwisdom
 
 import android.content.Intent
 import android.graphics.Color as AndroidColor
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,7 +14,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -114,119 +115,113 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .safeDrawingPadding()
-                    ) {
-                        when {
-                            showPaywall && access != AccessState.PRO -> {
-                                PaywallScreen(
-                                    accessState = access,
-                                    canDismiss = LocalAccessPolicy.canDismissLaunchPaywall(access),
-                                    onDismiss = { showPaywall = false },
-                                    onChoosePlan = { plan ->
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            "${plan.replaceFirstChar { it.uppercase() }} purchase will connect to RevenueCat Test Store in M5.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                    when {
+                        showPaywall && access != AccessState.PRO -> {
+                            PaywallScreen(
+                                accessState = access,
+                                canDismiss = LocalAccessPolicy.canDismissLaunchPaywall(access),
+                                onDismiss = { showPaywall = false },
+                                onChoosePlan = { plan ->
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "${plan.replaceFirstChar { it.uppercase() }} purchase will connect to RevenueCat Test Store in M5.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            )
+                        }
+
+                        screenName == AppScreen.FAVORITES.name -> {
+                            FavoritesScreen(
+                                favoriteQuotes = uiState.favoriteQuotes,
+                                playbackEnabled = LocalAccessPolicy.canUseTts(access) && ttsReady,
+                                onClose = { screenName = AppScreen.SETTINGS.name },
+                                onPlayFavorite = { quote ->
+                                    if (LocalAccessPolicy.canUseTts(access)) {
+                                        ttsController.speak(quote.text)
                                     }
-                                )
-                            }
+                                },
+                                onRemoveFavorite = homeViewModel::toggleFavorite
+                            )
+                        }
 
-                            screenName == AppScreen.FAVORITES.name -> {
-                                FavoritesScreen(
-                                    favoriteQuotes = uiState.favoriteQuotes,
-                                    playbackEnabled = LocalAccessPolicy.canUseTts(access) && ttsReady,
-                                    onClose = { screenName = AppScreen.SETTINGS.name },
-                                    onPlayFavorite = { quote ->
-                                        if (LocalAccessPolicy.canUseTts(access)) {
-                                            ttsController.speak(quote.text)
-                                        }
-                                    },
-                                    onRemoveFavorite = homeViewModel::toggleFavorite
-                                )
-                            }
-
-                            screenName == AppScreen.SETTINGS.name -> {
-                                SettingsScreen(
-                                    selectedThemeId = uiState.themeId,
-                                    accessState = access,
-                                    streak = uiState.streak,
-                                    bestStreak = uiState.bestStreak,
-                                    favoriteCount = uiState.favoriteQuotes.size,
-                                    ttsEngines = ttsEngines,
-                                    selectedEnginePackage = selectedEnginePackage,
-                                    ttsVoices = ttsVoices,
-                                    selectedVoiceName = selectedVoiceName,
-                                    speechRate = speechRate,
-                                    onBack = {
-                                        screenName = AppScreen.HOME.name
-                                        if (uiState.effectiveAccessState == AccessState.LOCKED) {
-                                            showPaywall = true
-                                        }
-                                    },
-                                    onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
-                                    onSelectTheme = homeViewModel::selectTheme,
-                                    onSelectEngine = { enginePackage ->
-                                        ttsController.selectEngine(enginePackage)
-                                        homeViewModel.selectProEngine(enginePackage)
-                                    },
-                                    onSelectVoice = { voiceName ->
-                                        ttsController.setProVoice(voiceName)
-                                        homeViewModel.selectProVoice(voiceName)
-                                    },
-                                    onSpeechRateChange = { rate ->
-                                        ttsController.setProSpeechRate(rate)
-                                        homeViewModel.setProSpeechRate(rate)
-                                    },
-                                    onPreviewSpeech = {
-                                        if (access == AccessState.PRO) {
-                                            uiState.quote?.let { ttsController.speak(it.text) }
-                                        }
-                                    },
-                                    onGetMoreVoices = ::openMoreVoices,
-                                    onOpenPaywall = { showPaywall = true },
-                                    onDebugAccess = { state ->
-                                        homeViewModel.setDebugAccessOverride(state)
-                                        showPaywall = when (state) {
-                                            AccessState.PRO -> false
-                                            AccessState.TRIAL_ACTIVE,
-                                            AccessState.GRACE_TEXT_ONLY,
-                                            AccessState.LOCKED -> true
-                                            null -> uiState.accessState != AccessState.PRO
-                                        }
+                        screenName == AppScreen.SETTINGS.name -> {
+                            SettingsScreen(
+                                selectedThemeId = uiState.themeId,
+                                accessState = access,
+                                streak = uiState.streak,
+                                bestStreak = uiState.bestStreak,
+                                favoriteCount = uiState.favoriteQuotes.size,
+                                ttsEngines = ttsEngines,
+                                selectedEnginePackage = selectedEnginePackage,
+                                ttsVoices = ttsVoices,
+                                selectedVoiceName = selectedVoiceName,
+                                speechRate = speechRate,
+                                onBack = {
+                                    screenName = AppScreen.HOME.name
+                                    if (uiState.effectiveAccessState == AccessState.LOCKED) {
+                                        showPaywall = true
                                     }
-                                )
-                            }
+                                },
+                                onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
+                                onSelectTheme = homeViewModel::selectTheme,
+                                onSelectEngine = { enginePackage ->
+                                    ttsController.selectEngine(enginePackage)
+                                    homeViewModel.selectProEngine(enginePackage)
+                                },
+                                onSelectVoice = { voiceName ->
+                                    ttsController.setProVoice(voiceName)
+                                    homeViewModel.selectProVoice(voiceName)
+                                },
+                                onSpeechRateChange = { rate ->
+                                    ttsController.setProSpeechRate(rate)
+                                    homeViewModel.setProSpeechRate(rate)
+                                },
+                                onPreviewSpeech = {
+                                    if (access == AccessState.PRO) {
+                                        uiState.quote?.let { ttsController.speak(it.text) }
+                                    }
+                                },
+                                onGetMoreVoices = ::openMoreVoices,
+                                onOpenPaywall = { showPaywall = true },
+                                onDebugAccess = { state ->
+                                    homeViewModel.setDebugAccessOverride(state)
+                                    showPaywall = when (state) {
+                                        AccessState.PRO -> false
+                                        AccessState.TRIAL_ACTIVE,
+                                        AccessState.GRACE_TEXT_ONLY,
+                                        AccessState.LOCKED -> true
+                                        null -> uiState.accessState != AccessState.PRO
+                                    }
+                                }
+                            )
+                        }
 
-                            else -> {
-                                HomeScreen(
-                                    uiState = uiState,
-                                    ttsReady = ttsReady,
-                                    onNextQuote = {
-                                        ttsController.stop()
-                                        homeViewModel.nextQuote()
-                                    },
-                                    onReplay = {
-                                        if (LocalAccessPolicy.canUseTts(access)) {
-                                            uiState.quote?.let { ttsController.speak(it.text) }
-                                        }
-                                    },
-                                    onAutoSpeak = {
-                                        if (LocalAccessPolicy.canUseTts(access)) {
-                                            uiState.quote?.let { ttsController.speak(it.text) }
-                                        }
-                                    },
-                                    onSettings = {
-                                        ttsController.stop()
-                                        screenName = AppScreen.SETTINGS.name
-                                    },
-                                    onToggleFavorite = homeViewModel::toggleFavorite,
-                                    onShare = { shareCurrentQuote(uiState.quote?.text, uiState.quote?.author) }
-                                )
-                            }
+                        else -> {
+                            HomeScreen(
+                                uiState = uiState,
+                                ttsReady = ttsReady,
+                                onNextQuote = {
+                                    ttsController.stop()
+                                    homeViewModel.nextQuote()
+                                },
+                                onReplay = {
+                                    if (LocalAccessPolicy.canUseTts(access)) {
+                                        uiState.quote?.let { ttsController.speak(it.text) }
+                                    }
+                                },
+                                onAutoSpeak = {
+                                    if (LocalAccessPolicy.canUseTts(access)) {
+                                        uiState.quote?.let { ttsController.speak(it.text) }
+                                    }
+                                },
+                                onSettings = {
+                                    ttsController.stop()
+                                    screenName = AppScreen.SETTINGS.name
+                                },
+                                onToggleFavorite = homeViewModel::toggleFavorite,
+                                onShare = { shareCurrentQuote(uiState.quote?.text, uiState.quote?.author) }
+                            )
                         }
                     }
                 }
@@ -236,6 +231,12 @@ class MainActivity : ComponentActivity() {
 
     private fun enterImmersiveMode() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes = window.attributes.apply {
+                layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
         window.statusBarColor = AndroidColor.TRANSPARENT
         window.navigationBarColor = AndroidColor.TRANSPARENT
         WindowCompat.getInsetsController(window, window.decorView).apply {
