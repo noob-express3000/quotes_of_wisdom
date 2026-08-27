@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -67,7 +72,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp, vertical = 20.dp)
+                .padding(start = 22.dp, top = 6.dp, end = 22.dp, bottom = 20.dp)
         ) {
             Header(
                 accessState = access,
@@ -75,7 +80,7 @@ fun HomeScreen(
                 onSettings = onSettings
             )
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(12.dp))
 
             Box(
                 modifier = Modifier
@@ -112,12 +117,16 @@ private fun Header(
     streak: Int,
     onSettings: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp)
+            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
     ) {
-        IconButton(onClick = onSettings) {
+        IconButton(
+            onClick = onSettings,
+            modifier = Modifier.align(Alignment.TopStart)
+        ) {
             Icon(
                 Icons.Rounded.Settings,
                 contentDescription = "Settings",
@@ -125,7 +134,23 @@ private fun Header(
             )
         }
 
+        Text(
+            text = when (accessState) {
+                AccessState.PRO -> "PRO"
+                AccessState.GRACE_TEXT_ONLY -> "GRACE"
+                AccessState.LOCKED -> "LOCKED"
+                AccessState.TRIAL_ACTIVE -> "FREE"
+            },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(horizontal = 6.dp, vertical = 12.dp),
+            color = MaterialTheme.colorScheme.tertiary,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
+
         Surface(
+            modifier = Modifier.align(Alignment.BottomCenter),
             shape = RoundedCornerShape(999.dp),
             color = MaterialTheme.colorScheme.secondary
         ) {
@@ -137,19 +162,6 @@ private fun Header(
                 fontSize = 13.sp
             )
         }
-
-        Text(
-            text = when (accessState) {
-                AccessState.PRO -> "PRO"
-                AccessState.GRACE_TEXT_ONLY -> "GRACE"
-                AccessState.LOCKED -> "LOCKED"
-                AccessState.TRIAL_ACTIVE -> "FREE"
-            },
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
-            color = MaterialTheme.colorScheme.tertiary,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
-        )
     }
 }
 
