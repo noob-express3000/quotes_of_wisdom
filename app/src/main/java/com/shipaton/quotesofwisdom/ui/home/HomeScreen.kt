@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,7 +78,12 @@ fun HomeScreen(
     val access = uiState.effectiveAccessState
     val ttsAllowed = access == AccessState.TRIAL_ACTIVE || access == AccessState.PRO
     val flameProgress = remember { Animatable(0f) }
+    val hornPlayer = remember { StreakHornPlayer() }
     val scope = rememberCoroutineScope()
+
+    DisposableEffect(hornPlayer) {
+        onDispose { hornPlayer.release() }
+    }
 
     LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed) {
         if (uiState.quote != null && ttsReady && ttsAllowed) {
@@ -100,6 +106,7 @@ fun HomeScreen(
                     streak = uiState.streak,
                     onSettings = onSettings,
                     onStreakTap = {
+                        hornPlayer.play()
                         scope.launch {
                             flameProgress.snapTo(0f)
                             flameProgress.animateTo(
