@@ -42,9 +42,10 @@ local corpus
 - Theme library is **100 themes**: 2 Trial + 98 Pro.
 - Theme display names are audited to a maximum of two words and must match the actual palette.
 - Theme rows are first-class `LazyColumn` items so off-screen theme tiles are not all composed at once.
+- Theme rows expose a stable content type and the three swatches in each tile are rendered by one Canvas to reduce per-row composition overhead.
 - App presentation is immersive full-screen: Android status/navigation bars are hidden during normal use so the dominant theme color owns the complete display.
 - Platform system bars remain transiently reachable with the normal edge gesture/swipe and re-hide afterward.
-- App content still respects safe drawing/display-cutout insets where required.
+- The window is allowed into short-edge display-cutout regions. Home gear/access controls sit close to the physical top corners while the centered streak sits below the likely camera line; screens no longer reserve one global safe-drawing strip.
 - Settings gear: top-left, accent/tertiary.
 - Streak: centered in Home header as compact flame/count treatment.
 - Access label: top-right floating accent text with no background pill.
@@ -64,6 +65,7 @@ local corpus
 - Favorites open in a dedicated screen with close control and per-item removal.
 - Empty Favorites shows no explanatory bookmark message.
 - Tapping a saved favorite plays that quote through TTS when the current access state permits speech and TTS is ready.
+- Settings and Favorites headers now use cutout-aware horizontal placement and sit close to the physical top edge in immersive mode.
 - Settings copy stays terse.
 
 ## Quote personalization
@@ -145,7 +147,7 @@ Current physical-test placeholders:
 
 - Weekly: `$0.50 / week`
 - Monthly: `$1 / month`
-- Lifetime: `$29 / lifetime`
+- Lifetime: `$29 / once`
 
 Current UI:
 
@@ -156,8 +158,9 @@ Current UI:
 - Monthly retains the thicker emphasis border;
 - plan-card borders use accent/tertiary;
 - plan-card text uses secondary;
-- small top-left accent/tertiary info button opens a compact centered dialog instead of expanding/reflowing the paywall;
-- dialog copy is state-aware for Trial/Grace/Locked, includes Pro voice-download value, and can be dismissed by its close control or outside tap;
+- small top-left accent/tertiary info button opens a prominent Pro access card at the top of the display rather than expanding/reflowing the paywall;
+- Pro access card is wider and visually stronger than the previous compact centered modal, with a 2dp accent border and larger heading/body copy;
+- the Pro access card itself respects the display cutout, includes state-aware Trial/Grace/Locked copy plus Pro voice-download value, and can be dismissed by its close control or outside tap;
 - production RevenueCat build must replace placeholder target prices with localized store pricing.
 
 All products eventually grant the single RevenueCat entitlement `pro_access`.
@@ -217,15 +220,19 @@ Latest requested refinements implemented on branch:
 
 - 100 strict three-color themes, with theme gallery lazily composed by row;
 - theme labels audited to two words maximum, including inaccurate legacy labels corrected without changing persisted theme IDs;
+- theme-gallery scrolling tuned further for weaker hardware by giving lazy rows a shared content type and replacing three separate swatch surfaces per tile with one Canvas draw;
 - app now uses immersive full-screen mode so the dominant theme color occupies the complete display and Android system bars are transient-by-swipe;
+- global safe-drawing padding removed; the window now uses the display-cutout region and places top-corner controls around the likely camera area while keeping the streak below the center camera line;
 - opening TTS artificial 2-second delay removed;
 - all installed Android TTS engines discoverable and Pro-switchable;
 - `Get more voices` moved behind Pro and opens engine/system voice-data installation only in Pro settings;
 - tapping a favorite speaks the saved quote when speech is permitted;
-- paywall info control opens a compact modal dialog rather than inserting copy into the pricing layout;
-- placeholder plan formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / lifetime`;
+- paywall info control opens a larger, top-positioned Pro access card rather than inserting copy into the pricing layout;
+- placeholder plan formatting is now `$0.50 / week`, `$1 / month`, `$29 / once`;
 - empty Favorites explanatory text removed;
 - plan cards centered, simplified and strict three-color styling retained.
+
+Physical-performance note from testing: theme scrolling was slightly laggy on the Samsung test phone while remaining smooth on the itel device. The current branch includes targeted composition reductions for that path. Debug APKs are still expected to be less representative of final release performance than optimized release builds.
 
 One hardware note remains to verify on-device: an earlier physical test mentioned the app not running on a `V50 Lite`. Android version/minSdk is not the obvious cause. If a current APK still fails there, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
 
@@ -235,14 +242,15 @@ RevenueCat purchase actions are still placeholders in PR #9.
 
 1. Run final branch-head Android CI after this polish checkpoint.
 2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Physically verify immersive full-screen behavior on both three-button and gesture-navigation devices, including transient system-bar reveal/re-hide.
-4. Verify Trial Settings no longer exposes `Get more voices`, while Pro still does and refreshes TTS after returning.
-5. Verify consistent paywall placeholder formatting and the updated info dialog copy.
-6. Re-check immediate narration, favorite tap playback, theme labels/scrolling and TTS engine switching.
-7. Test the V50 Lite if available and capture exact failure details if it still fails.
-8. Fix any remaining findings.
-9. Merge PR #9 only after physical-device signoff and green branch-head CI.
-10. Begin RevenueCat Test Store milestone.
+3. Physically verify the new camera/cutout-aware top layout on the Samsung and itel, checking that no header control overlaps the front camera.
+4. Verify the larger top-positioned Pro access info card and `$29 / once` placeholder.
+5. Re-test theme scrolling on the Samsung and compare it with the previous APK; treat small remaining debug-build jank separately from release-build performance.
+6. Verify Trial Settings no longer exposes `Get more voices`, while Pro still does and refreshes TTS after returning.
+7. Re-check immediate narration, favorite tap playback, theme labels and TTS engine switching.
+8. Test the V50 Lite if available and capture exact failure details if it still fails.
+9. Fix any remaining findings.
+10. Merge PR #9 only after physical-device signoff and green branch-head CI.
+11. Begin RevenueCat Test Store milestone.
 
 ## Later milestones
 
