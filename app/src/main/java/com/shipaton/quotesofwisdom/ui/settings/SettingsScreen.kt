@@ -217,9 +217,6 @@ fun SettingsScreen(
                                 contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) { Text("See Pro") }
-
-                        Spacer(Modifier.height(12.dp))
-                        VoiceDataButton(onClick = onGetMoreVoices)
                     }
                 }
             }
