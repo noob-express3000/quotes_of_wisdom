@@ -15,6 +15,19 @@ android {
         versionName = "0.2.0-test"
     }
 
+    buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"test_NmoqmpFgyxXIJEUgSIfjJoQwUKe\""
+            )
+        }
+        release {
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"\"")
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -45,6 +58,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("com.revenuecat.purchases:purchases:10.18.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
