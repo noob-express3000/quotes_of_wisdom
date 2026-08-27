@@ -20,6 +20,8 @@
 - The home screen does not show a redundant `Quotes of Wisdom` title.
 - Quote text is displayed without added opening/closing quotation marks.
 - v1 ships with **100 themes**: 2 Trial themes and 98 Pro themes.
+- Theme display names are color-accurate and use at most two words.
+- The active dominant theme color extends edge-to-edge behind Android system bars; app content respects safe drawing insets and system bar icons adapt for contrast.
 - Quotes are local and carry author + classification metadata.
 
 ## Home interaction details
@@ -28,7 +30,7 @@
 - Daily streak: centered in the top header as a compact flame/count treatment.
 - Access label (`FREE`, `GRACE`, `LOCKED`, `PRO`): top-right as floating accent text, without a pill/background.
 - Opening quote displays immediately.
-- If TTS is available and access permits speech, narration begins about 2 seconds later.
+- If TTS is available and access permits speech, narration begins as soon as the quote is visible and the TTS engine is ready; there is no artificial app-side delay.
 - Favorite/Bookmark: bottom-left inside the quote container below the author.
 - Share: bottom-right inside the quote container below the author.
 - Long quote text is directly swipe-scrollable.
@@ -36,6 +38,7 @@
 - Next stops active speech before advancing.
 - Favorites are persisted locally.
 - Favorites open in their own dedicated screen from Settings, with a close control and per-item removal.
+- Tapping a saved favorite plays that quote through TTS when the current access state permits speech.
 - When Favorites has no saved bookmarks, do not show explanatory empty-state copy.
 - Sharing remains plain attributed text for the current test build; final share-card polish can follow later.
 
@@ -52,7 +55,10 @@
 - Use visually striking, proven three-color combinations and strong real-world color references.
 - Keep a mix of restrained/premium and bold/high-contrast palettes.
 - Every theme obeys the exact three-base-color and perceptual 60/30/10 rules.
+- Theme display names use no more than two words and must describe the actual palette rather than legacy/internal IDs.
 - Theme cards use accent borders and secondary text.
+- Theme rows are lazily composed so the 100-theme library does not build all tiles at once.
+- Use edge-to-edge window drawing so the dominant theme color continues behind the status/navigation regions without hiding Android system navigation.
 
 ## Settings hierarchy
 
@@ -81,6 +87,7 @@ Settings copy stays terse.
 - Provide TalkBack/content descriptions for icon-only controls.
 - Use appropriately sized touch targets.
 - Preserve readable contrast inside every three-color theme.
+- System bar icon brightness must remain readable against the active dominant color.
 - Important functionality cannot depend on animation alone.
 - TTS failure/unavailability must never prevent reading quote text.
 
@@ -173,7 +180,9 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - Each pricing card is itself the purchase target; there is no separate `Choose` button.
 - No spinning Pro hero/card interaction.
 - No filler/explanatory copy beneath the plans.
-- A small top-left info button uses active accent/tertiary and explains the immediate value of upgrading: immediate Pro access, all 100 themes, voice selection/speed controls, restored speech/access where applicable, and no launch upgrade interruption.
+- A small top-left info button uses active accent/tertiary and opens a compact centered information dialog rather than expanding/reflowing the paywall itself.
+- The dialog explains the immediate value of upgrading: immediate Pro access, all 100 themes, voice selection/speed controls, restored speech/access where applicable, and no launch upgrade interruption.
+- The info dialog can be dismissed with its close control or by tapping outside it.
 - All paywall UI follows the active three-color palette.
 
 ## App icon
