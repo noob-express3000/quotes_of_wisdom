@@ -182,7 +182,7 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - Paywall headline: `Choose your plan`.
 - Show only plan name + price on each pricing card; remove `Try It!`, `Best Value!`, `Own It!` and similar eyebrow statements.
 - Weekly, Monthly and Lifetime cards are horizontally centered and the plan group is centered in the screen.
-- Physical-test placeholder price formatting is consistent: `$0.50 / week`, `$1 / month`, `$29 / once`.
+- Catalog fallback price formatting is consistent: `$0.99 / week`, `$2.99 / month`, `$29.99 / once`.
 - Monthly retains the thicker emphasis border.
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
@@ -203,13 +203,13 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 
 ## Commercial products
 
-Initial target prices:
+Frozen Test Store/catalog pricing:
 
-- Weekly: approximately USD 0.50.
-- Monthly: approximately USD 1.00.
-- Lifetime: approximately USD 29.00.
+- Weekly: USD 0.99.
+- Monthly: USD 2.99.
+- Lifetime: USD 29.99.
 
-The physical-test build may show target-price placeholders. The production RevenueCat build must display store/RevenueCat localized pricing rather than hardcoded currency strings.
+These values replace the earlier approximate `$0.50 / $1.00 / $29` targets. Runtime paywall prices must come from RevenueCat/store localized pricing whenever available; the hardcoded values are fallback/display placeholders only.
 
 All paid products grant the same RevenueCat entitlement:
 
