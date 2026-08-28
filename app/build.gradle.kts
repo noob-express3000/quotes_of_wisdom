@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val productionRevenueCatApiKey = providers.gradleProperty("REVENUECAT_API_KEY")
+    .orNull
+    .orEmpty()
+
 android {
     namespace = "com.shipaton.quotesofwisdom"
     compileSdk = 36
@@ -31,7 +35,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "REVENUECAT_API_KEY", "\"\"")
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"$productionRevenueCatApiKey\""
+            )
         }
 
         create("qa") {
