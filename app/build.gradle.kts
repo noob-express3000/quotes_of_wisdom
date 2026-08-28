@@ -12,7 +12,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "0.2.0-test"
+        versionName = "1.0.0-rc1"
     }
 
     buildTypes {
@@ -23,8 +23,25 @@ android {
                 "\"test_ogkhePOVXjqcVYNHtDMYXrytVkm\""
             )
         }
+
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             buildConfigField("String", "REVENUECAT_API_KEY", "\"\"")
+        }
+
+        create("qa") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"test_ogkhePOVXjqcVYNHtDMYXrytVkm\""
+            )
         }
     }
 
