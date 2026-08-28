@@ -1,5 +1,8 @@
 name: Android
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -14,6 +17,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -44,8 +48,15 @@ jobs:
           chmod +x bootstrap-gradle.sh
           ./bootstrap-gradle.sh
 
-      - name: Build debug and optimized QA APKs
-        run: ./gradlew :app:assembleDebug :app:assembleQa
+      - name: Test, lint, and build all release paths
+        run: >-
+          ./gradlew
+          :app:testDebugUnitTest
+          :app:lintQa
+          :app:assembleDebug
+          :app:assembleQa
+          :app:bundleRelease
+          -PREVENUECAT_API_KEY=goog_ci_validation_key
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

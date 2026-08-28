@@ -11,6 +11,7 @@ import android.speech.tts.TextToSpeech
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -31,7 +32,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.shipaton.quotesofwisdom.billing.BillingResult
-import com.shipaton.quotesofwisdom.billing.PurchasePlan
 import com.shipaton.quotesofwisdom.billing.RevenueCatController
 import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
@@ -96,6 +96,10 @@ class MainActivity : ComponentActivity() {
             var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
 
             val access = uiState.effectiveAccessState
+            val paywallRequired = access == AccessState.LOCKED &&
+                uiState.debugAccessOverride == null
+            val canDismissPaywall = uiState.debugAccessOverride != null ||
+                LocalAccessPolicy.canDismissLaunchPaywall(access)
             val requestedPalette = themeById(uiState.themeId)
             val palette = if (requestedPalette.isFree || access == AccessState.PRO) {
                 requestedPalette
@@ -154,6 +158,26 @@ class MainActivity : ComponentActivity() {
             }
 
             QuotesOfWisdomTheme(palette = palette) {
+                BackHandler(
+                    enabled = showPaywall || paywallRequired ||
+                        screenName != AppScreen.HOME.name
+                ) {
+                    when {
+                        showPaywall || paywallRequired -> {
+                            if (canDismissPaywall) showPaywall = false
+                        }
+
+                        screenName == AppScreen.FAVORITES.name -> {
+                            screenName = AppScreen.SETTINGS.name
+                        }
+
+                        screenName == AppScreen.SETTINGS.name -> {
+                            screenName = AppScreen.HOME.name
+                            if (access == AccessState.LOCKED) showPaywall = true
+                        }
+                    }
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -162,48 +186,43 @@ class MainActivity : ComponentActivity() {
                     when {
                         !initialEntitlementHandled && uiState.debugAccessOverride == null -> Unit
 
-                        showPaywall && access != AccessState.PRO -> {
+                        (showPaywall || paywallRequired) && access != AccessState.PRO -> {
                             PaywallScreen(
                                 accessState = access,
-                                canDismiss = LocalAccessPolicy.canDismissLaunchPaywall(access),
+                                canDismiss = canDismissPaywall,
                                 weeklyPrice = revenueCatState.weeklyPrice,
                                 monthlyPrice = revenueCatState.monthlyPrice,
                                 lifetimePrice = revenueCatState.lifetimePrice,
+                                availablePlans = revenueCatState.availablePlans,
+                                billingLoading = revenueCatState.offeringsLoading,
                                 billingBusy = revenueCatState.busy,
+                                billingMessage = revenueCatState.billingMessage,
                                 onDismiss = { showPaywall = false },
                                 onChoosePlan = { plan ->
-                                    val purchasePlan = when (plan) {
-                                        "weekly" -> PurchasePlan.WEEKLY
-                                        "monthly" -> PurchasePlan.MONTHLY
-                                        "lifetime" -> PurchasePlan.LIFETIME
-                                        else -> null
-                                    }
-                                    if (purchasePlan != null) {
-                                        revenueCatController.purchase(
-                                            activity = this@MainActivity,
-                                            plan = purchasePlan
-                                        ) { result ->
-                                            runOnUiThread {
-                                                when (result) {
-                                                    BillingResult.Success -> {
-                                                        if (revenueCatController.state.value.hasPro) {
-                                                            homeViewModel.setDebugAccessOverride(null)
-                                                            homeViewModel.setRevenueCatPro(true)
-                                                            showPaywall = false
-                                                            Toast.makeText(
-                                                                this@MainActivity,
-                                                                "Pro access active.",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                        }
+                                    revenueCatController.purchase(
+                                        activity = this@MainActivity,
+                                        plan = plan
+                                    ) { result ->
+                                        runOnUiThread {
+                                            when (result) {
+                                                BillingResult.Success -> {
+                                                    if (revenueCatController.state.value.hasPro) {
+                                                        homeViewModel.setDebugAccessOverride(null)
+                                                        homeViewModel.setRevenueCatPro(true)
+                                                        showPaywall = false
+                                                        Toast.makeText(
+                                                            this@MainActivity,
+                                                            "Pro access active.",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     }
-                                                    BillingResult.Cancelled -> Unit
-                                                    is BillingResult.Error -> Toast.makeText(
-                                                        this@MainActivity,
-                                                        result.message,
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
                                                 }
+                                                BillingResult.Cancelled -> Unit
+                                                is BillingResult.Error -> Toast.makeText(
+                                                    this@MainActivity,
+                                                    result.message,
+                                                    Toast.LENGTH_LONG
+                                                ).show()
                                             }
                                         }
                                     }
@@ -239,7 +258,8 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                     }
-                                }
+                                },
+                                onRetryBilling = revenueCatController::refresh
                             )
                         }
 

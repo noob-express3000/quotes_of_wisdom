@@ -84,7 +84,7 @@ All three products grant the single entitlement:
 
 The three products must be attached to the RevenueCat **Current Offering** as Weekly / Monthly / Lifetime packages.
 
-Runtime paywall prices come from RevenueCat/store localized pricing whenever available. Hardcoded `$0.99 / $2.99 / $29.99` values are fallback labels only.
+Runtime paywall prices come from RevenueCat/store localized pricing. A plan remains disabled until its real localized product and price are loaded; loading and unavailable states never display invented fallback prices.
 
 ## RevenueCat M5 implementation
 

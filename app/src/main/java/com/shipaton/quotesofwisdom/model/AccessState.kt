@@ -15,12 +15,14 @@ object LocalAccessPolicy {
     fun stateFor(
         firstSeenMillis: Long,
         nowMillis: Long = System.currentTimeMillis(),
+        latestSeenMillis: Long = 0L,
         hasPro: Boolean = false
     ): AccessState {
         if (hasPro) return AccessState.PRO
         if (firstSeenMillis <= 0L) return AccessState.TRIAL_ACTIVE
 
-        val elapsed = (nowMillis - firstSeenMillis).coerceAtLeast(0L)
+        val effectiveNow = maxOf(nowMillis, latestSeenMillis, firstSeenMillis)
+        val elapsed = effectiveNow - firstSeenMillis
         return when {
             elapsed < TRIAL_DAYS * DAY_MS -> AccessState.TRIAL_ACTIVE
             elapsed < (TRIAL_DAYS + GRACE_DAYS) * DAY_MS -> AccessState.GRACE_TEXT_ONLY

@@ -31,15 +31,22 @@ enum class PurchasePlan {
 
 data class RevenueCatUiState(
     val configured: Boolean = false,
-    val loading: Boolean = true,
+    val entitlementLoading: Boolean = true,
+    val offeringsLoading: Boolean = true,
     val entitlementResolved: Boolean = false,
     val hasPro: Boolean = false,
+    val availablePlans: Set<PurchasePlan> = emptySet(),
     val weeklyPrice: String? = null,
     val monthlyPrice: String? = null,
     val lifetimePrice: String? = null,
     val busy: Boolean = false,
-    val errorMessage: String? = null
-)
+    val entitlementErrorMessage: String? = null,
+    val offeringsErrorMessage: String? = null,
+    val operationErrorMessage: String? = null
+) {
+    val billingMessage: String?
+        get() = operationErrorMessage ?: offeringsErrorMessage ?: entitlementErrorMessage
+}
 
 sealed interface BillingResult {
     data object Success : BillingResult
@@ -64,9 +71,10 @@ class RevenueCatController(private val context: Context) {
         if (apiKey.isBlank()) {
             _state.value = RevenueCatUiState(
                 configured = false,
-                loading = false,
+                entitlementLoading = false,
+                offeringsLoading = false,
                 entitlementResolved = true,
-                errorMessage = "RevenueCat is not configured for this build."
+                offeringsErrorMessage = "Purchases are unavailable in this build."
             )
             return
         }
@@ -91,14 +99,20 @@ class RevenueCatController(private val context: Context) {
 
     fun refresh() {
         if (!Purchases.isConfigured) return
-        _state.value = _state.value.copy(loading = true, errorMessage = null)
+        _state.value = _state.value.copy(
+            entitlementLoading = true,
+            offeringsLoading = true,
+            entitlementErrorMessage = null,
+            offeringsErrorMessage = null,
+            operationErrorMessage = null
+        )
 
         Purchases.sharedInstance.getCustomerInfoWith(
             onError = { error ->
                 _state.value = _state.value.copy(
-                    loading = false,
+                    entitlementLoading = false,
                     entitlementResolved = true,
-                    errorMessage = error.message
+                    entitlementErrorMessage = error.message
                 )
             },
             onSuccess = ::applyCustomerInfo
@@ -107,8 +121,8 @@ class RevenueCatController(private val context: Context) {
         Purchases.sharedInstance.getOfferingsWith(
             onError = { error ->
                 _state.value = _state.value.copy(
-                    loading = false,
-                    errorMessage = error.message
+                    offeringsLoading = false,
+                    offeringsErrorMessage = error.message
                 )
             },
             onSuccess = { offerings ->
@@ -118,11 +132,12 @@ class RevenueCatController(private val context: Context) {
                 }
 
                 _state.value = _state.value.copy(
-                    loading = false,
+                    offeringsLoading = false,
+                    availablePlans = packages.keys.toSet(),
                     weeklyPrice = packages[PurchasePlan.WEEKLY]?.product?.price?.formatted,
                     monthlyPrice = packages[PurchasePlan.MONTHLY]?.product?.price?.formatted,
                     lifetimePrice = packages[PurchasePlan.LIFETIME]?.product?.price?.formatted,
-                    errorMessage = if (packages.isEmpty()) {
+                    offeringsErrorMessage = if (packages.isEmpty()) {
                         "No RevenueCat packages are attached to the current offering."
                     } else {
                         null
@@ -140,19 +155,19 @@ class RevenueCatController(private val context: Context) {
         val rcPackage = packages[plan]
         if (rcPackage == null) {
             val message = "This plan is not configured in the current RevenueCat offering."
-            _state.value = _state.value.copy(errorMessage = message)
+            _state.value = _state.value.copy(operationErrorMessage = message)
             onResult(BillingResult.Error(message))
             return
         }
 
-        _state.value = _state.value.copy(busy = true, errorMessage = null)
+        _state.value = _state.value.copy(busy = true, operationErrorMessage = null)
         val params = PurchaseParams.Builder(activity, rcPackage).build()
         Purchases.sharedInstance.purchaseWith(
             purchaseParams = params,
             onError = { error, userCancelled ->
                 _state.value = _state.value.copy(
                     busy = false,
-                    errorMessage = if (userCancelled) null else error.message
+                    operationErrorMessage = if (userCancelled) null else error.message
                 )
                 onResult(
                     if (userCancelled) BillingResult.Cancelled
@@ -161,7 +176,7 @@ class RevenueCatController(private val context: Context) {
             },
             onSuccess = { _, customerInfo ->
                 applyCustomerInfo(customerInfo)
-                _state.value = _state.value.copy(busy = false)
+                _state.value = _state.value.copy(busy = false, operationErrorMessage = null)
                 onResult(BillingResult.Success)
             }
         )
@@ -173,15 +188,18 @@ class RevenueCatController(private val context: Context) {
             return
         }
 
-        _state.value = _state.value.copy(busy = true, errorMessage = null)
+        _state.value = _state.value.copy(busy = true, operationErrorMessage = null)
         Purchases.sharedInstance.restorePurchasesWith(
             onError = { error ->
-                _state.value = _state.value.copy(busy = false, errorMessage = error.message)
+                _state.value = _state.value.copy(
+                    busy = false,
+                    operationErrorMessage = error.message
+                )
                 onResult(BillingResult.Error(error.message))
             },
             onSuccess = { customerInfo ->
                 applyCustomerInfo(customerInfo)
-                _state.value = _state.value.copy(busy = false)
+                _state.value = _state.value.copy(busy = false, operationErrorMessage = null)
                 onResult(BillingResult.Success)
             }
         )
@@ -193,10 +211,10 @@ class RevenueCatController(private val context: Context) {
 
         _state.value = _state.value.copy(
             configured = true,
-            loading = false,
+            entitlementLoading = false,
             entitlementResolved = true,
             hasPro = hasPro,
-            errorMessage = null
+            entitlementErrorMessage = null
         )
     }
 

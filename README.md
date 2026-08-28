@@ -68,11 +68,13 @@ The QA variant is optimized and signed with the normal Android debug signing con
 
 Debug and QA builds use the RevenueCat Test Store SDK key included in the Android client configuration so the monetization flow can be evaluated without private credentials.
 
-A production release reads the public RevenueCat mobile SDK key from the Gradle property `REVENUECAT_API_KEY`:
+A production release reads the public RevenueCat Google Play SDK key from the Gradle property `REVENUECAT_API_KEY`:
 
 ```bash
-./gradlew :app:assembleRelease -PREVENUECAT_API_KEY=your_public_sdk_key
+./gradlew :app:assembleRelease -PREVENUECAT_API_KEY=goog_your_public_sdk_key
 ```
+
+Release builds fail before compilation when the key is missing, is a Test Store key, or is not a Google Play key beginning with `goog_`.
 
 Production signing is intentionally kept out of the repository.
 
@@ -142,10 +144,12 @@ app/src/main/assets/quotes.json
 
 ## CI
 
-GitHub Actions validates the production quote database, bootstraps the same pinned Gradle wrapper a clean machine uses, and builds both the debug and optimized QA APKs.
+GitHub Actions validates the production quote database, runs unit tests and Android lint, bootstraps the same pinned Gradle wrapper a clean machine uses, builds both test APKs, and verifies the minified release app-bundle path.
 
 This makes GitHub the source of truth rather than any one development computer.
 
 ## Project documentation
 
 Detailed implementation and product notes live under [`docs/`](docs/).
+
+The final signing, RevenueCat, store-listing, and device checks are tracked in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).

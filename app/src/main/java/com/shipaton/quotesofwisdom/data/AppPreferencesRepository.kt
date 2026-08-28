@@ -18,6 +18,7 @@ data class AppPreferences(
     val themeId: String = "parchment",
     val favoriteIds: Set<Int> = emptySet(),
     val firstSeenMillis: Long = 0L,
+    val latestSeenMillis: Long = 0L,
     val streak: Int = 0,
     val bestStreak: Int = 0,
     val lastOpenDay: Int = 0,
@@ -38,6 +39,7 @@ class AppPreferencesRepository(private val context: Context) {
         val themeId = stringPreferencesKey("theme_id")
         val favoriteIds = stringSetPreferencesKey("favorite_ids")
         val firstSeenMillis = longPreferencesKey("first_seen_millis")
+        val latestSeenMillis = longPreferencesKey("latest_seen_millis")
         val streak = intPreferencesKey("streak")
         val bestStreak = intPreferencesKey("best_streak")
         val lastOpenDay = intPreferencesKey("last_open_day")
@@ -55,6 +57,7 @@ class AppPreferencesRepository(private val context: Context) {
                 ?.toSet()
                 .orEmpty(),
             firstSeenMillis = prefs[Keys.firstSeenMillis] ?: 0L,
+            latestSeenMillis = prefs[Keys.latestSeenMillis] ?: 0L,
             streak = prefs[Keys.streak] ?: 0,
             bestStreak = prefs[Keys.bestStreak] ?: 0,
             lastOpenDay = prefs[Keys.lastOpenDay] ?: 0,
@@ -72,6 +75,10 @@ class AppPreferencesRepository(private val context: Context) {
             if (prefs[Keys.firstSeenMillis] == null) {
                 prefs[Keys.firstSeenMillis] = nowMillis
             }
+            prefs[Keys.latestSeenMillis] = maxOf(
+                prefs[Keys.latestSeenMillis] ?: nowMillis,
+                nowMillis
+            )
         }
         return start
     }

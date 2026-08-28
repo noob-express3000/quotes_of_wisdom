@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.sin
@@ -109,7 +110,7 @@ fun HomeScreen(
                     streak = uiState.streak,
                     onSettings = onSettings,
                     onStreakTap = {
-                        hornPlayer.play()
+                        scope.launch(Dispatchers.Default) { hornPlayer.play() }
                         scope.launch {
                             flameProgress.snapTo(0f)
                             flameProgress.animateTo(
@@ -223,7 +224,7 @@ private fun Header(
                 modifier = Modifier.graphicsLayer {
                     rotationZ = proRotation.value
                 },
-                color = MaterialTheme.colorScheme.tertiary,
+                color = MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
@@ -239,7 +240,7 @@ private fun Header(
             Text(
                 text = "🔥 $streak",
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                color = MaterialTheme.colorScheme.tertiary,
+                color = MaterialTheme.colorScheme.onSecondary,
                 fontWeight = FontWeight.Black,
                 fontSize = 13.sp
             )
@@ -544,9 +545,9 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContentColor = MaterialTheme.colorScheme.tertiary
+                disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.38f)
             )
         ) {
             Icon(
@@ -563,7 +564,7 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.tertiary
+                contentColor = MaterialTheme.colorScheme.onSecondary
             )
         ) {
             Text("Next")
