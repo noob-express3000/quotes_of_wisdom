@@ -1,6 +1,8 @@
 package com.shipaton.quotesofwisdom
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color as AndroidColor
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +12,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -53,6 +56,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var ttsController: TtsController
     private var refreshTtsAfterExternalVoiceUi = false
 
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            DailyWisdomNotifications.setEnabled(this, granted)
+        }
+
     private val revenueCatController: RevenueCatController by lazy {
         (application as QuotesApplication).revenueCatController
     }
@@ -67,6 +75,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enterImmersiveMode()
+        configureDailyNotifications()
         ttsController = TtsController(applicationContext)
         val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
         val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
@@ -328,6 +337,37 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun configureDailyNotifications() {
+        DailyWisdomNotifications.ensureChannels(this)
+        val prefs = getSharedPreferences(NOTIFICATION_GATE_PREFS, MODE_PRIVATE)
+        val hasLaunchedBefore = prefs.getBoolean(KEY_HAS_LAUNCHED, false)
+
+        if (!hasLaunchedBefore) {
+            prefs.edit().putBoolean(KEY_HAS_LAUNCHED, true).apply()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                DailyWisdomNotifications.setEnabled(this, true)
+            }
+            return
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            DailyWisdomNotifications.setEnabled(this, true)
+            return
+        }
+
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            DailyWisdomNotifications.setEnabled(this, true)
+            return
+        }
+
+        if (prefs.getBoolean(KEY_PERMISSION_PROMPTED, false)) return
+
+        prefs.edit().putBoolean(KEY_PERMISSION_PROMPTED, true).apply()
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
     private fun enterImmersiveMode() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -400,5 +440,11 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         if (::ttsController.isInitialized) ttsController.shutdown()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val NOTIFICATION_GATE_PREFS = "notification_gate"
+        const val KEY_HAS_LAUNCHED = "has_launched"
+        const val KEY_PERMISSION_PROMPTED = "permission_prompted"
     }
 }
