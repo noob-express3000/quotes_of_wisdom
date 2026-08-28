@@ -2,272 +2,218 @@
 
 _Last updated: 2026-08-27_
 
-This is the handoff checkpoint. Read this file, then `docs/product-spec.md`, before changing product behavior.
+Read this file first when resuming work. GitHub is the source of truth.
 
-## Working mode
+## Repository / active work
 
-This project is intentionally vibe-coded. The user/product owner defines behavior, tests real-device builds, reviews source, and proposes changes. ChatGPT performs most implementation, architecture, testing scaffolding, CI maintenance, and debugging.
+- Repo: `noob-express3000/quotes_of_wisdom`
+- Current integration branch: `m5-revenuecat-test`
+- Current PR: #10 `M5: RevenueCat Test Store integration`
+- PR #10 is stacked on `m2-product-test`; do not merge blindly until physical-device billing validation passes.
+- GitHub Actions is the canonical clean Android build.
 
-Do not redesign the product idea unless explicitly asked.
+## Product
 
-## Repository
+Android-only, local-first quote app built with Kotlin + Jetpack Compose.
 
-Canonical repo: `noob-express3000/quotes_of_wisdom`
+- No login or custom backend.
+- Local quote corpus + Android Text-to-Speech.
+- RevenueCat is authoritative for paid Pro entitlement.
+- Local DataStore holds app preferences, favorites, streak, trial state and debug previews.
 
-GitHub is source of truth. GitHub Actions is the canonical clean Android build.
+## Shipping quote corpus
 
-## Product summary
+Complete and frozen unless a real defect is found:
 
-Android-only, local-first quote app using Android Text-to-Speech and RevenueCat for paid entitlement management.
+- 1,063 quotes
+- 356 authors
+- 12 categories
+- global shuffled/no-repeat deck
+- favorites lightly personalize future draws while preserving the global no-repeat deck
 
-No login, registration, custom backend, or user account system.
-
-```text
-local corpus
- -> global shuffled/no-repeat deck
- -> favorites lightly personalize classifications
- -> quote display
- -> TTS
- -> replay / next / direct text scroll
- -> favorites / share / themes / streak
-```
-
-## Frozen visual / interaction rules
-
-- Exactly 3 base colors per theme; perceptual 60/30/10 dominant/secondary/accent.
-- Material tertiary is the same theme accent; it is not a fourth color.
-- All Material roles stay inside those same 3 colors.
-- Card/container borders use accent/tertiary.
-- Primary readable text uses secondary.
-- Theme library is **100 themes**: 2 Trial + 98 Pro.
-- Theme display names are audited to a maximum of two words and must match the actual palette.
-- Theme rows are first-class `LazyColumn` items so off-screen theme tiles are not all composed at once.
-- Theme rows expose a stable content type and the three swatches in each tile are rendered by one Canvas to reduce per-row composition overhead.
-- App presentation is immersive full-screen: Android status/navigation bars are hidden during normal use so the dominant theme color owns the complete display.
-- Platform system bars remain transiently reachable with the normal edge gesture/swipe and re-hide afterward.
-- The window is allowed into short-edge display-cutout regions. Home gear/access controls sit close to the physical top corners while the centered streak sits below the likely camera line; screens no longer reserve one global safe-drawing strip.
-- Settings gear: top-left, accent/tertiary.
-- Streak: centered in Home header as compact flame/count treatment. Tapping it launches one approximately 1.2-second full-screen surge built from dense, layered flame walls, curved tongues and embers using only the active palette; no streak state changes and no continuous particle loop.
-- Access label: top-right floating accent text with no background pill. When the label is `PRO`, tapping it performs one 360-degree in-place text spin. The interaction has no ripple, scale pulse, background change, navigation or entitlement/state change.
-- Favorite: bottom-left inside quote card below author.
-- Share: bottom-right inside quote card below author.
-- Long quote text scrolls directly by touch.
-- No decorative quote marks around quote text.
-- Custom bold minimal Q launcher icon replaces generic bulb imagery.
-
-## Settings / Favorites
-
-- Favorites launcher first.
-- Speech controls second.
-- Themes last among user-facing settings.
-- Debug-only access preview may follow in debug builds.
-- Streak is not duplicated in Settings.
-- Favorites open in a dedicated screen with close control and per-item removal.
-- Empty Favorites shows no explanatory bookmark message.
-- Tapping a saved favorite plays that quote through TTS when the current access state permits speech and TTS is ready.
-- Settings and Favorites headers use cutout-aware horizontal placement and sit close to the physical top edge in immersive mode.
-- Settings copy stays terse.
-
-## Quote personalization
-
-The production corpus remains globally shuffled with no repeats during a cycle. Favorites act as a lightweight taste signal:
-
-- determine the user's top 3 favorited classifications;
-- approximately 70% of eligible `Next` draws are biased toward those classifications;
-- the same global deck is consumed, preserving exploration and no-repeat behavior.
-
-## Speech rules
-
-Android/system TTS remains the v1 speech backend; custom neural model packs are deferred.
-
-Opening narration:
-
-- quote text appears immediately;
-- narration begins as soon as TTS is ready and access permits speech;
-- there is no artificial 2-second app-side delay.
-
-Trial:
-
-- uses the system-default TTS engine;
-- one fixed English voice + 1.0x speed;
-- prefer the best available local/on-device English voice using Android TTS quality/latency metadata;
-- OEM TTS failures degrade to text instead of taking down the app;
-- additional voice-data installation is not exposed in Trial settings.
-
-Pro:
-
-- enumerate all installed Android TTS engines;
-- engine selector appears above the voice selector;
-- selected engine persists in DataStore;
-- changing engine reinitializes TTS against that package and refreshes installed English voices;
-- installed English voices selectable, with local versus online labels;
-- voices Android marks as not yet installed are excluded from the ready-to-use list;
-- `Get more voices` is Pro-only;
-- rate 0.7x–1.4x;
-- engine/voice/rate persist in DataStore.
-
-Voice-data flow:
-
-- Pro `Get more voices` first launches the selected engine's `ACTION_INSTALL_TTS_DATA` activity;
-- falls back to the generic Android TTS install-data action;
-- falls back to system Settings if neither installer exists;
-- returning to the app reinitializes the current engine so new voice data is rediscovered.
-
-## Retention / access
-
-- streak day = opening app at least once in local calendar day;
-- multiple opens same day count once;
-- missed day breaks streak;
-- broken streak gets strong motivational opening quote;
-- daily notifications still to be implemented;
-- Trial launch paywall: dismissible;
-- Grace launch paywall: dismissible, TTS off;
-- Locked: paywall non-dismissible;
-- Pro: no launch paywall.
+## Access lifecycle
 
 ```text
 DAY 0-30   TRIAL_ACTIVE
 DAY 31-33  GRACE_TEXT_ONLY
 DAY 34+    LOCKED
 
-ANY STATE + active pro_access -> PRO
+ANY STATE + active RevenueCat `pro_access` -> PRO
 ```
 
-Debug Trial/Grace/Locked/Pro overrides are debug-only and persist across app restarts. Release builds ignore them.
+Trial:
+- full quote browsing
+- TTS with one fixed local-preferred English voice at 1.0x
+- 2 themes
+- dismissible launch paywall
 
-## Current paywall presentation
+Grace:
+- text only
+- TTS disabled
+- dismissible launch paywall
 
-Target prices remain:
+Locked:
+- app blocked by non-dismissible paywall
 
-- Weekly ≈ $0.50
-- Monthly ≈ $1.00
-- Lifetime ≈ $29
+Pro:
+- all 100 themes
+- TTS
+- installed TTS engine selection
+- installed English voice selection
+- additional voice-data installer flow
+- speech rate 0.7x–1.4x
+- no launch paywall
 
-Current physical-test placeholders:
+## Commercial model — FROZEN
 
-- Weekly: `$0.50 / week`
-- Monthly: `$1 / month`
-- Lifetime: `$29 / once`
+RevenueCat/Test Store catalog pricing:
 
-Current UI:
+- Weekly: **USD 0.99**
+- Monthly: **USD 2.99**
+- Lifetime: **USD 29.99**
 
-- headline `Choose your plan`;
-- three centered clickable plan cards;
-- cards contain only plan name + price;
-- `Try It!`, `Best Value!`, `Own It!`, separate `Choose` buttons, continuous/spinning paywall presentation and bottom filler copy are removed;
-- Monthly retains the thicker emphasis border;
-- plan-card borders use accent/tertiary;
-- plan-card text uses secondary;
-- small top-left accent/tertiary info button opens a prominent Pro access card at the top of the display rather than expanding/reflowing the paywall;
-- Pro access card is wider and visually stronger than the previous compact centered modal, with a 2dp accent border and larger heading/body copy;
-- the Pro access card itself respects the display cutout, includes state-aware Trial/Grace/Locked copy plus Pro voice-download value, and can be dismissed by its close control or outside tap;
-- production RevenueCat build must replace placeholder target prices with localized store pricing.
+Product IDs:
 
-All products eventually grant the single RevenueCat entitlement `pro_access`.
+- `qow_weekly`
+- `qow_monthly`
+- `qow_lifetime`
 
-## Trial hardening plan for RevenueCat milestone
+All three products grant the single entitlement:
 
-Use a deterministic opaque device-scoped App User ID:
+- `pro_access`
+
+The three products must be attached to the RevenueCat **Current Offering** as Weekly / Monthly / Lifetime packages.
+
+Runtime paywall prices come from RevenueCat/store localized pricing whenever available. Hardcoded `$0.99 / $2.99 / $29.99` values are fallback labels only.
+
+## RevenueCat M5 implementation
+
+Implemented on `m5-revenuecat-test`:
+
+- RevenueCat Android SDK 10.18.1
+- debug build uses the RevenueCat Test Store public SDK key
+- release build intentionally has no Test Store key
+- application-start RevenueCat configuration
+- deterministic opaque device-scoped App User ID
+- `pro_access` observation and launch refresh
+- Current Offering retrieval
+- localized package pricing
+- Weekly / Monthly / Lifetime package mapping
+- purchase flow with success / cancellation / error handling
+- Restore Purchases flow
+- RevenueCat Pro state feeds the existing Trial / Grace / Locked / Pro controller
+- paywall cards invoke real RevenueCat purchase calls
+
+Device-scoped RevenueCat identity:
 
 ```text
-ANDROID_ID + package + signing certificate fingerprint
+ANDROID_ID + package name + signing-certificate fingerprint
  -> SHA-256
  -> opaque RevenueCat App User ID
 ```
 
-Never expose/transmit the raw Android ID as the RevenueCat identifier.
+Never send/display the raw Android ID as the RevenueCat identifier.
 
-Layer trial clocks using persisted wall time, monotonic elapsed time, and RevenueCat first-seen/customer timing so clock rollback cannot extend the trial.
+## Physical-test signing
 
-## M0 — COMPLETE
+GitHub Actions previously relied on runner-generated debug signing, which could change between ephemeral runners and make successive physical-test APKs incompatible for update installs.
 
-- Kotlin + Compose Android project
-- API 36 toolchain
-- Actions APK build
-- physical-device launch validated
+The M5 branch now restores one stable **test-only debug keystore** before `assembleDebug`.
 
-## M1 — COMPLETE
+Important:
+- uninstall pre-stable-signer APKs once before installing the first stable-signer checkpoint;
+- after that, subsequent M5 debug APKs should update normally;
+- this test signer is not the future production Play signing key.
 
-Merged PR #4.
+Because the RevenueCat test App User ID includes the signing fingerprint, switching from the old transient signer to the stable test signer changes the test customer identity once. Production signing will intentionally create its own identity namespace later.
 
-- asset quote repository
-- quote model
-- global shuffled/no-repeat deck
-- StateFlow ViewModel
-- Next button
-- strict three-color default theme
+## Current UI / interaction rules
 
-## PRODUCTION QUOTE CORPUS — COMPLETE
+- Exactly 3 base colors per theme using perceptual 60/30/10 hierarchy.
+- 100 themes: 2 Trial + 98 Pro.
+- Immersive fullscreen with display-cutout-aware controls.
+- Settings gear top-left.
+- Access label top-right.
+- Streak centered below likely camera/cutout area.
+- Favorite bottom-left inside quote card.
+- Share bottom-right inside quote card.
+- Long quote text directly scrollable.
+- No decorative quote marks.
 
-Merged PR #8, merge commit `1a2363e189951bf65c7cfc34654d0c2bc1f6e55e`.
+Home microinteractions:
 
-- 1,063 shipping quotes
-- 356 authors
-- 12 categories, each >=20
-- per-author cap 20
-- exact schema `id`, `text`, `author`, `classification`
-- provenance ledger for every shipped record
-- production validator and Android CI passed
+- Tapping `PRO` performs exactly one 360° text-only spin with no ripple, scale pulse, background change, navigation or state mutation.
+- Tapping the streak triggers the approximately 1.2-second palette-aware full-screen flame surge.
+- The same streak tap now starts a roughly **1.8-second synthesized deep horn blast** through Android media audio.
+- The horn is generated in-app with `AudioTrack`; no bundled/licensed audio asset is required.
+- Repeated streak taps restart the horn rather than stacking multiple horn instances.
+- Flame/horn effects do not mutate streak or access state.
 
-Do not casually reopen the corpus gate.
+## Speech behavior
 
-## CURRENT — PR #9 PHYSICAL-DEVICE PRODUCT TEST
+Opening quote:
+- appears immediately;
+- begins narration as soon as TTS is ready and access allows speech;
+- no artificial 2-second app-side delay.
 
-Branch: `m2-product-test`
-PR: #9 `M2: physical-device product test build`
+Replay:
+- restarts current quote with queue flush.
 
-Latest requested refinements implemented on branch:
+Next:
+- stops active speech before advancing.
 
-- 100 strict three-color themes, with theme gallery lazily composed by row;
-- theme labels audited to two words maximum, including inaccurate legacy labels corrected without changing persisted theme IDs;
-- theme-gallery scrolling tuned further for weaker hardware by giving lazy rows a shared content type and replacing three separate swatch surfaces per tile with one Canvas draw;
-- app uses immersive full-screen mode so the dominant theme color occupies the complete display and Android system bars are transient-by-swipe;
-- global safe-drawing padding removed; the window uses the display-cutout region and places top-corner controls around the likely camera area while keeping the streak below the center camera line;
-- tapping the streak runs a dense layered full-screen palette-aware flame surge with no persistent animation workload;
-- tapping the Home `PRO` label rotates only the text through one 360-degree spin, with no ripple, scale pulse, background change, state change or navigation;
-- opening TTS artificial 2-second delay removed;
-- all installed Android TTS engines discoverable and Pro-switchable;
-- `Get more voices` moved behind Pro and opens engine/system voice-data installation only in Pro settings;
-- tapping a favorite speaks the saved quote when speech is permitted;
-- paywall info control opens a larger, top-positioned Pro access card rather than inserting copy into the pricing layout;
-- placeholder plan formatting is `$0.50 / week`, `$1 / month`, `$29 / once`;
-- empty Favorites explanatory text removed;
-- plan cards centered, simplified and strict three-color styling retained.
+Trial:
+- system-default engine
+- one fixed local-preferred English voice
+- 1.0x speed
+- TTS failures degrade to readable text
 
-Physical-performance note from testing: theme scrolling was slightly laggy on the Samsung test phone while remaining smooth on the itel device. The current branch includes targeted composition reductions for that path. Debug APKs are still expected to be less representative of final release performance than optimized release builds.
+Pro:
+- enumerate installed TTS engines
+- selected engine persists
+- engine switch reinitializes TTS and refreshes voices
+- installed English voices selectable
+- local/online voice labels
+- not-installed voices excluded
+- `Get more voices` opens engine/system voice-data UI
+- rate 0.7x–1.4x persists
 
-One hardware note remains to verify on-device: an earlier physical test mentioned the app not running on a `V50 Lite`. Android version/minSdk is not the obvious cause. If a current APK still fails there, capture the exact install error/crash behavior or log before changing compatibility settings blindly.
+## Retention
 
-RevenueCat purchase actions are still placeholders in PR #9.
+- opening app once in a local calendar day completes that streak day
+- same-day reopen counts once
+- missed day breaks streak
+- broken streak uses a strong motivational opening quote rather than guilt copy
+- daily notifications remain to be implemented in M6
 
-## Immediate next action
+## Debug behavior
 
-1. Run final branch-head Android CI after this polish checkpoint.
-2. Download the branch-head `quotes-of-wisdom-debug` artifact.
-3. Physically verify the dense streak flame surge on the Samsung and itel, checking true full-screen coverage and whether the one-shot animation remains smooth enough on the weaker device.
-4. Verify the Home `PRO` label performs exactly one text-only spin per tap with no ripple, pulse or background change.
-5. Re-test the camera/cutout-aware top layout on both devices and check that no header control overlaps the front camera.
-6. Verify the larger top-positioned Pro access info card and `$29 / once` placeholder.
-7. Re-test theme scrolling on the Samsung and compare it with the previous APK; treat small remaining debug-build jank separately from release-build performance.
-8. Verify Trial Settings no longer exposes `Get more voices`, while Pro still does and refreshes TTS after returning.
-9. Re-check immediate narration, favorite tap playback, theme labels and TTS engine switching.
-10. Test the V50 Lite if available and capture exact failure details if it still fails.
-11. Fix any remaining findings.
-12. Merge PR #9 only after physical-device signoff and green branch-head CI.
-13. Begin RevenueCat Test Store milestone.
+Debug builds expose persisted Trial / Grace / Locked / Pro previews for product testing. Release builds ignore debug access overrides.
 
-## Later milestones
+## Current validation target
+
+The next physical-device checkpoint must verify:
+
+1. Fresh install succeeds after uninstalling any APK signed by the old transient CI signer.
+2. Paywall loads RevenueCat prices `$0.99 / $2.99 / $29.99` (or localized equivalents).
+3. Weekly purchase opens the RevenueCat Test Store purchase UI and activates `pro_access`.
+4. Monthly purchase works.
+5. Lifetime non-consumable purchase works.
+6. Pro persists after app restart.
+7. Restore Purchases restores Pro when an active test purchase exists.
+8. Correct RevenueCat Current Offering/package wiring is present if the app reports that a package is unavailable.
+9. Streak tap launches flame surge and the deep horn together without jank/crash.
+10. Repeated streak taps restart the horn cleanly.
+11. Existing TTS, themes, favorites, sharing, Pro spin and access-state behavior remain intact.
+
+## Remaining milestones
 
 ```text
-M3  consolidate/polish persistence, favorites, themes and share UX prototyped in M2
-M4  harden access/trial clocks/paywall shell prototyped in M2
-M5  RevenueCat Test Store + deterministic ID + offerings/purchase/restore/pro_access
-M6  notifications + streak/conversion flow + hardening/analytics
-M7  Google Play/store release hardening
-M8  license/README/demo/BuildInPublic + Next Gen submission polish
+M5  finish RevenueCat Test Store physical validation and harden trial identity/clocks
+M6  notifications + streak/conversion flow + analytics/hardening
+M7  Google Play/store release signing, real products, release build and store hardening
+M8  license/README/demo/BuildInPublic + Shipaton submission polish
 ```
-
-Galaxy Store remains optional/deprioritized.
 
 ## Development discipline
 
@@ -275,4 +221,4 @@ Galaxy Store remains optional/deprioritized.
 spec -> implement -> CI -> physical-device test -> review -> merge
 ```
 
-No giant framework expansion, backend creep, or unverified merges.
+Feature set is effectively locked. Prefer bug fixes, monetization, required submission work and release hardening over additional scope, unless the product owner explicitly requests a small contained change.

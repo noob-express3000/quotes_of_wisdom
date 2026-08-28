@@ -31,15 +31,30 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
+      - name: Restore stable CI debug keystore
+        run: |
+          mkdir -p "$HOME/.android"
+          base64 --decode .github/ci-debug.keystore.b64 > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "9.5.0"
 
-      - name: Build debug APK
-        run: gradle :app:assembleDebug
+      - name: Bootstrap Gradle wrapper
+        run: |
+          chmod +x bootstrap-gradle.sh
+          ./bootstrap-gradle.sh
 
-      - name: Upload APK
+      - name: Build debug and optimized QA APKs
+        run: ./gradlew :app:assembleDebug :app:assembleQa
+
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: quotes-of-wisdom-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload optimized QA APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: quotes-of-wisdom-qa
+          path: app/build/outputs/apk/qa/app-qa.apk

@@ -1,128 +1,151 @@
 # Quotes of Wisdom
 
-Android-only Shipaton project built with Kotlin + Jetpack Compose.
+Quotes of Wisdom is a local-first Android app built for RevenueCat Shipaton 2026 with Kotlin, Jetpack Compose, Android Text-to-Speech, and RevenueCat.
 
-## Continue this project in another chat
+The product is intentionally small: one good quote, a quiet daily ritual, and no account or custom backend.
 
-Read [`docs/PROJECT_STATE.md`](docs/PROJECT_STATE.md) first. It is the canonical handoff checkpoint containing the frozen product decisions, completed milestones, architecture decisions, CI state, and exact next milestone.
+## Build from source
 
-Then read [`docs/product-spec.md`](docs/product-spec.md) for the detailed product/access specification.
+### Requirements
 
-## Current checkpoint
+- JDK 17
+- Android SDK Platform 36
+- Android SDK Build Tools 36.0.0
+- Git
+- `curl` and `unzip` on macOS/Linux for the one-time Gradle bootstrap
 
-M0 and M1 are complete. M1 is compile-verified through GitHub Actions and merged into `main`.
+The repository pins Gradle 9.5.0. You do not need to install Gradle globally.
 
-Current implementation:
-
-- Android-only Kotlin project
-- Jetpack Compose + Material 3
-- single `app` module
-- three-color 60/30/10 theme foundation
-- local bundled quote corpus with classification metadata
-- asset-backed quote repository
-- no-repeat shuffle deck
-- `HomeViewModel` + `StateFlow`
-- functional `Next` button
-- no login
-- no custom backend
-- GitHub Actions remote APK build
-- universal browser development through GitHub Codespaces
-
-Replay remains intentionally unwired until M2 adds Android TTS.
-
-## Universal workflow
-
-GitHub is the source of truth. The project does not depend on one development computer.
-
-### Browser / any computer
-
-1. Open this repository on GitHub.
-2. Choose **Code -> Codespaces -> Create codespace on main**.
-3. Wait for the dev container setup to finish.
-4. Edit the Kotlin/project files in the browser.
-5. Build from the Codespaces terminal with:
+### macOS / Linux
 
 ```bash
-gradle :app:assembleDebug
-```
-
-6. Commit and push from Codespaces.
-
-Every push also runs the canonical GitHub Actions Android build. The resulting debug APK is available under the successful workflow run's **Artifacts** section as `quotes-of-wisdom-debug`.
-
-This makes the normal development loop:
-
-```text
-browser / laptop / other computer
-          |
-          v
-       GitHub
-          |
-          v
-   GitHub Actions
-          |
-          v
-       APK artifact
-          |
-          v
-   physical Android phone
-```
-
-### Windows local build
-
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass
-.\bootstrap-gradle.ps1
-.\gradlew.bat :app:assembleDebug
-```
-
-### macOS / Linux local build
-
-```bash
+git clone https://github.com/noob-express3000/quotes_of_wisdom.git
+cd quotes_of_wisdom
 chmod +x bootstrap-gradle.sh
 ./bootstrap-gradle.sh
 ./gradlew :app:assembleDebug
 ```
 
-Local Android builds also require an Android SDK containing API 36. If you do not want to configure that locally, use Codespaces or GitHub Actions instead.
+APK:
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Windows
+
+```powershell
+git clone https://github.com/noob-express3000/quotes_of_wisdom.git
+cd quotes_of_wisdom
+Set-ExecutionPolicy -Scope Process Bypass
+.\bootstrap-gradle.ps1
+.\gradlew.bat :app:assembleDebug
+```
+
+APK:
+
+```text
+app\build\outputs\apk\debug\app-debug.apk
+```
+
+### Optimized QA build
+
+The normal debug APK is deliberately debuggable and can run noticeably slower on low-end Android hardware. For performance testing, build the release-like QA variant:
+
+```bash
+./gradlew :app:assembleQa
+```
+
+APK:
+
+```text
+app/build/outputs/apk/qa/app-qa.apk
+```
+
+The QA variant is optimized and signed with the normal Android debug signing configuration so it is installable for testing. It uses the RevenueCat Test Store configuration and is not a production-store artifact.
+
+## RevenueCat configuration
+
+Debug and QA builds use the RevenueCat Test Store SDK key included in the Android client configuration so the monetization flow can be evaluated without private credentials.
+
+A production release reads the public RevenueCat mobile SDK key from the Gradle property `REVENUECAT_API_KEY`:
+
+```bash
+./gradlew :app:assembleRelease -PREVENUECAT_API_KEY=your_public_sdk_key
+```
+
+Production signing is intentionally kept out of the repository.
+
+## What is implemented
+
+- 1,063 curated and provenance-tracked quotes
+- 356 authors and 12 classifications
+- no-repeat quote browsing with lightweight favorite-based personalization
+- favorites and sharing
+- daily streak tracking
+- Android Text-to-Speech with replay and automatic playback
+- Pro engine, voice, voice-download, and speech-speed controls
+- 100 three-color themes using the app's 60/30/10 design system
+- 30-day trial, text-only grace period, locked state, and Pro access state
+- RevenueCat weekly, monthly, and lifetime purchase paths
+- RevenueCat `pro_access` entitlement and restore purchases
+- one local daily reminder
+- fixed 09:00 reminder for free access
+- Pro-selectable reminder time
+- reboot, clock-change, timezone-change, and app-update reminder rescheduling
+- Android 13+ notification permission handling
+- immersive cutout-aware UI
+
+## Architecture
+
+The app is intentionally local-first and has no login or custom backend.
+
+```text
+Jetpack Compose UI
+        |
+        v
+HomeViewModel / UI state
+        |
+        +---- AssetQuoteRepository -> bundled quotes.json
+        |
+        +---- AppPreferencesRepository -> Android DataStore
+        |
+        +---- TtsController -> Android TextToSpeech
+        |
+        +---- RevenueCatController -> RevenueCat SDK
+        |
+        +---- DailyWisdomNotifications -> AlarmManager / notifications
+```
+
+Important source areas:
+
+```text
+app/src/main/java/com/shipaton/quotesofwisdom/MainActivity.kt
+app/src/main/java/com/shipaton/quotesofwisdom/ui/home/
+app/src/main/java/com/shipaton/quotesofwisdom/ui/settings/
+app/src/main/java/com/shipaton/quotesofwisdom/billing/
+app/src/main/java/com/shipaton/quotesofwisdom/speech/
+app/src/main/java/com/shipaton/quotesofwisdom/notifications/
+app/src/main/java/com/shipaton/quotesofwisdom/data/
+app/src/main/assets/quotes.json
+```
 
 ## Toolchain
 
 - Android Gradle Plugin: 9.3.0
 - Gradle: 9.5.0
 - Kotlin / Compose compiler plugin: 2.3.21
-- Compose BOM: 2026.04.01 (Compose 1.11 line)
+- Compose BOM: 2026.04.01
 - compileSdk / targetSdk: 36
 - minSdk: 23
 - JDK: 17
 
-## Product rules currently frozen
+## CI
 
-- exactly three colors per theme
-- perceptual 60/30/10 visual hierarchy
-- 20 themes for v1
-- 30-day automatic install trial
-- days 31-33: text-only grace period, TTS disabled
-- day 34 onward: app locked until Pro
-- upgrade notifications for at least seven post-trial days
-- one trial TTS voice and fixed TTS speed
-- Pro unlocks all themes, voice selection and adjustable speech speed
-- RevenueCat `pro_access` entitlement for all paid products
-- deterministic opaque device-scoped RevenueCat identity planned for reinstall-resistant trial history
-- approximate pricing targets: $0.50 weekly, $1 monthly, $70 lifetime
-- quote text scroll control
+GitHub Actions validates the production quote database, bootstraps the same pinned Gradle wrapper a clean machine uses, and builds both the debug and optimized QA APKs.
 
-## Next checkpoint: M2
+This makes GitHub the source of truth rather than any one development computer.
 
-M2 adds the real Android Text-to-Speech subsystem:
+## Project documentation
 
-1. TTS controller/lifecycle
-2. current-quote speech
-3. functional Replay
-4. stop/flush behavior when Next interrupts speech
-5. ready/speaking/error state
-6. unavailable-TTS fallback
-7. lifecycle shutdown
-8. CI + physical-device APK validation
-
-See `docs/PROJECT_STATE.md` for the exact handoff state before coding.
+Detailed implementation and product notes live under [`docs/`](docs/).

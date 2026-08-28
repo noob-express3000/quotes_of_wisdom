@@ -22,14 +22,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
@@ -42,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,7 +81,12 @@ fun HomeScreen(
     val access = uiState.effectiveAccessState
     val ttsAllowed = access == AccessState.TRIAL_ACTIVE || access == AccessState.PRO
     val flameProgress = remember { Animatable(0f) }
+    val hornPlayer = remember { StreakHornPlayer() }
     val scope = rememberCoroutineScope()
+
+    DisposableEffect(hornPlayer) {
+        onDispose { hornPlayer.release() }
+    }
 
     LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed) {
         if (uiState.quote != null && ttsReady && ttsAllowed) {
@@ -100,6 +109,7 @@ fun HomeScreen(
                     streak = uiState.streak,
                     onSettings = onSettings,
                     onStreakTap = {
+                        hornPlayer.play()
                         scope.launch {
                             flameProgress.snapTo(0f)
                             flameProgress.animateTo(
@@ -539,7 +549,13 @@ private fun Controls(
                 disabledContentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
-            Text("↻  Replay")
+            Icon(
+                Icons.Rounded.Replay,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.size(8.dp))
+            Text("Replay")
         }
 
         Button(
@@ -550,7 +566,13 @@ private fun Controls(
                 contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
-            Text("Next  →")
+            Text("Next")
+            Spacer(Modifier.size(8.dp))
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

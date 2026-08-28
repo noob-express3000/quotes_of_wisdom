@@ -46,8 +46,13 @@ import com.shipaton.quotesofwisdom.model.AccessState
 fun PaywallScreen(
     accessState: AccessState,
     canDismiss: Boolean,
+    weeklyPrice: String?,
+    monthlyPrice: String?,
+    lifetimePrice: String?,
+    billingBusy: Boolean,
     onDismiss: () -> Unit,
-    onChoosePlan: (String) -> Unit
+    onChoosePlan: (String) -> Unit,
+    onRestorePurchases: () -> Unit
 ) {
     var showInfo by rememberSaveable { mutableStateOf(false) }
 
@@ -108,7 +113,8 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Weekly",
-                    price = "$0.50 / week",
+                    price = "${weeklyPrice ?: "$0.99"} / week",
+                    enabled = !billingBusy,
                     onClick = { onChoosePlan("weekly") }
                 )
 
@@ -116,8 +122,9 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Monthly",
-                    price = "$1 / month",
+                    price = "${monthlyPrice ?: "$2.99"} / month",
                     emphasized = true,
+                    enabled = !billingBusy,
                     onClick = { onChoosePlan("monthly") }
                 )
 
@@ -125,8 +132,22 @@ fun PaywallScreen(
 
                 PlanCard(
                     title = "Lifetime",
-                    price = "$29 / once",
+                    price = "${lifetimePrice ?: "$29.99"} / once",
+                    enabled = !billingBusy,
                     onClick = { onChoosePlan("lifetime") }
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Text(
+                    text = if (billingBusy) "Working..." else "Restore purchases",
+                    modifier = Modifier.clickable(
+                        enabled = !billingBusy,
+                        onClick = onRestorePurchases
+                    ),
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -215,12 +236,13 @@ private fun PlanCard(
     title: String,
     price: String,
     emphasized: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth(0.88f)
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         border = BorderStroke(
