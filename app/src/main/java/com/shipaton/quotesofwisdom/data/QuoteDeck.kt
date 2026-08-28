@@ -12,13 +12,32 @@ class QuoteDeck(
     }
 
     private var previous: Quote? = null
-    private var deck: List<Quote> = shuffledAvoiding(previous)
+    private var deck: MutableList<Quote> = shuffledAvoiding(previous).toMutableList()
     private var index = 0
 
-    fun next(): Quote {
+    fun next(): Quote = nextPreferred(emptySet(), 0.0)
+
+    fun nextPreferred(
+        preferredClassifications: Set<String>,
+        preferenceChance: Double = 0.65
+    ): Quote {
         if (index >= deck.size) {
-            deck = shuffledAvoiding(previous)
+            deck = shuffledAvoiding(previous).toMutableList()
             index = 0
+        }
+
+        if (
+            preferredClassifications.isNotEmpty() &&
+            random.nextDouble() < preferenceChance.coerceIn(0.0, 1.0)
+        ) {
+            val preferredIndex = (index until deck.size).firstOrNull { candidateIndex ->
+                deck[candidateIndex].classification in preferredClassifications
+            }
+            if (preferredIndex != null && preferredIndex != index) {
+                val current = deck[index]
+                deck[index] = deck[preferredIndex]
+                deck[preferredIndex] = current
+            }
         }
 
         return deck[index++].also { previous = it }
