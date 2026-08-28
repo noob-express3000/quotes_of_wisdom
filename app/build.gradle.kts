@@ -44,6 +44,7 @@ android {
 
         create("qa") {
             initWith(getByName("release"))
+            isDebuggable = true
             signingConfig = signingConfigs.getByName("debug")
             buildConfigField(
                 "String",
