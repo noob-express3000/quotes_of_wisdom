@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.model.AccessState
-import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
 import com.shipaton.quotesofwisdom.speech.TtsEngineOption
 import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
@@ -175,33 +174,10 @@ fun SettingsScreen(
 
             item {
                 InfoCard {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "Daily reminder",
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (accessState != AccessState.PRO) {
-                            Icon(
-                                Icons.Rounded.Lock,
-                                contentDescription = "Pro reminder time",
-                                tint = MaterialTheme.colorScheme.tertiary
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(6.dp))
                     Text(
-                        if (accessState == AccessState.PRO) {
-                            "Choose when your one daily thought arrives."
-                        } else {
-                            "The free reminder arrives at 09:00. Pro lets you choose the time."
-                        },
+                        "Daily reminder",
                         color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 13.sp
+                        fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(12.dp))
                     Button(
