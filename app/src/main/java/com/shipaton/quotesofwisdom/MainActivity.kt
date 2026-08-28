@@ -1,6 +1,8 @@
 package com.shipaton.quotesofwisdom
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color as AndroidColor
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +12,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -34,6 +37,7 @@ import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.LocalAccessPolicy
+import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
 import com.shipaton.quotesofwisdom.speech.TtsController
 import com.shipaton.quotesofwisdom.speech.TtsState
 import com.shipaton.quotesofwisdom.ui.favorites.FavoritesScreen
@@ -52,6 +56,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var ttsController: TtsController
     private var refreshTtsAfterExternalVoiceUi = false
 
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            DailyWisdomNotifications.setEnabled(this, granted)
+        }
+
     private val revenueCatController: RevenueCatController by lazy {
         (application as QuotesApplication).revenueCatController
     }
@@ -66,7 +75,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enterImmersiveMode()
+        configureDailyNotifications()
         ttsController = TtsController(applicationContext)
+        val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
+        val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
 
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
@@ -78,7 +90,10 @@ class MainActivity : ComponentActivity() {
             val selectedVoiceName by ttsController.selectedVoiceName.collectAsState()
             val speechRate by ttsController.speechRate.collectAsState()
             var screenName by rememberSaveable { mutableStateOf(AppScreen.HOME.name) }
-            var showPaywall by rememberSaveable { mutableStateOf(true) }
+            var showPaywall by rememberSaveable { mutableStateOf(false) }
+            var initialEntitlementHandled by rememberSaveable { mutableStateOf(false) }
+            var reminderHour by rememberSaveable { mutableStateOf(initialReminderHour) }
+            var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
 
             val access = uiState.effectiveAccessState
             val requestedPalette = themeById(uiState.themeId)
@@ -89,8 +104,22 @@ class MainActivity : ComponentActivity() {
             }
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
 
-            LaunchedEffect(revenueCatState.hasPro) {
+            LaunchedEffect(
+                revenueCatState.entitlementResolved,
+                revenueCatState.hasPro,
+                uiState.debugAccessOverride
+            ) {
                 homeViewModel.setRevenueCatPro(revenueCatState.hasPro)
+
+                if (
+                    uiState.debugAccessOverride == null &&
+                    revenueCatState.entitlementResolved &&
+                    !initialEntitlementHandled
+                ) {
+                    initialEntitlementHandled = true
+                    showPaywall = !revenueCatState.hasPro
+                }
+
                 if (revenueCatState.hasPro && uiState.debugAccessOverride == null) {
                     showPaywall = false
                 }
@@ -131,6 +160,8 @@ class MainActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     when {
+                        !initialEntitlementHandled && uiState.debugAccessOverride == null -> Unit
+
                         showPaywall && access != AccessState.PRO -> {
                             PaywallScreen(
                                 accessState = access,
@@ -238,6 +269,8 @@ class MainActivity : ComponentActivity() {
                                 ttsVoices = ttsVoices,
                                 selectedVoiceName = selectedVoiceName,
                                 speechRate = speechRate,
+                                reminderHour = reminderHour,
+                                reminderMinute = reminderMinute,
                                 onBack = {
                                     screenName = AppScreen.HOME.name
                                     if (uiState.effectiveAccessState == AccessState.LOCKED) {
@@ -257,6 +290,17 @@ class MainActivity : ComponentActivity() {
                                 onSpeechRateChange = { rate ->
                                     ttsController.setProSpeechRate(rate)
                                     homeViewModel.setProSpeechRate(rate)
+                                },
+                                onReminderTimeChange = { hour, minute ->
+                                    if (access == AccessState.PRO) {
+                                        reminderHour = hour
+                                        reminderMinute = minute
+                                        DailyWisdomNotifications.setReminderTime(
+                                            this@MainActivity,
+                                            hour,
+                                            minute
+                                        )
+                                    }
                                 },
                                 onPreviewSpeech = {
                                     if (access == AccessState.PRO) {
@@ -308,6 +352,37 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun configureDailyNotifications() {
+        DailyWisdomNotifications.ensureChannels(this)
+        val prefs = getSharedPreferences(NOTIFICATION_GATE_PREFS, MODE_PRIVATE)
+        val hasLaunchedBefore = prefs.getBoolean(KEY_HAS_LAUNCHED, false)
+
+        if (!hasLaunchedBefore) {
+            prefs.edit().putBoolean(KEY_HAS_LAUNCHED, true).apply()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                DailyWisdomNotifications.setEnabled(this, true)
+            }
+            return
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            DailyWisdomNotifications.setEnabled(this, true)
+            return
+        }
+
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            DailyWisdomNotifications.setEnabled(this, true)
+            return
+        }
+
+        if (prefs.getBoolean(KEY_PERMISSION_PROMPTED, false)) return
+
+        prefs.edit().putBoolean(KEY_PERMISSION_PROMPTED, true).apply()
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     private fun enterImmersiveMode() {
@@ -382,5 +457,11 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         if (::ttsController.isInitialized) ttsController.shutdown()
         super.onDestroy()
+    }
+
+    private companion object {
+        const val NOTIFICATION_GATE_PREFS = "notification_gate"
+        const val KEY_HAS_LAUNCHED = "has_launched"
+        const val KEY_PERMISSION_PROMPTED = "permission_prompted"
     }
 }

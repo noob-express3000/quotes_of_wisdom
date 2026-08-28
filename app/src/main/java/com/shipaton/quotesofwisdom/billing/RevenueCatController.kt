@@ -17,6 +17,7 @@ import com.revenuecat.purchases.purchaseWith
 import com.revenuecat.purchases.restorePurchasesWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import com.shipaton.quotesofwisdom.BuildConfig
+import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
 import java.security.MessageDigest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +32,7 @@ enum class PurchasePlan {
 data class RevenueCatUiState(
     val configured: Boolean = false,
     val loading: Boolean = true,
+    val entitlementResolved: Boolean = false,
     val hasPro: Boolean = false,
     val weeklyPrice: String? = null,
     val monthlyPrice: String? = null,
@@ -63,6 +65,7 @@ class RevenueCatController(private val context: Context) {
             _state.value = RevenueCatUiState(
                 configured = false,
                 loading = false,
+                entitlementResolved = true,
                 errorMessage = "RevenueCat is not configured for this build."
             )
             return
@@ -94,6 +97,7 @@ class RevenueCatController(private val context: Context) {
             onError = { error ->
                 _state.value = _state.value.copy(
                     loading = false,
+                    entitlementResolved = true,
                     errorMessage = error.message
                 )
             },
@@ -185,11 +189,31 @@ class RevenueCatController(private val context: Context) {
 
     private fun applyCustomerInfo(customerInfo: CustomerInfo) {
         val hasPro = customerInfo.entitlements[PRO_ENTITLEMENT]?.isActive == true
+        if (!hasPro) enforceFreeReminderTime()
+
         _state.value = _state.value.copy(
             configured = true,
             loading = false,
+            entitlementResolved = true,
             hasPro = hasPro,
             errorMessage = null
+        )
+    }
+
+    private fun enforceFreeReminderTime() {
+        val currentHour = DailyWisdomNotifications.reminderHour(context)
+        val currentMinute = DailyWisdomNotifications.reminderMinute(context)
+        if (
+            currentHour == DailyWisdomNotifications.DEFAULT_REMINDER_HOUR &&
+            currentMinute == DailyWisdomNotifications.DEFAULT_REMINDER_MINUTE
+        ) {
+            return
+        }
+
+        DailyWisdomNotifications.setReminderTime(
+            context,
+            DailyWisdomNotifications.DEFAULT_REMINDER_HOUR,
+            DailyWisdomNotifications.DEFAULT_REMINDER_MINUTE
         )
     }
 

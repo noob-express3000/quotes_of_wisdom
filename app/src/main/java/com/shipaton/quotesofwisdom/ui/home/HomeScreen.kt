@@ -22,14 +22,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
@@ -546,7 +549,13 @@ private fun Controls(
                 disabledContentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
-            Text("↻  Replay")
+            Icon(
+                Icons.Rounded.Replay,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.size(8.dp))
+            Text("Replay")
         }
 
         Button(
@@ -557,7 +566,13 @@ private fun Controls(
                 contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
-            Text("Next  →")
+            Text("Next")
+            Spacer(Modifier.size(8.dp))
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

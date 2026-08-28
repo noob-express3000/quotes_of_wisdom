@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val productionRevenueCatApiKey = providers.gradleProperty("REVENUECAT_API_KEY")
+    .orNull
+    .orEmpty()
+
 android {
     namespace = "com.shipaton.quotesofwisdom"
     compileSdk = 36
@@ -12,7 +16,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "0.2.0-test"
+        versionName = "1.0.0-rc1"
     }
 
     buildTypes {
@@ -23,8 +27,30 @@ android {
                 "\"test_ogkhePOVXjqcVYNHtDMYXrytVkm\""
             )
         }
+
         release {
-            buildConfigField("String", "REVENUECAT_API_KEY", "\"\"")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"$productionRevenueCatApiKey\""
+            )
+        }
+
+        create("qa") {
+            initWith(getByName("release"))
+            isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField(
+                "String",
+                "REVENUECAT_API_KEY",
+                "\"test_ogkhePOVXjqcVYNHtDMYXrytVkm\""
+            )
         }
     }
 
@@ -53,6 +79,7 @@ dependencies {
 
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.activity:activity-ktx:1.13.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
