@@ -224,15 +224,11 @@ fun SettingsScreen(
                             contentColor = MaterialTheme.colorScheme.tertiary
                         )
                     ) {
-                        if (accessState != AccessState.PRO) {
-                            Icon(Icons.Rounded.Lock, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                        }
                         Text(
                             if (accessState == AccessState.PRO) {
                                 "Reminder time · $reminderTimeLabel"
                             } else {
-                                "09:00 · Choose with Pro"
+                                "See Pro"
                             }
                         )
                     }
