@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -34,12 +36,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.shipaton.quotesofwisdom.billing.PurchasePlan
 import com.shipaton.quotesofwisdom.model.AccessState
 
 @Composable
@@ -49,10 +53,14 @@ fun PaywallScreen(
     weeklyPrice: String?,
     monthlyPrice: String?,
     lifetimePrice: String?,
+    availablePlans: Set<PurchasePlan>,
+    billingLoading: Boolean,
     billingBusy: Boolean,
+    billingMessage: String?,
     onDismiss: () -> Unit,
-    onChoosePlan: (String) -> Unit,
-    onRestorePurchases: () -> Unit
+    onChoosePlan: (PurchasePlan) -> Unit,
+    onRestorePurchases: () -> Unit,
+    onRetryBilling: () -> Unit
 ) {
     var showInfo by rememberSaveable { mutableStateOf(false) }
 
@@ -94,61 +102,122 @@ fun PaywallScreen(
                 }
             }
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
+                contentPadding = PaddingValues(top = 64.dp, bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Choose your plan",
-                    color = MaterialTheme.colorScheme.secondary,
-                    textAlign = TextAlign.Center,
-                    fontSize = 30.sp,
-                    lineHeight = 36.sp,
-                    fontWeight = FontWeight.Black
-                )
+                item {
+                    Text(
+                        text = "Choose your plan",
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center,
+                        fontSize = 30.sp,
+                        lineHeight = 36.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
 
-                Spacer(Modifier.height(30.dp))
+                item { Spacer(Modifier.height(30.dp)) }
 
-                PlanCard(
-                    title = "Weekly",
-                    price = "${weeklyPrice ?: "$0.99"} / week",
-                    enabled = !billingBusy,
-                    onClick = { onChoosePlan("weekly") }
-                )
+                item {
+                    PlanCard(
+                        title = "Weekly",
+                        price = planPriceLabel(
+                            price = weeklyPrice,
+                            cadence = "week",
+                            loading = billingLoading,
+                            available = PurchasePlan.WEEKLY in availablePlans
+                        ),
+                        enabled = !billingBusy && weeklyPrice != null &&
+                            PurchasePlan.WEEKLY in availablePlans,
+                        onClick = { onChoosePlan(PurchasePlan.WEEKLY) }
+                    )
+                }
 
-                Spacer(Modifier.height(18.dp))
+                item { Spacer(Modifier.height(18.dp)) }
 
-                PlanCard(
-                    title = "Monthly",
-                    price = "${monthlyPrice ?: "$2.99"} / month",
-                    emphasized = true,
-                    enabled = !billingBusy,
-                    onClick = { onChoosePlan("monthly") }
-                )
+                item {
+                    PlanCard(
+                        title = "Monthly",
+                        price = planPriceLabel(
+                            price = monthlyPrice,
+                            cadence = "month",
+                            loading = billingLoading,
+                            available = PurchasePlan.MONTHLY in availablePlans
+                        ),
+                        emphasized = true,
+                        enabled = !billingBusy && monthlyPrice != null &&
+                            PurchasePlan.MONTHLY in availablePlans,
+                        onClick = { onChoosePlan(PurchasePlan.MONTHLY) }
+                    )
+                }
 
-                Spacer(Modifier.height(18.dp))
+                item { Spacer(Modifier.height(18.dp)) }
 
-                PlanCard(
-                    title = "Lifetime",
-                    price = "${lifetimePrice ?: "$29.99"} / once",
-                    enabled = !billingBusy,
-                    onClick = { onChoosePlan("lifetime") }
-                )
+                item {
+                    PlanCard(
+                        title = "Lifetime",
+                        price = planPriceLabel(
+                            price = lifetimePrice,
+                            cadence = "once",
+                            loading = billingLoading,
+                            available = PurchasePlan.LIFETIME in availablePlans
+                        ),
+                        enabled = !billingBusy && lifetimePrice != null &&
+                            PurchasePlan.LIFETIME in availablePlans,
+                        onClick = { onChoosePlan(PurchasePlan.LIFETIME) }
+                    )
+                }
 
-                Spacer(Modifier.height(24.dp))
+                item { Spacer(Modifier.height(18.dp)) }
 
-                Text(
-                    text = if (billingBusy) "Working..." else "Restore purchases",
-                    modifier = Modifier.clickable(
-                        enabled = !billingBusy,
-                        onClick = onRestorePurchases
-                    ),
-                    color = MaterialTheme.colorScheme.tertiary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (billingMessage != null) {
+                    item {
+                        Text(
+                            text = billingMessage,
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                    item {
+                        Text(
+                            text = "Retry",
+                            modifier = Modifier
+                                .clickable(
+                                    enabled = !billingBusy,
+                                    role = Role.Button,
+                                    onClick = onRetryBilling
+                                )
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        text = if (billingBusy) "Working..." else "Restore purchases",
+                        modifier = Modifier
+                            .clickable(
+                                enabled = !billingBusy,
+                                role = Role.Button,
+                                onClick = onRestorePurchases
+                            )
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -242,7 +311,7 @@ private fun PlanCard(
     Card(
         modifier = Modifier
             .fillMaxWidth(0.88f)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         border = BorderStroke(
@@ -276,4 +345,16 @@ private fun PlanCard(
             )
         }
     }
+}
+
+private fun planPriceLabel(
+    price: String?,
+    cadence: String,
+    loading: Boolean,
+    available: Boolean
+): String = when {
+    price != null -> "$price / $cadence"
+    loading -> "Loading price…"
+    available -> "Price unavailable"
+    else -> "Unavailable"
 }

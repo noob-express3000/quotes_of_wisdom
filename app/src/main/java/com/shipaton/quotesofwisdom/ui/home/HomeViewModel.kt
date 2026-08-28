@@ -47,15 +47,18 @@ class HomeViewModel(
     private var loadedQuotes: List<Quote> = emptyList()
     private var pendingBrokenStreak = false
     private var lastFirstSeenMillis = 0L
+    private var lastLatestSeenMillis = 0L
     private var hasRevenueCatPro = false
 
     init {
         viewModelScope.launch {
             preferencesRepository.preferences.collect { prefs ->
                 lastFirstSeenMillis = prefs.firstSeenMillis
+                lastLatestSeenMillis = prefs.latestSeenMillis
                 val favoriteQuotes = loadedQuotes.filter { it.id in prefs.favoriteIds }
                 val access = LocalAccessPolicy.stateFor(
                     firstSeenMillis = prefs.firstSeenMillis,
+                    latestSeenMillis = prefs.latestSeenMillis,
                     hasPro = hasRevenueCatPro
                 )
                 val debugOverride = if (BuildConfig.BUILD_TYPE == "debug") {
@@ -118,6 +121,7 @@ class HomeViewModel(
         _uiState.value = _uiState.value.copy(
             accessState = LocalAccessPolicy.stateFor(
                 firstSeenMillis = lastFirstSeenMillis,
+                latestSeenMillis = lastLatestSeenMillis,
                 hasPro = hasRevenueCatPro
             )
         )

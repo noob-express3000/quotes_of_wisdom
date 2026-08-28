@@ -15,6 +15,8 @@
 - The accent/10 color owns borders, icons, labels and small emphasis.
 - Material `tertiary` is an alias for the active theme accent; it is not a fourth color.
 - All card/container borders use the active accent/tertiary color.
+- All button labels use the active accent/tertiary color; disabled labels may reduce opacity but keep the accent hue.
+- The Home access label (`FREE`, `GRACE`, `LOCKED`, `PRO`) uses the active accent/tertiary color.
 - Primary readable copy uses the active secondary color.
 - Dynamic/Material defaults must not introduce a hidden fourth color.
 - The home screen does not show a redundant `Quotes of Wisdom` title.
@@ -182,7 +184,8 @@ A `cold app launch` means a new app-session entry, not every temporary Activity 
 - Paywall headline: `Choose your plan`.
 - Show only plan name + price on each pricing card; remove `Try It!`, `Best Value!`, `Own It!` and similar eyebrow statements.
 - Weekly, Monthly and Lifetime cards are horizontally centered and the plan group is centered in the screen.
-- Catalog fallback price formatting is consistent: `$0.99 / week`, `$2.99 / month`, `$29.99 / once`.
+- Each card displays its live RevenueCat/store localized price and cadence.
+- A plan remains disabled until its real localized product and price have loaded; loading and unavailable states never display invented fallback prices.
 - Monthly retains the thicker emphasis border.
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
@@ -209,7 +212,7 @@ Frozen Test Store/catalog pricing:
 - Monthly: USD 2.99.
 - Lifetime: USD 29.99.
 
-These values replace the earlier approximate `$0.50 / $1.00 / $29` targets. Runtime paywall prices must come from RevenueCat/store localized pricing whenever available; the hardcoded values are fallback/display placeholders only.
+These values replace the earlier approximate `$0.50 / $1.00 / $29` targets and describe the intended store catalog. Runtime paywall prices must always come from RevenueCat/store localized pricing.
 
 All paid products grant the same RevenueCat entitlement:
 

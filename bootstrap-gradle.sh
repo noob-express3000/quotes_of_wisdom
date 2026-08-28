@@ -20,3 +20,4 @@ fi
 echo
 echo "Gradle wrapper generated."
 echo "Run: ./gradlew :app:assembleDebug"
+

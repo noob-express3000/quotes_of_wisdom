@@ -10,8 +10,8 @@ import kotlin.math.tanh
 
 class StreakHornPlayer {
     private val lock = Any()
-    private val samples = buildHornSamples()
-    private var track: AudioTrack? = buildTrack(samples)
+    private val samples by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { buildHornSamples() }
+    private var track: AudioTrack? = null
 
     fun play() {
         synchronized(lock) {

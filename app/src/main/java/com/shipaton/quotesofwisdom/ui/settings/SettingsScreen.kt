@@ -463,7 +463,7 @@ private fun VoiceDataButton(onClick: () -> Unit) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.secondary
+            contentColor = MaterialTheme.colorScheme.tertiary
         )
     ) {
         Text("Get more voices")

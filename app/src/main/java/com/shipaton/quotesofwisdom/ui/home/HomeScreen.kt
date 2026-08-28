@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.sin
@@ -109,7 +110,7 @@ fun HomeScreen(
                     streak = uiState.streak,
                     onSettings = onSettings,
                     onStreakTap = {
-                        hornPlayer.play()
+                        scope.launch(Dispatchers.Default) { hornPlayer.play() }
                         scope.launch {
                             flameProgress.snapTo(0f)
                             flameProgress.animateTo(
@@ -546,7 +547,7 @@ private fun Controls(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.tertiary,
                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContentColor = MaterialTheme.colorScheme.tertiary
+                disabledContentColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.38f)
             )
         ) {
             Icon(

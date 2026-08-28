@@ -6,6 +6,20 @@ plugins {
 val productionRevenueCatApiKey = providers.gradleProperty("REVENUECAT_API_KEY")
     .orNull
     .orEmpty()
+val isCiBuild = providers.environmentVariable("CI").orNull.equals("true", ignoreCase = true)
+
+val validateProductionConfiguration by tasks.registering {
+    group = "verification"
+    description = "Rejects release builds without a production RevenueCat Android SDK key."
+
+    doLast {
+        check(productionRevenueCatApiKey.startsWith("goog_") &&
+            (isCiBuild || !productionRevenueCatApiKey.startsWith("goog_ci_"))) {
+            "Release builds require a production RevenueCat Android SDK key " +
+                "(-PREVENUECAT_API_KEY=goog_...)."
+        }
+    }
+}
 
 android {
     namespace = "com.shipaton.quotesofwisdom"
@@ -16,7 +30,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0.0-rc1"
+        versionName = "1.0.0"
     }
 
     buildTypes {
@@ -69,6 +83,15 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = true
+    }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(validateProductionConfiguration)
 }
 
 dependencies {
@@ -88,4 +111,5 @@ dependencies {
     implementation("com.revenuecat.purchases:purchases:10.18.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+    testImplementation("junit:junit:4.13.2")
 }
