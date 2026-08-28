@@ -20,17 +20,13 @@
         android:theme="@style/Theme.QuotesOfWisdom">
 
         <activity
-            android:name=".notifications.NotificationGateActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
 
         <receiver
             android:name=".notifications.DailyWisdomNotificationReceiver"
