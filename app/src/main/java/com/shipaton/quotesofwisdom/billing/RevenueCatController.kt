@@ -56,7 +56,12 @@ sealed interface BillingResult {
 
 class RevenueCatController(private val context: Context) {
 
-    private val _state = MutableStateFlow(RevenueCatUiState())
+    private val entitlementSnapshotStore = EntitlementSnapshotStore(context)
+    private val _state = MutableStateFlow(
+        RevenueCatUiState().seedFromLastConfirmedEntitlement(
+            entitlementSnapshotStore.readLastConfirmedPro()
+        )
+    )
     val state: StateFlow<RevenueCatUiState> = _state.asStateFlow()
 
     private val packages = mutableMapOf<PurchasePlan, Package>()
@@ -109,10 +114,9 @@ class RevenueCatController(private val context: Context) {
 
         Purchases.sharedInstance.getCustomerInfoWith(
             onError = { error ->
-                _state.value = _state.value.copy(
-                    entitlementLoading = false,
-                    entitlementResolved = true,
-                    entitlementErrorMessage = error.message
+                _state.value = _state.value.resolveEntitlementFailure(
+                    errorMessage = error.message,
+                    lastConfirmedHasPro = entitlementSnapshotStore.readLastConfirmedPro()
                 )
             },
             onSuccess = ::applyCustomerInfo
@@ -207,15 +211,10 @@ class RevenueCatController(private val context: Context) {
 
     private fun applyCustomerInfo(customerInfo: CustomerInfo) {
         val hasPro = customerInfo.entitlements[PRO_ENTITLEMENT]?.isActive == true
+        entitlementSnapshotStore.writeLastConfirmedPro(hasPro)
         if (!hasPro) enforceFreeReminderTime()
 
-        _state.value = _state.value.copy(
-            configured = true,
-            entitlementLoading = false,
-            entitlementResolved = true,
-            hasPro = hasPro,
-            entitlementErrorMessage = null
-        )
+        _state.value = _state.value.resolveConfirmedEntitlement(hasPro)
     }
 
     private fun enforceFreeReminderTime() {
