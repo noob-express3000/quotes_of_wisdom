@@ -90,7 +90,8 @@ class MainActivity : ComponentActivity() {
             val selectedVoiceName by ttsController.selectedVoiceName.collectAsState()
             val speechRate by ttsController.speechRate.collectAsState()
             var screenName by rememberSaveable { mutableStateOf(AppScreen.HOME.name) }
-            var showPaywall by rememberSaveable { mutableStateOf(true) }
+            var showPaywall by rememberSaveable { mutableStateOf(false) }
+            var initialEntitlementHandled by rememberSaveable { mutableStateOf(false) }
             var reminderHour by rememberSaveable { mutableStateOf(initialReminderHour) }
             var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
 
@@ -103,8 +104,22 @@ class MainActivity : ComponentActivity() {
             }
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
 
-            LaunchedEffect(revenueCatState.hasPro) {
+            LaunchedEffect(
+                revenueCatState.entitlementResolved,
+                revenueCatState.hasPro,
+                uiState.debugAccessOverride
+            ) {
                 homeViewModel.setRevenueCatPro(revenueCatState.hasPro)
+
+                if (
+                    uiState.debugAccessOverride == null &&
+                    revenueCatState.entitlementResolved &&
+                    !initialEntitlementHandled
+                ) {
+                    initialEntitlementHandled = true
+                    showPaywall = !revenueCatState.hasPro
+                }
+
                 if (revenueCatState.hasPro && uiState.debugAccessOverride == null) {
                     showPaywall = false
                 }
@@ -145,6 +160,8 @@ class MainActivity : ComponentActivity() {
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     when {
+                        !initialEntitlementHandled && uiState.debugAccessOverride == null -> Unit
+
                         showPaywall && access != AccessState.PRO -> {
                             PaywallScreen(
                                 accessState = access,
