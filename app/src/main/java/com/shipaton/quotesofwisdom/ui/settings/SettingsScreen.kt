@@ -321,7 +321,7 @@ fun SettingsScreen(
                 }
             }
 
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.BUILD_TYPE == "debug") {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
