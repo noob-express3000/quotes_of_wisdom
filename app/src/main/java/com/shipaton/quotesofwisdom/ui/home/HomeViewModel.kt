@@ -58,7 +58,7 @@ class HomeViewModel(
                     firstSeenMillis = prefs.firstSeenMillis,
                     hasPro = hasRevenueCatPro
                 )
-                val debugOverride = if (BuildConfig.DEBUG) {
+                val debugOverride = if (BuildConfig.BUILD_TYPE == "debug") {
                     prefs.debugAccessOverride
                         .takeIf { it.isNotBlank() }
                         ?.let { runCatching { AccessState.valueOf(it) }.getOrNull() }
@@ -166,7 +166,7 @@ class HomeViewModel(
     }
 
     fun setDebugAccessOverride(state: AccessState?) {
-        if (!BuildConfig.DEBUG) return
+        if (BuildConfig.BUILD_TYPE != "debug") return
         _uiState.value = _uiState.value.copy(debugAccessOverride = state)
         viewModelScope.launch {
             preferencesRepository.setDebugAccessOverride(state?.name)
