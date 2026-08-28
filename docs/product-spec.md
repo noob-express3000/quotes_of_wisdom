@@ -15,6 +15,8 @@
 - The accent/10 color owns borders, icons, labels and small emphasis.
 - Material `tertiary` is an alias for the active theme accent; it is not a fourth color.
 - All card/container borders use the active accent/tertiary color.
+- All button labels use the active accent/tertiary color; disabled labels may reduce opacity but keep the accent hue.
+- The Home access label (`FREE`, `GRACE`, `LOCKED`, `PRO`) uses the active accent/tertiary color.
 - Primary readable copy uses the active secondary color.
 - Dynamic/Material defaults must not introduce a hidden fourth color.
 - The home screen does not show a redundant `Quotes of Wisdom` title.

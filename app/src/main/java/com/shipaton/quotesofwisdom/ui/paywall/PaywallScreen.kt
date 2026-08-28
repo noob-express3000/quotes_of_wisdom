@@ -196,7 +196,7 @@ fun PaywallScreen(
                                     onClick = onRetryBilling
                                 )
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.tertiary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -213,7 +213,7 @@ fun PaywallScreen(
                                 onClick = onRestorePurchases
                             )
                             .padding(horizontal = 16.dp, vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.tertiary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )

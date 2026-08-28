@@ -224,7 +224,7 @@ private fun Header(
                 modifier = Modifier.graphicsLayer {
                     rotationZ = proRotation.value
                 },
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
@@ -240,7 +240,7 @@ private fun Header(
             Text(
                 text = "🔥 $streak",
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.Black,
                 fontSize = 13.sp
             )
@@ -545,9 +545,9 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary,
+                contentColor = MaterialTheme.colorScheme.tertiary,
                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.38f)
+                disabledContentColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.38f)
             )
         ) {
             Icon(
@@ -564,7 +564,7 @@ private fun Controls(
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
+                contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text("Next")

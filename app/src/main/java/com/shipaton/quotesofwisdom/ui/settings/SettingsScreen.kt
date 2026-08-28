@@ -197,7 +197,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
+                            contentColor = MaterialTheme.colorScheme.tertiary
                         )
                     ) {
                         Text(
@@ -243,7 +243,7 @@ fun SettingsScreen(
                             Text("Speech speed", color = MaterialTheme.colorScheme.secondary)
                             Text(
                                 "%.2fx".format(speechRate),
-                                color = MaterialTheme.colorScheme.secondary,
+                                color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -266,7 +266,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
+                                contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) {
                             Text("Preview current quote")
@@ -277,7 +277,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onSecondary
+                                contentColor = MaterialTheme.colorScheme.tertiary
                             )
                         ) { Text("See Pro") }
                     }
@@ -341,7 +341,7 @@ fun SettingsScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
-                                    contentColor = MaterialTheme.colorScheme.onSecondary
+                                    contentColor = MaterialTheme.colorScheme.tertiary
                                 )
                             ) { Text(label) }
                         }
@@ -372,7 +372,7 @@ private fun EnginePicker(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
+                contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text(
@@ -426,7 +426,7 @@ private fun VoicePicker(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary
+                contentColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text(selectedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -463,7 +463,7 @@ private fun VoiceDataButton(onClick: () -> Unit) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.secondary
+            contentColor = MaterialTheme.colorScheme.tertiary
         )
     ) {
         Text("Get more voices")
