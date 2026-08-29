@@ -7,6 +7,7 @@ val productionRevenueCatApiKey = providers.gradleProperty("REVENUECAT_API_KEY")
     .orNull
     .orEmpty()
 val isCiBuild = providers.environmentVariable("CI").orNull.equals("true", ignoreCase = true)
+val ciDebugKeystorePath = providers.environmentVariable("CI_DEBUG_KEYSTORE_PATH").orNull
 
 val validateProductionConfiguration by tasks.registering {
     group = "verification"
@@ -24,6 +25,17 @@ val validateProductionConfiguration by tasks.registering {
 android {
     namespace = "com.shipaton.quotesofwisdom"
     compileSdk = 36
+
+    signingConfigs {
+        getByName("debug") {
+            ciDebugKeystorePath?.takeIf { it.isNotBlank() }?.let { path ->
+                storeFile = file(path)
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.shipaton.quotesofwisdom"
