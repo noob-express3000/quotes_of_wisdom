@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import com.shipaton.quotesofwisdom.billing.PurchasePlan
 import com.shipaton.quotesofwisdom.model.AccessState
 
@@ -77,7 +78,8 @@ fun PaywallScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
-                    .align(Alignment.TopCenter),
+                    .align(Alignment.TopCenter)
+                    .zIndex(1f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

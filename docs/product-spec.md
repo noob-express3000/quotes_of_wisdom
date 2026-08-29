@@ -178,6 +178,13 @@ Any active paid product granting `pro_access` enters this state.
 
 A `cold app launch` means a new app-session entry, not every temporary Activity resume.
 
+The last successfully confirmed active RevenueCat entitlement seeds the next cold launch while
+the SDK refreshes in the background. Free/unknown startup still waits for a fresh entitlement
+resolution. A transient entitlement refresh failure must not downgrade a known Pro user or flash
+the paywall; only a successful RevenueCat response confirming inactive access may replace a
+previously confirmed Pro state. The local entitlement snapshot is excluded from cloud backup and
+device transfer.
+
 ## Pro / paywall presentation
 
 - Pro should feel premium through polish, themes, speech customization, and interaction quality rather than feature clutter.

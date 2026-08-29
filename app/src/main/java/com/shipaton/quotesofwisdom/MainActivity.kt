@@ -33,6 +33,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.shipaton.quotesofwisdom.billing.BillingResult
 import com.shipaton.quotesofwisdom.billing.RevenueCatController
+import com.shipaton.quotesofwisdom.billing.shouldShowPaywallAfterConfirmedProLoss
 import com.shipaton.quotesofwisdom.data.AppPreferencesRepository
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
 import com.shipaton.quotesofwisdom.model.AccessState
@@ -92,6 +93,9 @@ class MainActivity : ComponentActivity() {
             var screenName by rememberSaveable { mutableStateOf(AppScreen.HOME.name) }
             var showPaywall by rememberSaveable { mutableStateOf(false) }
             var initialEntitlementHandled by rememberSaveable { mutableStateOf(false) }
+            var lastResolvedRevenueCatPro by rememberSaveable {
+                mutableStateOf<Boolean?>(null)
+            }
             var reminderHour by rememberSaveable { mutableStateOf(initialReminderHour) }
             var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
 
@@ -126,6 +130,24 @@ class MainActivity : ComponentActivity() {
 
                 if (revenueCatState.hasPro && uiState.debugAccessOverride == null) {
                     showPaywall = false
+                }
+
+                if (
+                    uiState.debugAccessOverride == null &&
+                    initialEntitlementHandled &&
+                    shouldShowPaywallAfterConfirmedProLoss(
+                        lastResolvedHasPro = lastResolvedRevenueCatPro,
+                        currentState = revenueCatState
+                    )
+                ) {
+                    showPaywall = true
+                }
+
+                if (
+                    uiState.debugAccessOverride == null &&
+                    revenueCatState.entitlementResolved
+                ) {
+                    lastResolvedRevenueCatPro = revenueCatState.hasPro
                 }
             }
 

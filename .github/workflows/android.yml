@@ -37,9 +37,13 @@ jobs:
 
       - name: Restore stable CI debug keystore
         run: |
-          mkdir -p "$HOME/.android"
-          base64 --decode .github/ci-debug.keystore.b64 > "$HOME/.android/debug.keystore"
-          chmod 600 "$HOME/.android/debug.keystore"
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/quotes-of-wisdom-ci-debug.keystore"
+          base64 --decode .github/ci-debug.keystore.b64 > "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "CI_DEBUG_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+          echo "cd1202f07a664194685c122b585165b62000fb347cd2070a741e801c8f8c3ef9  $keystore_path" |
+            sha256sum --check --status
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -57,6 +61,28 @@ jobs:
           :app:assembleQa
           :app:bundleRelease
           -PREVENUECAT_API_KEY=goog_ci_validation_key
+
+      - name: Verify stable CI APK signing
+        run: |
+          set -euo pipefail
+          expected="$(
+            keytool -exportcert \
+              -keystore "$CI_DEBUG_KEYSTORE_PATH" \
+              -storepass android \
+              -alias androiddebugkey 2>/dev/null |
+              sha256sum |
+              cut -d' ' -f1
+          )"
+          for apk in \
+            app/build/outputs/apk/debug/app-debug.apk \
+            app/build/outputs/apk/qa/app-qa.apk
+          do
+            actual="$(
+              "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" |
+                awk -F': ' '/Signer #1 certificate SHA-256 digest/ { print tolower($2); exit }'
+            )"
+            test "$actual" = "$expected"
+          done
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
