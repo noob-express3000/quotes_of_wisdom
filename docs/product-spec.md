@@ -193,12 +193,14 @@ device transfer.
 - Weekly, Monthly and Lifetime cards are horizontally centered and the plan group is centered in the screen.
 - Each card displays its live RevenueCat/store localized price and cadence.
 - A plan remains disabled until its real localized product and price have loaded; loading and unavailable states never display invented fallback prices.
+- `Retry` appears only after a RevenueCat customer/offering refresh failure. It repeats that refresh; it does not initiate or repeat a purchase.
 - Monthly retains the thicker emphasis border.
 - All pricing-card borders use active accent/tertiary.
 - Pricing-card text uses active secondary.
 - Each pricing card is itself the purchase target; there is no separate `Choose` button.
 - No continuous/spinning paywall hero or Pro card interaction; the one-shot Home `PRO` label spin is a separate decorative microinteraction.
 - No filler/explanatory copy beneath the plans.
+- A production store build may add concise, legally required billing-frequency, automatic-renewal/cancellation, Terms, and Privacy disclosures. Required purchase terms are not decorative filler and must remain readable without violating the three-color hierarchy.
 - A small top-left info button uses active accent/tertiary and opens a prominent full-width Pro access card near the top of the display rather than expanding/reflowing the paywall itself.
 - The Pro access card uses a stronger 2dp accent border, larger heading/body type, respects the display cutout itself, and is intentionally attention-grabbing without becoming a second paywall.
 - The card explains the immediate value of upgrading: immediate Pro access, all 100 themes, engine/voice selection, additional voice downloads, speed controls, restored speech/access where applicable, and no launch upgrade interruption.
