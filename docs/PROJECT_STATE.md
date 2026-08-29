@@ -1,35 +1,55 @@
 # Quotes of Wisdom — Canonical Project State
 
-_Last updated: 2026-08-27_
+_Last updated: 2026-08-29_
 
-Read this file first when resuming work. GitHub is the source of truth.
+Read this file first when resuming work. GitHub `main` is the source of truth.
 
-## Repository / active work
+## Release status
 
-- Repo: `noob-express3000/quotes_of_wisdom`
-- Current integration branch: `m5-revenuecat-test`
-- Current PR: #10 `M5: RevenueCat Test Store integration`
-- PR #10 is stacked on `m2-product-test`; do not merge blindly until physical-device billing validation passes.
-- GitHub Actions is the canonical clean Android build.
+| Area | State |
+|---|---|
+| v1 feature scope | Frozen |
+| Production-hardening changes | Merged |
+| RevenueCat Test Store integration | Implemented |
+| Entitlement restart/offline hardening | Implemented |
+| Stable CI QA signing | Implemented |
+| Main-branch CI | Green |
+| Open-source license | Apache-2.0 |
+| Final stable-APK device smoke | Pending |
+| Shipaton public-source packaging | In progress |
+| Google Play production configuration | Pending |
+
+Repository: `noob-express3000/quotes_of_wisdom`
+
+Integrated code baseline:
+
+- `main` commit `be6505c590ddbe43ac09be7e832ffcac09b1c9d5`
+- PR #14, squash-merged on 2026-08-29
+- post-merge [GitHub Actions run `33242052147`](https://github.com/noob-express3000/quotes_of_wisdom/actions/runs/33242052147) completed successfully
+- quote validation, unit tests, lint, Debug APK, optimized QA APK, Release-path bundle, and stable-signature verification all passed
+
+Documentation-only commits may follow this baseline without changing the application binary.
 
 ## Product
 
-Android-only, local-first quote app built with Kotlin + Jetpack Compose.
+Android-only, local-first quote app built with Kotlin and Jetpack Compose.
 
-- No login or custom backend.
-- Local quote corpus + Android Text-to-Speech.
+- No login, ads, analytics SDK, or custom backend.
+- Quotes, preferences, favorites, streaks, trial state, and notification settings are local.
+- Android Text-to-Speech supplies narration.
 - RevenueCat is authoritative for paid Pro entitlement.
-- Local DataStore holds app preferences, favorites, streak, trial state and debug previews.
+- The effective feature set is determined by the app-controlled trial state plus the RevenueCat `pro_access` entitlement.
 
 ## Shipping quote corpus
 
-Complete and frozen unless a real defect is found:
+Frozen unless a verified content defect is found:
 
 - 1,063 quotes
 - 356 authors
-- 12 categories
+- 12 classifications
 - global shuffled/no-repeat deck
 - favorites lightly personalize future draws while preserving the global no-repeat deck
+- provenance and verification records under `docs/`
 
 ## Access lifecycle
 
@@ -42,31 +62,48 @@ ANY STATE + active RevenueCat `pro_access` -> PRO
 ```
 
 Trial:
+
 - full quote browsing
 - TTS with one fixed local-preferred English voice at 1.0x
 - 2 themes
 - dismissible launch paywall
 
 Grace:
-- text only
+
+- quote text remains available
 - TTS disabled
 - dismissible launch paywall
 
 Locked:
-- app blocked by non-dismissible paywall
+
+- app blocked by a non-dismissible paywall until Pro is restored or purchased
 
 Pro:
+
 - all 100 themes
 - TTS
-- installed TTS engine selection
-- installed English voice selection
+- installed TTS engine and English voice selection
 - additional voice-data installer flow
-- speech rate 0.7x–1.4x
+- speech rate from 0.7x to 1.4x
+- selectable daily reminder time
 - no launch paywall
 
-## Commercial model — FROZEN
+## Entitlement startup behavior
 
-RevenueCat/Test Store catalog pricing:
+RevenueCat remains authoritative, while a last-confirmed local entitlement snapshot prevents known Pro users from seeing a false paywall during refresh.
+
+- A confirmed active `pro_access` entitlement is cached locally.
+- The snapshot seeds the next cold launch while RevenueCat refreshes in the background.
+- A network or SDK refresh failure does not replace known Pro with Free.
+- Only a successful RevenueCat response confirming inactive access can clear a previously confirmed Pro state.
+- Free/unknown startup waits for a fresh entitlement resolution before deciding whether to show the launch paywall.
+- The entitlement snapshot is excluded from Android backup and device transfer.
+
+This snapshot improves startup behavior; it is not a second source of truth and cannot grant a new purchase.
+
+## Commercial model — frozen for v1
+
+Test Store/catalog targets:
 
 - Weekly: **USD 0.99**
 - Monthly: **USD 2.99**
@@ -78,142 +115,128 @@ Product IDs:
 - `qow_monthly`
 - `qow_lifetime`
 
-All three products grant the single entitlement:
+All products grant the single entitlement `pro_access` and must be attached to RevenueCat's Current Offering as weekly, monthly, and lifetime packages.
 
-- `pro_access`
+Runtime prices come from RevenueCat/store localized pricing. A plan remains disabled until its real product and formatted price load. The app does not request location, infer region, or display invented fallback prices.
 
-The three products must be attached to the RevenueCat **Current Offering** as Weekly / Monthly / Lifetime packages.
+## RevenueCat identity and privacy boundary
 
-Runtime paywall prices come from RevenueCat/store localized pricing. A plan remains disabled until its real localized product and price are loaded; loading and unavailable states never display invented fallback prices.
-
-## RevenueCat M5 implementation
-
-Implemented on `m5-revenuecat-test`:
-
-- RevenueCat Android SDK 10.18.1
-- debug build uses the RevenueCat Test Store public SDK key
-- release build intentionally has no Test Store key
-- application-start RevenueCat configuration
-- deterministic opaque device-scoped App User ID
-- `pro_access` observation and launch refresh
-- Current Offering retrieval
-- localized package pricing
-- Weekly / Monthly / Lifetime package mapping
-- purchase flow with success / cancellation / error handling
-- Restore Purchases flow
-- RevenueCat Pro state feeds the existing Trial / Grace / Locked / Pro controller
-- paywall cards invoke real RevenueCat purchase calls
-
-Device-scoped RevenueCat identity:
+The app creates a deterministic, opaque, device-scoped RevenueCat App User ID:
 
 ```text
 ANDROID_ID + package name + signing-certificate fingerprint
  -> SHA-256
- -> opaque RevenueCat App User ID
+ -> qow_<opaque digest>
 ```
 
-Never send/display the raw Android ID as the RevenueCat identifier.
+The app does not pass the raw Android ID as its RevenueCat customer identifier. Changing the app signing certificate changes the identifier namespace, which is why judge and production signing identities are intentionally separate.
 
-## Physical-test signing
+RevenueCat receives the opaque identifier and purchase/entitlement traffic. Local quote activity, favorites, streaks, themes, and reminder preferences are not sent to a custom backend. The selected Android TTS engine may process spoken quote text according to that provider's own behavior, especially for network voices.
 
-GitHub Actions previously relied on runner-generated debug signing, which could change between ephemeral runners and make successive physical-test APKs incompatible for update installs.
+## Build types
 
-The M5 branch now restores one stable **test-only debug keystore** before `assembleDebug`.
+| Build | Optimization | RevenueCat | Signing | Intended use |
+|---|---|---|---|---|
+| Debug | Debuggable/unoptimized | Test Store | Local or stable CI debug signer | Development |
+| QA | Minified and resource-shrunk; debuggable | Test Store | Local or stable CI debug signer | Device QA and judges |
+| Release | Minified and resource-shrunk | Google Play key required | Not configured in repo | Production Play bundle |
 
-Important:
-- uninstall pre-stable-signer APKs once before installing the first stable-signer checkpoint;
-- after that, subsequent M5 debug APKs should update normally;
-- this test signer is not the future production Play signing key.
+The CI Release build uses `goog_ci_validation_key` only to validate compilation, lint, shrinking, and bundle generation. It is not a deployable production RevenueCat configuration.
 
-Because the RevenueCat test App User ID includes the signing fingerprint, switching from the old transient signer to the stable test signer changes the test customer identity once. Production signing will intentionally create its own identity namespace later.
+## Stable judge signing
 
-## Current UI / interaction rules
+GitHub Actions restores one committed, test-only debug keystore for CI-produced Debug and QA APKs and verifies the signer before uploading artifacts.
 
-- Exactly 3 base colors per theme using perceptual 60/30/10 hierarchy.
-- 100 themes: 2 Trial + 98 Pro.
+- Stable CI certificate SHA-256: `72:94:42:18:4D:E0:36:0C:72:8F:56:CE:DA:A5:36:90:09:4A:0A:60:00:3D:C4:8E:CD:D3:7D:33:F3:7A:0B:03`
+- Baseline QA APK SHA-256 from the post-merge run: `c53cf8cec3f5aab4e813b57189bd9639a1f1ad3746547e86675d419e1f9d93f9`
+- APKs signed by older transient CI keys must be uninstalled once before installing the stable-signer APK.
+- Future stable CI APKs can update one another.
+- The keystore is deliberately test-only and must never become the Google Play upload or app-signing key.
+
+Because the RevenueCat App User ID includes the signing fingerprint, the one-time signer migration also creates a new Test Store customer identity. Test purchases made under an older signer will not appear under the stable signer.
+
+## Implemented interaction rules
+
+- Exactly three base colors per theme with a perceptual 60/30/10 hierarchy.
+- Accent color owns button labels, important labels, icons, and borders.
+- 100 themes: 2 Trial and 98 Pro.
 - Immersive fullscreen with display-cutout-aware controls.
-- Settings gear top-left.
-- Access label top-right.
-- Streak centered below likely camera/cutout area.
-- Favorite bottom-left inside quote card.
-- Share bottom-right inside quote card.
-- Long quote text directly scrollable.
-- No decorative quote marks.
+- Settings gear top-left, access label top-right, streak centered around the cutout.
+- Favorite and Share controls inside the quote card.
+- Long quote text is directly scrollable.
+- `PRO` performs one text-only 360-degree spin.
+- Streak tap performs the palette-aware flame surge and synthesized horn without changing streak state.
+- Replay restarts narration; Next stops current speech before advancing.
+- Paywall Info and Close remain independently tappable above the scrolling content.
+- Retry appears only after billing data fails and refreshes RevenueCat customer/offerings data; it does not start a purchase.
 
-Home microinteractions:
+## Notifications
 
-- Tapping `PRO` performs exactly one 360° text-only spin with no ripple, scale pulse, background change, navigation or state mutation.
-- Tapping the streak triggers the approximately 1.2-second palette-aware full-screen flame surge.
-- The same streak tap now starts a roughly **1.8-second synthesized deep horn blast** through Android media audio.
-- The horn is generated in-app with `AudioTrack`; no bundled/licensed audio asset is required.
-- Repeated streak taps restart the horn rather than stacking multiple horn instances.
-- Flame/horn effects do not mutate streak or access state.
+Daily reminders are implemented.
 
-## Speech behavior
+- Android 13+ notification permission handling
+- local notification channel and AlarmManager scheduling
+- free/trial reminder fixed at 09:00
+- Pro-selectable reminder time
+- rescheduling after delivery, reboot, manual clock change, timezone change, and app update
+- debug-only high-priority demo receiver for capture/testing
+- no exact-alarm permission required
 
-Opening quote:
-- appears immediately;
-- begins narration as soon as TTS is ready and access allows speech;
-- no artificial 2-second app-side delay.
+## Automated validation
 
-Replay:
-- restarts current quote with queue flush.
+GitHub Actions currently performs:
 
-Next:
-- stops active speech before advancing.
+1. production quote-database validation;
+2. unit tests;
+3. QA lint;
+4. Debug and QA APK builds;
+5. minified Release app-bundle path validation;
+6. stable Debug/QA signing verification;
+7. Debug and QA artifact upload.
 
-Trial:
-- system-default engine
-- one fixed local-preferred English voice
-- 1.0x speed
-- TTS failures degrade to readable text
+Unit tests cover:
 
-Pro:
-- enumerate installed TTS engines
-- selected engine persists
-- engine switch reinitializes TTS and refreshes voices
-- installed English voices selectable
-- local/online voice labels
-- not-installed voices excluded
-- `Get more voices` opens engine/system voice-data UI
-- rate 0.7x–1.4x persists
+- RevenueCat entitlement-state transitions;
+- global quote deck and personalization behavior;
+- trial/grace/locked/Pro access policy;
+- three-color theme invariants.
 
-## Retention
+Compose interaction tests are not yet present. Paywall Info, Close, purchase, Retry, and Restore are therefore mandatory physical-smoke checks until automated UI coverage is added.
 
-- opening app once in a local calendar day completes that streak day
-- same-day reopen counts once
-- missed day breaks streak
-- broken streak uses a strong motivational opening quote rather than guilt copy
-- daily notifications remain to be implemented in M6
+## Final judge checkpoint
 
-## Debug behavior
+Install the stable CI QA APK once after removing any older-signer build, then verify:
 
-Debug builds expose persisted Trial / Grace / Locked / Pro previews for product testing. Release builds ignore debug access overrides.
+1. Quote appears and narration starts without an artificial delay.
+2. Replay, Next, Favorite, Share, settings, and Back work.
+3. Paywall Info and Close work repeatedly.
+4. Test Store prices are `$0.99`, `$2.99`, and `$29.99`.
+5. Lifetime test purchase activates `PRO`.
+6. `PRO` survives force-stop and cold reopen.
+7. Known Pro still opens as Pro while offline.
+8. Restore Purchases succeeds for the same stable-signer Test Store identity.
+9. Streak flames/horn and Pro spin complete without jank or crash.
+10. Daily-notification permission and scheduling behave correctly.
 
-## Current validation target
+Run on both Samsung and itel devices if time permits. Record the exact APK SHA-256 and CI commit in the GitHub Release.
 
-The next physical-device checkpoint must verify:
+## Remaining work
 
-1. Fresh install succeeds after uninstalling any APK signed by the old transient CI signer.
-2. Paywall loads RevenueCat prices `$0.99 / $2.99 / $29.99` (or localized equivalents).
-3. Weekly purchase opens the RevenueCat Test Store purchase UI and activates `pro_access`.
-4. Monthly purchase works.
-5. Lifetime non-consumable purchase works.
-6. Pro persists after app restart.
-7. Restore Purchases restores Pro when an active test purchase exists.
-8. Correct RevenueCat Current Offering/package wiring is present if the app reports that a package is unavailable.
-9. Streak tap launches flame surge and the deep horn together without jank/crash.
-10. Repeated streak taps restart the horn cleanly.
-11. Existing TTS, themes, favorites, sharing, Pro spin and access-state behavior remain intact.
+### Shipaton / direct judge release
 
-## Remaining milestones
+- complete final stable-APK physical smoke;
+- publish a permanent GitHub Release with APK, checksum, signer, and test instructions;
+- make the repository public only after the source/credential review;
+- record the demo video and attach screenshots plus BuildInPublic evidence.
 
-```text
-M5  finish RevenueCat Test Store physical validation and harden trial identity/clocks
-M6  notifications + streak/conversion flow + analytics/hardening
-M7  Google Play/store release signing, real products, release build and store hardening
-M8  license/README/demo/BuildInPublic + Shipaton submission polish
-```
+### Google Play production release
+
+- add the real Google Play products and RevenueCat Android SDK key;
+- inject a private upload signing key outside the repository;
+- add concise renewal/cancellation disclosure and Terms/Privacy links to the paywall;
+- finalize and host Privacy/Terms, then complete Data safety from the final SDK inventory;
+- run real Google Play sandbox purchase, cancellation, pending, restore, and offline tests;
+- upload a signed AAB to Internal or Closed testing before production.
 
 ## Development discipline
 
@@ -221,4 +244,4 @@ M8  license/README/demo/BuildInPublic + Shipaton submission polish
 spec -> implement -> CI -> physical-device test -> review -> merge
 ```
 
-Feature set is effectively locked. Prefer bug fixes, monetization, required submission work and release hardening over additional scope, unless the product owner explicitly requests a small contained change.
+Feature scope is locked. Prefer defects, submission assets, compliance, testing, and release hardening over new product scope.

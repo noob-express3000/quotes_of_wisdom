@@ -1,0 +1,25 @@
+Quotes of Wisdom
+Copyright 2026 noob-express3000
+
+The original application source code, build tooling, original documentation,
+and original selection, arrangement, and metadata in this repository are made
+available under the Apache License, Version 2.0.
+
+The application also contains short historical quotations whose underlying
+words are attributed to their respective authors and are not claimed as
+original Quotes of Wisdom authorship. The Apache License does not create or
+expand rights in those underlying quotation texts. The shipping corpus was
+curated from source-verified public-domain material; source and rights records
+are maintained in:
+
+    docs/quote-curation-policy.md
+    docs/quote-curation-results.md
+    docs/quote-verification-ledger.md
+    docs/production-quote-sources.jsonl
+
+Public-domain status can vary by jurisdiction. Redistributors remain
+responsible for compliance with the law applicable to them.
+
+"Project Gutenberg" is a trademark of the Project Gutenberg Literary Archive
+Foundation. Quotes of Wisdom is not affiliated with or endorsed by Project
+Gutenberg.
