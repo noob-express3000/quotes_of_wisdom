@@ -86,7 +86,7 @@ fun PaywallScreen(
                 IconButton(onClick = { showInfo = true }) {
                     Icon(
                         Icons.Rounded.Info,
-                        contentDescription = "Why upgrade now",
+                        contentDescription = "Pro information",
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
@@ -285,10 +285,10 @@ private fun UpgradeInfoDialog(
 
                     Text(
                         text = when (accessState) {
-                            AccessState.TRIAL_ACTIVE -> "Upgrade now to unlock all 100 themes, engine and voice selection, additional voice downloads and speed control immediately, with no launch upgrade interruption."
-                            AccessState.GRACE_TEXT_ONLY -> "Upgrade now to restore speech immediately and unlock all 100 themes, engine and voice selection, additional voice downloads and speed control."
-                            AccessState.LOCKED -> "Upgrade now to restore app access immediately, including speech, all 100 themes, additional voice downloads and full voice controls."
-                            AccessState.PRO -> "Pro already unlocks all 100 themes, engine and voice selection, additional voice downloads, speed control and uninterrupted access."
+                            AccessState.TRIAL_ACTIVE -> "With Pro, you get all 100 themes, full voice controls, voice downloads, and no launch upgrade screen."
+                            AccessState.GRACE_TEXT_ONLY -> "With Pro, speech comes back and you get all 100 themes, full voice controls, and voice downloads."
+                            AccessState.LOCKED -> "With Pro, access and speech come back, along with all 100 themes, full voice controls, and voice downloads."
+                            AccessState.PRO -> "Pro is active. All themes, speech controls, and voice downloads are available."
                         },
                         modifier = Modifier.padding(end = 10.dp),
                         color = MaterialTheme.colorScheme.secondary,
