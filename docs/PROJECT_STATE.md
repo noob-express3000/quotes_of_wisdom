@@ -218,7 +218,7 @@ Install the stable CI QA APK once after removing any older-signer build, then ve
 9. Streak flames/horn and Pro spin complete without jank or crash.
 10. Daily-notification permission and scheduling behave correctly.
 
-Run on both Samsung and itel devices if time permits. Record the exact APK SHA-256 and CI commit in the GitHub Release.
+Repeat the critical smoke path on more than one Android device if time permits. Record the exact APK SHA-256 and CI commit in the GitHub Release.
 
 ## Remaining work
 
