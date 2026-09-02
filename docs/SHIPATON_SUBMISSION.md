@@ -87,7 +87,7 @@ The APK uses RevenueCat Test Store. Test purchases are simulated and do not char
 
 - Show the public repository, green GitHub Actions run, and quote-verification ledger.
 - State: Kotlin, Jetpack Compose, DataStore, Android TTS, AlarmManager, RevenueCat; no account or custom backend.
-- Mention testing on both Samsung and low-end itel hardware.
+- Mention physical Android testing.
 
 ### 2:45–3:00 — Close
 
@@ -101,7 +101,7 @@ Do not spend demo time scrolling through every theme or reading every feature la
 - **False-paywall prevention:** a last-confirmed entitlement snapshot seeds cold launch, but only RevenueCat can confirm a new paid entitlement or a successful downgrade.
 - **Privacy-aware identity:** the app passes RevenueCat a SHA-256-derived opaque identifier instead of its raw Android ID.
 - **Real pricing:** paywall strings come from RevenueCat/store products; there is no location lookup or hardcoded production currency fallback.
-- **Low-end performance:** the QA variant is minified/resource-shrunk and the 100-theme grid is lazily composed.
+- **Low-overhead UI:** the QA variant is minified/resource-shrunk and the 100-theme grid is lazily composed.
 - **Local-first resilience:** the quote corpus, favorites, streaks, themes, and reminders work without a custom service.
 - **Content integrity:** every production quote is covered by curation, provenance, and verification records.
 
@@ -112,13 +112,13 @@ Link the actual posts rather than merely claiming the project was built publicly
 - initial problem and product direction;
 - early screenshots and the 60/30/10 feedback loop;
 - changes made from public feedback, such as accent-emphasis correction or simplified paywall cards;
-- physical-device discoveries, including low-end performance and signing/update behavior;
+- performance and signing/update discoveries;
 - the entitlement-loss bug, its root cause, and the verified fix;
 - final demo/release post with repository and APK links.
 
 Suggested sentence structure:
 
-> Feedback exposed **[specific problem]**. I changed **[specific behavior]**, verified it on **[device/build]**, and the result was **[observable improvement]**.
+> Feedback exposed **[specific problem]**. I changed **[specific behavior]**, verified it in **[build/test]**, and the result was **[observable improvement]**.
 
 ## Screenshot set
 
@@ -132,7 +132,7 @@ Suggested sentence structure:
 8. Android daily notification;
 9. public GitHub Actions success and quote-verification proof.
 
-Use the location-neutral Test Store build for public capture. Avoid status-bar/location indicators, personal notifications, device account names, local file paths, RevenueCat dashboard customer records, and production credentials.
+Use the location-neutral Test Store build for public capture. Avoid status-bar/location indicators, personal notifications, account names, local file paths, RevenueCat dashboard customer records, and production credentials.
 
 ## GitHub Release template
 
