@@ -12,7 +12,7 @@ This file separates the direct judge APK from the eventual Google Play release. 
 - [x] QA uses RevenueCat Test Store rather than production billing.
 - [x] Test Store prices come from RevenueCat; no app-side fallback/location logic exists.
 - [ ] Complete the final stable-signer QA smoke test on a physical device.
-- [ ] Repeat the critical smoke path on both Samsung and itel if time permits.
+- [ ] Repeat the critical smoke path on another Android device if time permits.
 
 ### Public-source gate
 
@@ -52,7 +52,7 @@ This file separates the direct judge APK from the eventual Google Play release. 
 - [ ] Confirm Replay, Next, TTS, Favorite, Share, settings, and system Back.
 - [ ] Confirm streak flames/horn and Pro spin do not crash or mutate access/streak state.
 - [ ] Confirm notification grant/denial and one scheduled reminder.
-- [ ] Confirm acceptable performance on the low-end itel device.
+- [ ] Confirm acceptable performance on representative Android hardware.
 
 ### Submission assets
 
@@ -116,7 +116,7 @@ Google Play policy references:
 
 ### Production device acceptance
 
-- [ ] Test the Play-installed build on Samsung and itel devices.
+- [ ] Test the Play-installed build on more than one Android device.
 - [ ] Verify launcher Q in normal, round, and themed-icon modes.
 - [ ] Verify cold launch, background/resume, rotation, process recreation, system Back, and update install.
 - [ ] Verify local and network TTS voices, missing voice data, Replay, and engine switching.
