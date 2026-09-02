@@ -16,6 +16,12 @@ Everything except purchases runs locally. There are no accounts, ads, analytics,
 - full-screen Jetpack Compose UI with display-cutout handling
 - no ads, login, analytics SDK, or custom backend
 
+## Development notes
+
+Some of the original handwritten notes and UI sketches are kept in [`docs/development-notes/`](docs/development-notes/). They are historical and include ideas that changed before release.
+
+![Early handwritten development notes](docs/development-notes/development-notes.webp)
+
 ## Build from source
 
 ### Requirements
@@ -171,6 +177,7 @@ Automated tests currently cover quote-deck behavior, access-state logic, Revenue
 - [`docs/DATA_SAFETY_DRAFT.md`](docs/DATA_SAFETY_DRAFT.md) — current Google Play disclosure mapping
 - [`docs/quote-curation-policy.md`](docs/quote-curation-policy.md) — corpus acceptance rules
 - [`docs/quote-verification-ledger.md`](docs/quote-verification-ledger.md) — quote-level verification record
+- [`docs/development-notes/`](docs/development-notes/) — early handwritten notes and UI sketches
 
 ## License
 
