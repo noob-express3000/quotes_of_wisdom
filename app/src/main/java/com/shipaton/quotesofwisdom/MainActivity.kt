@@ -398,16 +398,6 @@ class MainActivity : ComponentActivity() {
 
     private fun configureDailyNotifications() {
         DailyWisdomNotifications.ensureChannels(this)
-        val prefs = getSharedPreferences(NOTIFICATION_GATE_PREFS, MODE_PRIVATE)
-        val hasLaunchedBefore = prefs.getBoolean(KEY_HAS_LAUNCHED, false)
-
-        if (!hasLaunchedBefore) {
-            prefs.edit().putBoolean(KEY_HAS_LAUNCHED, true).apply()
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                DailyWisdomNotifications.setEnabled(this, true)
-            }
-            return
-        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             DailyWisdomNotifications.setEnabled(this, true)
@@ -421,6 +411,7 @@ class MainActivity : ComponentActivity() {
             return
         }
 
+        val prefs = getSharedPreferences(NOTIFICATION_GATE_PREFS, MODE_PRIVATE)
         if (prefs.getBoolean(KEY_PERMISSION_PROMPTED, false)) return
 
         prefs.edit().putBoolean(KEY_PERMISSION_PROMPTED, true).apply()
@@ -503,7 +494,6 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         const val NOTIFICATION_GATE_PREFS = "notification_gate"
-        const val KEY_HAS_LAUNCHED = "has_launched"
         const val KEY_PERMISSION_PROMPTED = "permission_prompted"
     }
 }
