@@ -62,7 +62,7 @@ app\build\outputs\apk\debug\app-debug.apk
 
 ### Optimized QA / judge build
 
-The normal debug APK is deliberately debuggable and can run noticeably slower on low-end Android hardware. Use the release-like QA variant for performance testing and direct judge evaluation:
+The normal debug APK is deliberately debuggable and can run noticeably slower than the release-like QA variant. Use the QA variant for performance testing and direct judge evaluation:
 
 ```bash
 ./gradlew :app:assembleQa
