@@ -32,13 +32,13 @@ object DailyWisdomNotifications {
     private const val OPEN_APP_REQUEST_CODE = 4103
 
     private val reminderCopy = listOf(
-        "One good sentence. No doomscrolling required.",
-        "A small thought for a very large day.",
-        "The philosophers have been waiting.",
-        "Thirty quiet seconds might be enough.",
-        "Your daily ritual is ready.",
-        "A little perspective before the noise starts.",
-        "There is still time for one good thought."
+        "Your daily quote is ready.",
+        "Here's today's quote.",
+        "Take a moment for today's quote.",
+        "A new quote is ready for you.",
+        "Time for today's quote.",
+        "Your quote for today is waiting.",
+        "Come back for today's quote."
     )
 
     fun isEnabled(context: Context): Boolean =
@@ -97,7 +97,7 @@ object DailyWisdomNotifications {
                 "Daily wisdom",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "One daily reminder to return to Quotes of Wisdom."
+                description = "Daily quote reminder."
                 setShowBadge(true)
             }
         )
@@ -138,7 +138,7 @@ object DailyWisdomNotifications {
             context = context,
             channelId = DAILY_CHANNEL_ID,
             notificationId = DAILY_NOTIFICATION_ID,
-            title = "A thought for today",
+            title = "Today's quote",
             body = body,
             highPriority = false
         )
@@ -166,7 +166,7 @@ object DailyWisdomNotifications {
             channelId = DEMO_CHANNEL_ID,
             notificationId = DEMO_NOTIFICATION_ID,
             title = "Quotes of Wisdom",
-            body = "One good sentence. No doomscrolling required.",
+            body = "Your daily quote is ready.",
             highPriority = true
         )
     }
