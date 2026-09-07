@@ -233,15 +233,26 @@ fun SettingsScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(10.dp))
-                    FontPicker(
-                        selectedFontId = selectedQuoteFontId,
-                        onSelectFont = { fontId ->
-                            selectedQuoteFontId = fontId
-                            fontPreferences.edit()
-                                .putString(QUOTE_FONT_ID_KEY, fontId)
-                                .apply()
-                        }
-                    )
+                    if (accessState == AccessState.PRO) {
+                        FontPicker(
+                            selectedFontId = selectedQuoteFontId,
+                            onSelectFont = { fontId ->
+                                selectedQuoteFontId = fontId
+                                fontPreferences.edit()
+                                    .putString(QUOTE_FONT_ID_KEY, fontId)
+                                    .apply()
+                            }
+                        )
+                    } else {
+                        Button(
+                            onClick = onOpenPaywall,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.tertiary
+                            )
+                        ) { Text("See Pro") }
+                    }
                 }
             }
 
@@ -616,17 +627,5 @@ private fun ThemeSwatches(palette: AppThemePalette) {
                 style = Stroke(width = borderWidth)
             )
         }
-    }
-}
-
-@Composable
-private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
-    ) {
-        Column(modifier = Modifier.padding(18.dp), content = content)
     }
 }
