@@ -158,8 +158,8 @@ android {
     compileSdk = 36
 
     sourceSets.getByName("main") {
-        res.srcDir(generatedQuoteFontResDir)
-        assets.srcDir(generatedQuoteFontAssetsDir)
+        res.srcDir(generatedQuoteFontResDir.get().asFile)
+        assets.srcDir(generatedQuoteFontAssetsDir.get().asFile)
     }
 
     signingConfigs {
