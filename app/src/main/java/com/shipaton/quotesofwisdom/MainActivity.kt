@@ -136,7 +136,8 @@ class MainActivity : ComponentActivity() {
             } else {
                 DefaultTheme
             }
-            val selectedFontFamily = quoteFontById(selectedQuoteFontId).fontFamily
+            val effectiveFontId = if (access == AccessState.PRO) selectedQuoteFontId else "default"
+            val selectedFontFamily = quoteFontById(effectiveFontId).fontFamily
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
 
             LaunchedEffect(
