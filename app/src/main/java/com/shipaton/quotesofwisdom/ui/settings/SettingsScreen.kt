@@ -62,6 +62,10 @@ import com.shipaton.quotesofwisdom.speech.TtsEngineOption
 import com.shipaton.quotesofwisdom.speech.VoiceOption
 import com.shipaton.quotesofwisdom.ui.theme.AppThemePalette
 import com.shipaton.quotesofwisdom.ui.theme.AppThemes
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_ID_KEY
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_PREFERENCES
+import com.shipaton.quotesofwisdom.ui.theme.QuoteFonts
+import com.shipaton.quotesofwisdom.ui.theme.quoteFontById
 import java.util.Calendar
 
 @Composable
@@ -92,6 +96,16 @@ fun SettingsScreen(
 ) {
     val themeRows = remember { AppThemes.chunked(2) }
     val context = LocalContext.current
+    val fontPreferences = remember(context) {
+        context.getSharedPreferences(QUOTE_FONT_PREFERENCES, 0)
+    }
+    var selectedQuoteFontId by remember {
+        mutableStateOf(
+            fontPreferences.getString(QUOTE_FONT_ID_KEY, "default")
+                .orEmpty()
+                .ifBlank { "default" }
+        )
+    }
     val reminderTimeLabel = remember(context, reminderHour, reminderMinute) {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, reminderHour)
@@ -285,6 +299,26 @@ fun SettingsScreen(
             }
 
             item {
+                InfoCard {
+                    Text(
+                        "Quote font",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    FontPicker(
+                        selectedFontId = selectedQuoteFontId,
+                        onSelectFont = { fontId ->
+                            selectedQuoteFontId = fontId
+                            fontPreferences.edit()
+                                .putString(QUOTE_FONT_ID_KEY, fontId)
+                                .apply()
+                        }
+                    )
+                }
+            }
+
+            item {
                 Text(
                     "Themes",
                     color = MaterialTheme.colorScheme.secondary,
@@ -467,6 +501,53 @@ private fun VoiceDataButton(onClick: () -> Unit) {
         )
     ) {
         Text("Get more voices")
+    }
+}
+
+@Composable
+private fun FontPicker(
+    selectedFontId: String,
+    onSelectFont: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = quoteFontById(selectedFontId)
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            Text(
+                selected.label,
+                fontFamily = selected.fontFamily,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            QuoteFonts.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            option.label,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontFamily = option.fontFamily
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelectFont(option.id)
+                    }
+                )
+            }
+        }
     }
 }
 

@@ -54,8 +54,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +64,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shipaton.quotesofwisdom.model.AccessState
 import com.shipaton.quotesofwisdom.model.Quote
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_ID_KEY
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_PREFERENCES
+import com.shipaton.quotesofwisdom.ui.theme.quoteFontById
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -439,6 +443,14 @@ private fun QuoteCard(
     onShare: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val quoteFontId = remember(context) {
+        context.getSharedPreferences(QUOTE_FONT_PREFERENCES, 0)
+            .getString(QUOTE_FONT_ID_KEY, "default")
+            .orEmpty()
+            .ifBlank { "default" }
+    }
+    val quoteFontFamily = remember(quoteFontId) { quoteFontById(quoteFontId).fontFamily }
 
     LaunchedEffect(quote.id) { scrollState.scrollTo(0) }
 
@@ -465,6 +477,7 @@ private fun QuoteCard(
                     textAlign = TextAlign.Center,
                     fontSize = 26.sp,
                     lineHeight = 36.sp,
+                    fontFamily = quoteFontFamily,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -474,6 +487,7 @@ private fun QuoteCard(
             Text(
                 text = "— ${quote.author}",
                 color = MaterialTheme.colorScheme.secondary,
+                fontFamily = quoteFontFamily,
                 fontStyle = FontStyle.Italic,
                 textAlign = TextAlign.Center
             )
