@@ -7,7 +7,7 @@ This file separates the direct judge APK from the eventual Google Play release. 
 ### Integrated baseline
 
 - [x] Production-hardening and entitlement-startup fixes merged to `main`.
-- [x] Quote validation, unit tests, lint, Debug APK, QA APK, and Release bundle path are green at commit `be6505c590ddbe43ac09be7e832ffcac09b1c9d5`.
+- [x] Quote validation, unit tests, lint, Debug APK, QA APK, Release bundle path, and stable-signature verification are green at application-code commit `2bb72b0146a088eb3ccc33f3154c99f8af5a9efe` (GitHub Actions run `34137811917`).
 - [x] CI Debug and QA artifacts use one verified stable test signer.
 - [x] QA uses RevenueCat Test Store rather than production billing.
 - [x] Test Store prices come from RevenueCat; no app-side fallback/location logic exists.
@@ -18,10 +18,12 @@ This file separates the direct judge APK from the eventual Google Play release. 
 
 - [x] License original project code/material under Apache-2.0 in `LICENSE`.
 - [x] Scope the historical quote corpus separately in `NOTICE` and the provenance/rights records under `docs/`.
-- [ ] Review the complete repository for credentials, signing material, private names, local paths, and accidental location evidence.
-- [ ] Confirm only the public RevenueCat Test Store SDK key and the deliberately public **test-only** CI keystore are present.
-- [ ] Fill the owner/contact/jurisdiction placeholders in `docs/PRIVACY_POLICY_DRAFT.md` and `docs/TERMS_OF_USE_DRAFT.md`.
-- [ ] Make the GitHub repository public only after the preceding review.
+- [x] Review the current repository tree for credentials, signing material, private names, local paths, and accidental location/device evidence.
+- [x] Confirm only the public RevenueCat Test Store SDK key and the deliberately public **test-only** CI keystore are present.
+- [ ] Fill the owner/contact/jurisdiction placeholders in `docs/PRIVACY_POLICY_DRAFT.md` and `docs/TERMS_OF_USE_DRAFT.md` before a production store release.
+- [x] GitHub repository is public.
+
+Current-tree source review completed 2026-09-07. This check does not rewrite or erase historical Git commit metadata.
 
 ### Permanent judge artifact
 
