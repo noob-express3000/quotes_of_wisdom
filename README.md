@@ -16,12 +16,6 @@ Everything except purchases runs locally. There are no accounts, ads, analytics,
 - full-screen Jetpack Compose UI with display-cutout handling
 - no ads, login, analytics SDK, or custom backend
 
-## Development notes
-
-Some of the original handwritten notes and UI sketches are kept in [`docs/development-notes/`](docs/development-notes/). They are historical and include ideas that changed before release.
-
-![Early handwritten development notes](docs/development-notes/development-notes.webp)
-
 ## Build from source
 
 ### Requirements
