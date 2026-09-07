@@ -1,8 +1,8 @@
 package com.shipaton.quotesofwisdom.ui.theme
 
-import androidx.compose.ui.text.font.DeviceFontFamilyName
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.shipaton.quotesofwisdom.R
 
 data class QuoteFontOption(
     val id: String,
@@ -10,24 +10,19 @@ data class QuoteFontOption(
     val fontFamily: FontFamily
 )
 
-private fun deviceFamily(primary: String, fallback: String = "sans-serif") = FontFamily(
-    Font(DeviceFontFamilyName(primary)),
-    Font(DeviceFontFamilyName(fallback))
-)
+private fun bundledFont(resourceId: Int) = FontFamily(Font(resourceId))
 
 val QuoteFonts = listOf(
-    QuoteFontOption("default", "Default", FontFamily.Default),
-    QuoteFontOption("sans", "Sans", FontFamily.SansSerif),
-    QuoteFontOption("serif", "Serif", FontFamily.Serif),
-    QuoteFontOption("mono", "Mono", FontFamily.Monospace),
-    QuoteFontOption("cursive", "Cursive", FontFamily.Cursive),
-    QuoteFontOption("condensed", "Condensed", deviceFamily("sans-serif-condensed")),
-    QuoteFontOption("casual", "Casual", deviceFamily("casual")),
-    QuoteFontOption("small_caps", "Small Caps", deviceFamily("sans-serif-smallcaps")),
-    QuoteFontOption("serif_mono", "Serif Mono", deviceFamily("serif-monospace", "monospace")),
-    QuoteFontOption("light", "Light", deviceFamily("sans-serif-light")),
-    QuoteFontOption("heavy", "Heavy", deviceFamily("sans-serif-black")),
-    QuoteFontOption("condensed_light", "Condensed Light", deviceFamily("sans-serif-condensed-light", "sans-serif-condensed"))
+    QuoteFontOption("default", "Lora", bundledFont(R.font.lora_regular)),
+    QuoteFontOption("cinzel", "Cinzel", bundledFont(R.font.cinzel_regular)),
+    QuoteFontOption("cormorant", "Cormorant", bundledFont(R.font.cormorant_garamond_regular)),
+    QuoteFontOption("playfair", "Playfair", bundledFont(R.font.playfair_display_regular)),
+    QuoteFontOption("baskerville", "Baskerville", bundledFont(R.font.libre_baskerville_regular)),
+    QuoteFontOption("merriweather", "Merriweather", bundledFont(R.font.merriweather_regular)),
+    QuoteFontOption("crimson", "Crimson", bundledFont(R.font.crimson_text_regular)),
+    QuoteFontOption("alegreya", "Alegreya", bundledFont(R.font.alegreya_regular)),
+    QuoteFontOption("roboto_slab", "Roboto Slab", bundledFont(R.font.roboto_slab_regular)),
+    QuoteFontOption("caveat", "Caveat", bundledFont(R.font.caveat_regular))
 )
 
 fun quoteFontById(id: String): QuoteFontOption =
