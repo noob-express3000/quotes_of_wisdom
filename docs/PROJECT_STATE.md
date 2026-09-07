@@ -1,6 +1,6 @@
 # Quotes of Wisdom — Canonical Project State
 
-_Last updated: 2026-08-29_
+_Last updated: 2026-09-07_
 
 Read this file first when resuming work. GitHub `main` is the source of truth.
 
@@ -15,20 +15,21 @@ Read this file first when resuming work. GitHub `main` is the source of truth.
 | Stable CI QA signing | Implemented |
 | Main-branch CI | Green |
 | Open-source license | Apache-2.0 |
+| Current-tree public-source review | Complete |
+| GitHub repository | Public |
 | Final stable-APK device smoke | Pending |
-| Shipaton public-source packaging | In progress |
+| Permanent judge GitHub Release | Pending |
 | Google Play production configuration | Pending |
 
 Repository: `noob-express3000/quotes_of_wisdom`
 
-Integrated code baseline:
+Latest verified application-code baseline:
 
-- `main` commit `be6505c590ddbe43ac09be7e832ffcac09b1c9d5`
-- PR #14, squash-merged on 2026-08-29
-- post-merge [GitHub Actions run `33242052147`](https://github.com/noob-express3000/quotes_of_wisdom/actions/runs/33242052147) completed successfully
+- `main` application-code commit `2bb72b0146a088eb3ccc33f3154c99f8af5a9efe`
+- GitHub Actions run `34137811917` completed successfully on 2026-09-07
 - quote validation, unit tests, lint, Debug APK, optimized QA APK, Release-path bundle, and stable-signature verification all passed
 
-Documentation-only commits may follow this baseline without changing the application binary.
+Documentation-only commits may follow this baseline without changing the application binary. GitHub `main` remains the source of truth.
 
 ## Product
 
@@ -148,7 +149,7 @@ The CI Release build uses `goog_ci_validation_key` only to validate compilation,
 GitHub Actions restores one committed, test-only debug keystore for CI-produced Debug and QA APKs and verifies the signer before uploading artifacts.
 
 - Stable CI certificate SHA-256: `72:94:42:18:4D:E0:36:0C:72:8F:56:CE:DA:A5:36:90:09:4A:0A:60:00:3D:C4:8E:CD:D3:7D:33:F3:7A:0B:03`
-- Baseline QA APK SHA-256 from the post-merge run: `c53cf8cec3f5aab4e813b57189bd9639a1f1ad3746547e86675d419e1f9d93f9`
+- Historical baseline QA APK SHA-256 from the 2026-08-29 post-merge run: `c53cf8cec3f5aab4e813b57189bd9639a1f1ad3746547e86675d419e1f9d93f9`
 - APKs signed by older transient CI keys must be uninstalled once before installing the stable-signer APK.
 - Future stable CI APKs can update one another.
 - The keystore is deliberately test-only and must never become the Google Play upload or app-signing key.
@@ -226,7 +227,6 @@ Repeat the critical smoke path on more than one Android device if time permits. 
 
 - complete final stable-APK physical smoke;
 - publish a permanent GitHub Release with APK, checksum, signer, and test instructions;
-- make the repository public only after the source/credential review;
 - record the demo video and attach screenshots plus BuildInPublic evidence.
 
 ### Google Play production release
