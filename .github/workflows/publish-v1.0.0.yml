@@ -1,0 +1,78 @@
+name: Publish v1.0.0 judge release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-v1.0.0.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 894e7ecd1503a98dcab462a44f05ece23f8db81e
+      ARTIFACT_ID: "10028112851"
+      TAG: v1.0.0
+    steps:
+      - name: Download frozen judge artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > judge-artifact.zip
+          unzip -j judge-artifact.zip -d dist
+          apk="$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          mv "$apk" dist/Quotes-of-Wisdom-v1.0.0-judge.apk
+          sha256sum dist/Quotes-of-Wisdom-v1.0.0-judge.apk > dist/SHA256SUMS.txt
+
+      - name: Verify artifact checksum
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          # Quotes of Wisdom v1.0.0
+
+          Final Shipaton judge build from the frozen application commit.
+
+          - Source commit: `894e7ecd1503a98dcab462a44f05ece23f8db81e`
+          - CI run: `34146971482`
+          - Build type: optimized QA / judge APK
+          - RevenueCat: Test Store configuration; no real charge
+          - Signing: stable CI test signer; not a production Play Store signing key
+
+          The production release path remains separate and requires a real Google/RevenueCat production SDK key and production signing credentials.
+
+          `SHA256SUMS.txt` is attached for integrity verification.
+          EOF
+
+      - name: Publish GitHub release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/Quotes-of-Wisdom-v1.0.0-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/Quotes-of-Wisdom-v1.0.0-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET_SHA" \
+              --title "Quotes of Wisdom v1.0.0" \
+              --notes-file release-notes.md
+          fi
