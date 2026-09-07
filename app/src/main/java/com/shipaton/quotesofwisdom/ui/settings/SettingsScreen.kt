@@ -227,6 +227,26 @@ fun SettingsScreen(
 
             item {
                 InfoCard {
+                    Text(
+                        "Quote font",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    FontPicker(
+                        selectedFontId = selectedQuoteFontId,
+                        onSelectFont = { fontId ->
+                            selectedQuoteFontId = fontId
+                            fontPreferences.edit()
+                                .putString(QUOTE_FONT_ID_KEY, fontId)
+                                .apply()
+                        }
+                    )
+                }
+            }
+
+            item {
+                InfoCard {
                     Text("Speech", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(10.dp))
 
@@ -295,26 +315,6 @@ fun SettingsScreen(
                             )
                         ) { Text("See Pro") }
                     }
-                }
-            }
-
-            item {
-                InfoCard {
-                    Text(
-                        "Quote font",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    FontPicker(
-                        selectedFontId = selectedQuoteFontId,
-                        onSelectFont = { fontId ->
-                            selectedQuoteFontId = fontId
-                            fontPreferences.edit()
-                                .putString(QUOTE_FONT_ID_KEY, fontId)
-                                .apply()
-                        }
-                    )
                 }
             }
 
