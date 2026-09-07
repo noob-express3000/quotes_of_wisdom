@@ -32,7 +32,10 @@ jobs:
           apk="$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
           test -n "$apk"
           mv "$apk" dist/Quotes-of-Wisdom-v1.0.0-judge.apk
-          sha256sum dist/Quotes-of-Wisdom-v1.0.0-judge.apk > dist/SHA256SUMS.txt
+          (
+            cd dist
+            sha256sum Quotes-of-Wisdom-v1.0.0-judge.apk > SHA256SUMS.txt
+          )
 
       - name: Verify artifact checksum
         run: |
