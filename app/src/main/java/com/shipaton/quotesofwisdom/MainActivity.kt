@@ -19,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -47,7 +48,11 @@ import com.shipaton.quotesofwisdom.ui.home.HomeViewModel
 import com.shipaton.quotesofwisdom.ui.paywall.PaywallScreen
 import com.shipaton.quotesofwisdom.ui.settings.SettingsScreen
 import com.shipaton.quotesofwisdom.ui.theme.DefaultTheme
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_ID_KEY
+import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_PREFERENCES
 import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
+import com.shipaton.quotesofwisdom.ui.theme.UnifiedAppTypography
+import com.shipaton.quotesofwisdom.ui.theme.quoteFontById
 import com.shipaton.quotesofwisdom.ui.theme.themeById
 
 private enum class AppScreen { HOME, SETTINGS, FAVORITES }
@@ -80,6 +85,11 @@ class MainActivity : ComponentActivity() {
         ttsController = TtsController(applicationContext)
         val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
         val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
+        val quoteFontPreferences = getSharedPreferences(QUOTE_FONT_PREFERENCES, MODE_PRIVATE)
+        val initialQuoteFontId = quoteFontPreferences
+            .getString(QUOTE_FONT_ID_KEY, "default")
+            .orEmpty()
+            .ifBlank { "default" }
 
         setContent {
             val uiState by homeViewModel.uiState.collectAsState()
@@ -98,6 +108,22 @@ class MainActivity : ComponentActivity() {
             }
             var reminderHour by rememberSaveable { mutableStateOf(initialReminderHour) }
             var reminderMinute by rememberSaveable { mutableStateOf(initialReminderMinute) }
+            var selectedQuoteFontId by rememberSaveable { mutableStateOf(initialQuoteFontId) }
+
+            DisposableEffect(quoteFontPreferences) {
+                val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+                    if (key == QUOTE_FONT_ID_KEY) {
+                        selectedQuoteFontId = prefs
+                            .getString(QUOTE_FONT_ID_KEY, "default")
+                            .orEmpty()
+                            .ifBlank { "default" }
+                    }
+                }
+                quoteFontPreferences.registerOnSharedPreferenceChangeListener(listener)
+                onDispose {
+                    quoteFontPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+                }
+            }
 
             val access = uiState.effectiveAccessState
             val paywallRequired = access == AccessState.LOCKED &&
@@ -110,6 +136,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 DefaultTheme
             }
+            val selectedFontFamily = quoteFontById(selectedQuoteFontId).fontFamily
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
 
             LaunchedEffect(
@@ -180,215 +207,217 @@ class MainActivity : ComponentActivity() {
             }
 
             QuotesOfWisdomTheme(palette = palette) {
-                BackHandler(
-                    enabled = showPaywall || paywallRequired ||
-                        screenName != AppScreen.HOME.name
-                ) {
-                    when {
-                        showPaywall || paywallRequired -> {
-                            if (canDismissPaywall) showPaywall = false
-                        }
+                UnifiedAppTypography(fontFamily = selectedFontFamily) {
+                    BackHandler(
+                        enabled = showPaywall || paywallRequired ||
+                            screenName != AppScreen.HOME.name
+                    ) {
+                        when {
+                            showPaywall || paywallRequired -> {
+                                if (canDismissPaywall) showPaywall = false
+                            }
 
-                        screenName == AppScreen.FAVORITES.name -> {
-                            screenName = AppScreen.SETTINGS.name
-                        }
+                            screenName == AppScreen.FAVORITES.name -> {
+                                screenName = AppScreen.SETTINGS.name
+                            }
 
-                        screenName == AppScreen.SETTINGS.name -> {
-                            screenName = AppScreen.HOME.name
-                            if (access == AccessState.LOCKED) showPaywall = true
+                            screenName == AppScreen.SETTINGS.name -> {
+                                screenName = AppScreen.HOME.name
+                                if (access == AccessState.LOCKED) showPaywall = true
+                            }
                         }
                     }
-                }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                    when {
-                        !initialEntitlementHandled && uiState.debugAccessOverride == null -> Unit
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                    ) {
+                        when {
+                            !initialEntitlementHandled && uiState.debugAccessOverride == null -> Unit
 
-                        (showPaywall || paywallRequired) && access != AccessState.PRO -> {
-                            PaywallScreen(
-                                accessState = access,
-                                canDismiss = canDismissPaywall,
-                                weeklyPrice = revenueCatState.weeklyPrice,
-                                monthlyPrice = revenueCatState.monthlyPrice,
-                                lifetimePrice = revenueCatState.lifetimePrice,
-                                availablePlans = revenueCatState.availablePlans,
-                                billingLoading = revenueCatState.offeringsLoading,
-                                billingBusy = revenueCatState.busy,
-                                billingMessage = revenueCatState.billingMessage,
-                                onDismiss = { showPaywall = false },
-                                onChoosePlan = { plan ->
-                                    revenueCatController.purchase(
-                                        activity = this@MainActivity,
-                                        plan = plan
-                                    ) { result ->
-                                        runOnUiThread {
-                                            when (result) {
-                                                BillingResult.Success -> {
-                                                    if (revenueCatController.state.value.hasPro) {
-                                                        homeViewModel.setDebugAccessOverride(null)
-                                                        homeViewModel.setRevenueCatPro(true)
-                                                        showPaywall = false
-                                                        Toast.makeText(
-                                                            this@MainActivity,
-                                                            "Pro access active.",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
+                            (showPaywall || paywallRequired) && access != AccessState.PRO -> {
+                                PaywallScreen(
+                                    accessState = access,
+                                    canDismiss = canDismissPaywall,
+                                    weeklyPrice = revenueCatState.weeklyPrice,
+                                    monthlyPrice = revenueCatState.monthlyPrice,
+                                    lifetimePrice = revenueCatState.lifetimePrice,
+                                    availablePlans = revenueCatState.availablePlans,
+                                    billingLoading = revenueCatState.offeringsLoading,
+                                    billingBusy = revenueCatState.busy,
+                                    billingMessage = revenueCatState.billingMessage,
+                                    onDismiss = { showPaywall = false },
+                                    onChoosePlan = { plan ->
+                                        revenueCatController.purchase(
+                                            activity = this@MainActivity,
+                                            plan = plan
+                                        ) { result ->
+                                            runOnUiThread {
+                                                when (result) {
+                                                    BillingResult.Success -> {
+                                                        if (revenueCatController.state.value.hasPro) {
+                                                            homeViewModel.setDebugAccessOverride(null)
+                                                            homeViewModel.setRevenueCatPro(true)
+                                                            showPaywall = false
+                                                            Toast.makeText(
+                                                                this@MainActivity,
+                                                                "Pro access active.",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
                                                     }
+                                                    BillingResult.Cancelled -> Unit
+                                                    is BillingResult.Error -> Toast.makeText(
+                                                        this@MainActivity,
+                                                        result.message,
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
                                                 }
-                                                BillingResult.Cancelled -> Unit
-                                                is BillingResult.Error -> Toast.makeText(
-                                                    this@MainActivity,
-                                                    result.message,
-                                                    Toast.LENGTH_LONG
-                                                ).show()
                                             }
                                         }
-                                    }
-                                },
-                                onRestorePurchases = {
-                                    revenueCatController.restore { result ->
-                                        runOnUiThread {
-                                            when (result) {
-                                                BillingResult.Success -> {
-                                                    if (revenueCatController.state.value.hasPro) {
-                                                        homeViewModel.setDebugAccessOverride(null)
-                                                        homeViewModel.setRevenueCatPro(true)
-                                                        showPaywall = false
-                                                        Toast.makeText(
-                                                            this@MainActivity,
-                                                            "Pro access restored.",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                    } else {
-                                                        Toast.makeText(
-                                                            this@MainActivity,
-                                                            "No active Pro purchase found.",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
+                                    },
+                                    onRestorePurchases = {
+                                        revenueCatController.restore { result ->
+                                            runOnUiThread {
+                                                when (result) {
+                                                    BillingResult.Success -> {
+                                                        if (revenueCatController.state.value.hasPro) {
+                                                            homeViewModel.setDebugAccessOverride(null)
+                                                            homeViewModel.setRevenueCatPro(true)
+                                                            showPaywall = false
+                                                            Toast.makeText(
+                                                                this@MainActivity,
+                                                                "Pro access restored.",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        } else {
+                                                            Toast.makeText(
+                                                                this@MainActivity,
+                                                                "No active Pro purchase found.",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
                                                     }
+                                                    BillingResult.Cancelled -> Unit
+                                                    is BillingResult.Error -> Toast.makeText(
+                                                        this@MainActivity,
+                                                        result.message,
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
                                                 }
-                                                BillingResult.Cancelled -> Unit
-                                                is BillingResult.Error -> Toast.makeText(
-                                                    this@MainActivity,
-                                                    result.message,
-                                                    Toast.LENGTH_LONG
-                                                ).show()
                                             }
                                         }
-                                    }
-                                },
-                                onRetryBilling = revenueCatController::refresh
-                            )
-                        }
+                                    },
+                                    onRetryBilling = revenueCatController::refresh
+                                )
+                            }
 
-                        screenName == AppScreen.FAVORITES.name -> {
-                            FavoritesScreen(
-                                favoriteQuotes = uiState.favoriteQuotes,
-                                playbackEnabled = LocalAccessPolicy.canUseTts(access) && ttsReady,
-                                onClose = { screenName = AppScreen.SETTINGS.name },
-                                onPlayFavorite = { quote ->
-                                    if (LocalAccessPolicy.canUseTts(access)) {
-                                        ttsController.speak(quote.text)
-                                    }
-                                },
-                                onRemoveFavorite = homeViewModel::toggleFavorite
-                            )
-                        }
+                            screenName == AppScreen.FAVORITES.name -> {
+                                FavoritesScreen(
+                                    favoriteQuotes = uiState.favoriteQuotes,
+                                    playbackEnabled = LocalAccessPolicy.canUseTts(access) && ttsReady,
+                                    onClose = { screenName = AppScreen.SETTINGS.name },
+                                    onPlayFavorite = { quote ->
+                                        if (LocalAccessPolicy.canUseTts(access)) {
+                                            ttsController.speak(quote.text)
+                                        }
+                                    },
+                                    onRemoveFavorite = homeViewModel::toggleFavorite
+                                )
+                            }
 
-                        screenName == AppScreen.SETTINGS.name -> {
-                            SettingsScreen(
-                                selectedThemeId = uiState.themeId,
-                                accessState = access,
-                                streak = uiState.streak,
-                                bestStreak = uiState.bestStreak,
-                                favoriteCount = uiState.favoriteQuotes.size,
-                                ttsEngines = ttsEngines,
-                                selectedEnginePackage = selectedEnginePackage,
-                                ttsVoices = ttsVoices,
-                                selectedVoiceName = selectedVoiceName,
-                                speechRate = speechRate,
-                                reminderHour = reminderHour,
-                                reminderMinute = reminderMinute,
-                                onBack = {
-                                    screenName = AppScreen.HOME.name
-                                    if (uiState.effectiveAccessState == AccessState.LOCKED) {
-                                        showPaywall = true
+                            screenName == AppScreen.SETTINGS.name -> {
+                                SettingsScreen(
+                                    selectedThemeId = uiState.themeId,
+                                    accessState = access,
+                                    streak = uiState.streak,
+                                    bestStreak = uiState.bestStreak,
+                                    favoriteCount = uiState.favoriteQuotes.size,
+                                    ttsEngines = ttsEngines,
+                                    selectedEnginePackage = selectedEnginePackage,
+                                    ttsVoices = ttsVoices,
+                                    selectedVoiceName = selectedVoiceName,
+                                    speechRate = speechRate,
+                                    reminderHour = reminderHour,
+                                    reminderMinute = reminderMinute,
+                                    onBack = {
+                                        screenName = AppScreen.HOME.name
+                                        if (uiState.effectiveAccessState == AccessState.LOCKED) {
+                                            showPaywall = true
+                                        }
+                                    },
+                                    onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
+                                    onSelectTheme = homeViewModel::selectTheme,
+                                    onSelectEngine = { enginePackage ->
+                                        ttsController.selectEngine(enginePackage)
+                                        homeViewModel.selectProEngine(enginePackage)
+                                    },
+                                    onSelectVoice = { voiceName ->
+                                        ttsController.setProVoice(voiceName)
+                                        homeViewModel.selectProVoice(voiceName)
+                                    },
+                                    onSpeechRateChange = { rate ->
+                                        ttsController.setProSpeechRate(rate)
+                                        homeViewModel.setProSpeechRate(rate)
+                                    },
+                                    onReminderTimeChange = { hour, minute ->
+                                        if (access == AccessState.PRO) {
+                                            reminderHour = hour
+                                            reminderMinute = minute
+                                            DailyWisdomNotifications.setReminderTime(
+                                                this@MainActivity,
+                                                hour,
+                                                minute
+                                            )
+                                        }
+                                    },
+                                    onPreviewSpeech = {
+                                        if (access == AccessState.PRO) {
+                                            uiState.quote?.let { ttsController.speak(it.text) }
+                                        }
+                                    },
+                                    onGetMoreVoices = ::openMoreVoices,
+                                    onOpenPaywall = { showPaywall = true },
+                                    onDebugAccess = { state ->
+                                        homeViewModel.setDebugAccessOverride(state)
+                                        showPaywall = when (state) {
+                                            AccessState.PRO -> false
+                                            AccessState.TRIAL_ACTIVE,
+                                            AccessState.GRACE_TEXT_ONLY,
+                                            AccessState.LOCKED -> true
+                                            null -> uiState.accessState != AccessState.PRO
+                                        }
                                     }
-                                },
-                                onOpenFavorites = { screenName = AppScreen.FAVORITES.name },
-                                onSelectTheme = homeViewModel::selectTheme,
-                                onSelectEngine = { enginePackage ->
-                                    ttsController.selectEngine(enginePackage)
-                                    homeViewModel.selectProEngine(enginePackage)
-                                },
-                                onSelectVoice = { voiceName ->
-                                    ttsController.setProVoice(voiceName)
-                                    homeViewModel.selectProVoice(voiceName)
-                                },
-                                onSpeechRateChange = { rate ->
-                                    ttsController.setProSpeechRate(rate)
-                                    homeViewModel.setProSpeechRate(rate)
-                                },
-                                onReminderTimeChange = { hour, minute ->
-                                    if (access == AccessState.PRO) {
-                                        reminderHour = hour
-                                        reminderMinute = minute
-                                        DailyWisdomNotifications.setReminderTime(
-                                            this@MainActivity,
-                                            hour,
-                                            minute
-                                        )
-                                    }
-                                },
-                                onPreviewSpeech = {
-                                    if (access == AccessState.PRO) {
-                                        uiState.quote?.let { ttsController.speak(it.text) }
-                                    }
-                                },
-                                onGetMoreVoices = ::openMoreVoices,
-                                onOpenPaywall = { showPaywall = true },
-                                onDebugAccess = { state ->
-                                    homeViewModel.setDebugAccessOverride(state)
-                                    showPaywall = when (state) {
-                                        AccessState.PRO -> false
-                                        AccessState.TRIAL_ACTIVE,
-                                        AccessState.GRACE_TEXT_ONLY,
-                                        AccessState.LOCKED -> true
-                                        null -> uiState.accessState != AccessState.PRO
-                                    }
-                                }
-                            )
-                        }
+                                )
+                            }
 
-                        else -> {
-                            HomeScreen(
-                                uiState = uiState,
-                                ttsReady = ttsReady,
-                                onNextQuote = {
-                                    ttsController.stop()
-                                    homeViewModel.nextQuote()
-                                },
-                                onReplay = {
-                                    if (LocalAccessPolicy.canUseTts(access)) {
-                                        uiState.quote?.let { ttsController.speak(it.text) }
-                                    }
-                                },
-                                onAutoSpeak = {
-                                    if (LocalAccessPolicy.canUseTts(access)) {
-                                        uiState.quote?.let { ttsController.speak(it.text) }
-                                    }
-                                },
-                                onSettings = {
-                                    ttsController.stop()
-                                    screenName = AppScreen.SETTINGS.name
-                                },
-                                onToggleFavorite = homeViewModel::toggleFavorite,
-                                onShare = { shareCurrentQuote(uiState.quote?.text, uiState.quote?.author) }
-                            )
+                            else -> {
+                                HomeScreen(
+                                    uiState = uiState,
+                                    ttsReady = ttsReady,
+                                    onNextQuote = {
+                                        ttsController.stop()
+                                        homeViewModel.nextQuote()
+                                    },
+                                    onReplay = {
+                                        if (LocalAccessPolicy.canUseTts(access)) {
+                                            uiState.quote?.let { ttsController.speak(it.text) }
+                                        }
+                                    },
+                                    onAutoSpeak = {
+                                        if (LocalAccessPolicy.canUseTts(access)) {
+                                            uiState.quote?.let { ttsController.speak(it.text) }
+                                        }
+                                    },
+                                    onSettings = {
+                                        ttsController.stop()
+                                        screenName = AppScreen.SETTINGS.name
+                                    },
+                                    onToggleFavorite = homeViewModel::toggleFavorite,
+                                    onShare = { shareCurrentQuote(uiState.quote?.text, uiState.quote?.author) }
+                                )
+                            }
                         }
                     }
                 }
