@@ -1,3 +1,7 @@
+import java.io.File
+import java.net.URI
+import java.security.MessageDigest
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -103,9 +107,9 @@ val downloadQuoteFonts by tasks.registering {
         val fontDir = generatedQuoteFontResDir.get().asFile.resolve("font").apply { mkdirs() }
         val licenseDir = generatedQuoteFontAssetsDir.get().asFile.resolve("font_licenses").apply { mkdirs() }
 
-        fun download(url: String, destination: java.io.File) {
+        fun download(url: String, destination: File) {
             destination.parentFile?.mkdirs()
-            val connection = java.net.URI(url).toURL().openConnection().apply {
+            val connection = URI(url).toURL().openConnection().apply {
                 connectTimeout = 20_000
                 readTimeout = 45_000
                 setRequestProperty("User-Agent", "quotes-of-wisdom-build")
@@ -116,12 +120,12 @@ val downloadQuoteFonts by tasks.registering {
             check(destination.length() > 0L) { "Downloaded an empty file: $url" }
         }
 
-        fun gitBlobSha(file: java.io.File): String {
+        fun gitBlobSha(file: File): String {
             val bytes = file.readBytes()
-            val digest = java.security.MessageDigest.getInstance("SHA-1")
+            val digest = MessageDigest.getInstance("SHA-1")
             digest.update("blob ${bytes.size}\u0000".toByteArray(Charsets.UTF_8))
             digest.update(bytes)
-            return digest.digest().joinToString("") { "%02x".format(it) }
+            return digest.digest().joinToString("") { byte -> "%02x".format(byte) }
         }
 
         bundledQuoteFonts.forEach { spec ->
