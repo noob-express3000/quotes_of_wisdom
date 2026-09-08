@@ -2,9 +2,6 @@ package com.shipaton.quotesofwisdom.billing
 
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import android.provider.Settings
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Package
@@ -18,7 +15,6 @@ import com.revenuecat.purchases.restorePurchasesWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import com.shipaton.quotesofwisdom.BuildConfig
 import com.shipaton.quotesofwisdom.notifications.DailyWisdomNotifications
-import java.security.MessageDigest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,22 +52,12 @@ sealed interface BillingResult {
 
 class RevenueCatController(private val context: Context) {
 
-    private val entitlementSnapshotStore = EntitlementSnapshotStore(context)
-    private val _state = MutableStateFlow(
-        RevenueCatUiState().seedFromLastConfirmedEntitlement(
-            entitlementSnapshotStore.readLastConfirmedPro()
-        )
-    )
+    private val _state = MutableStateFlow(RevenueCatUiState())
     val state: StateFlow<RevenueCatUiState> = _state.asStateFlow()
 
     private val packages = mutableMapOf<PurchasePlan, Package>()
 
     fun configure() {
-        if (Purchases.isConfigured) {
-            refresh()
-            return
-        }
-
         val apiKey = BuildConfig.REVENUECAT_API_KEY
         if (apiKey.isBlank()) {
             _state.value = RevenueCatUiState(
@@ -84,20 +70,14 @@ class RevenueCatController(private val context: Context) {
             return
         }
 
-        Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
-        Purchases.configure(
-            PurchasesConfiguration.Builder(context, apiKey)
-                .appUserID(DeviceScopedRevenueCatId.create(context))
-                .build()
-        )
+        if (!Purchases.isConfigured) {
+            Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
+            Purchases.configure(
+                PurchasesConfiguration.Builder(context, apiKey).build()
+            )
+        }
 
-        Purchases.sharedInstance.updatedCustomerInfoListener =
-            object : UpdatedCustomerInfoListener {
-                override fun onReceived(customerInfo: CustomerInfo) {
-                    applyCustomerInfo(customerInfo)
-                }
-            }
-
+        installCustomerInfoListener()
         _state.value = _state.value.copy(configured = true)
         refresh()
     }
@@ -114,12 +94,11 @@ class RevenueCatController(private val context: Context) {
 
         Purchases.sharedInstance.getCustomerInfoWith(
             onError = { error ->
-                _state.value = _state.value.resolveEntitlementFailure(
-                    errorMessage = error.message,
-                    lastConfirmedHasPro = entitlementSnapshotStore.readLastConfirmedPro()
-                )
+                _state.value = _state.value.resolveEntitlementFailure(error.message)
             },
-            onSuccess = ::applyCustomerInfo
+            onSuccess = { customerInfo ->
+                applyCustomerInfo(customerInfo)
+            }
         )
 
         Purchases.sharedInstance.getOfferingsWith(
@@ -156,6 +135,11 @@ class RevenueCatController(private val context: Context) {
         plan: PurchasePlan,
         onResult: (BillingResult) -> Unit
     ) {
+        if (!Purchases.isConfigured) {
+            onResult(BillingResult.Error("RevenueCat is not configured."))
+            return
+        }
+
         val rcPackage = packages[plan]
         if (rcPackage == null) {
             val message = "This plan is not configured in the current RevenueCat offering."
@@ -179,9 +163,23 @@ class RevenueCatController(private val context: Context) {
                 )
             },
             onSuccess = { _, customerInfo ->
-                applyCustomerInfo(customerInfo)
-                _state.value = _state.value.copy(busy = false, operationErrorMessage = null)
-                onResult(BillingResult.Success)
+                val hasPro = applyCustomerInfo(customerInfo)
+                if (hasPro) {
+                    _state.value = _state.value.copy(
+                        busy = false,
+                        operationErrorMessage = null
+                    )
+                    onResult(BillingResult.Success)
+                } else {
+                    val message =
+                        "Purchase completed, but Pro access is not active. " +
+                            "Use Restore purchases. If it still does not appear, retry after checking your connection."
+                    _state.value = _state.value.copy(
+                        busy = false,
+                        operationErrorMessage = message
+                    )
+                    onResult(BillingResult.Error(message))
+                }
             }
         )
     }
@@ -202,19 +200,40 @@ class RevenueCatController(private val context: Context) {
                 onResult(BillingResult.Error(error.message))
             },
             onSuccess = { customerInfo ->
-                applyCustomerInfo(customerInfo)
-                _state.value = _state.value.copy(busy = false, operationErrorMessage = null)
-                onResult(BillingResult.Success)
+                val hasPro = applyCustomerInfo(customerInfo)
+                if (hasPro) {
+                    _state.value = _state.value.copy(
+                        busy = false,
+                        operationErrorMessage = null
+                    )
+                    onResult(BillingResult.Success)
+                } else {
+                    val message = "No active Pro purchase found."
+                    _state.value = _state.value.copy(
+                        busy = false,
+                        operationErrorMessage = message
+                    )
+                    onResult(BillingResult.Error(message))
+                }
             }
         )
     }
 
-    private fun applyCustomerInfo(customerInfo: CustomerInfo) {
+    private fun installCustomerInfoListener() {
+        Purchases.sharedInstance.updatedCustomerInfoListener =
+            object : UpdatedCustomerInfoListener {
+                override fun onReceived(customerInfo: CustomerInfo) {
+                    applyCustomerInfo(customerInfo)
+                }
+            }
+    }
+
+    private fun applyCustomerInfo(customerInfo: CustomerInfo): Boolean {
         val hasPro = customerInfo.entitlements[PRO_ENTITLEMENT]?.isActive == true
-        entitlementSnapshotStore.writeLastConfirmedPro(hasPro)
         if (!hasPro) enforceFreeReminderTime()
 
         _state.value = _state.value.resolveConfirmedEntitlement(hasPro)
+        return hasPro
     }
 
     private fun enforceFreeReminderTime() {
@@ -251,49 +270,4 @@ class RevenueCatController(private val context: Context) {
         const val PRODUCT_MONTHLY = "qow_monthly"
         const val PRODUCT_LIFETIME = "qow_lifetime"
     }
-}
-
-private object DeviceScopedRevenueCatId {
-
-    fun create(context: Context): String {
-        val androidId = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ANDROID_ID
-        ).orEmpty()
-        val signingFingerprint = signingFingerprint(context)
-        val material = "$androidId|${context.packageName}|$signingFingerprint"
-        return "qow_${sha256(material)}"
-    }
-
-    private fun signingFingerprint(context: Context): String {
-        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            context.packageManager.getPackageInfo(
-                context.packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.getPackageInfo(
-                context.packageName,
-                PackageManager.GET_SIGNATURES
-            )
-        }
-
-        val certificateBytes: ByteArray = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            packageInfo.signingInfo
-                ?.apkContentsSigners
-                ?.firstOrNull()
-                ?.toByteArray()
-        } else {
-            @Suppress("DEPRECATION")
-            packageInfo.signatures?.firstOrNull()?.toByteArray()
-        } ?: byteArrayOf()
-
-        return certificateBytes.joinToString(separator = "") { byte: Byte -> "%02x".format(byte) }
-    }
-
-    private fun sha256(value: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(value.toByteArray(Charsets.UTF_8))
-            .joinToString(separator = "") { byte: Byte -> "%02x".format(byte) }
 }
