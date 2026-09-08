@@ -1,0 +1,90 @@
+name: Publish v1.0.1 judge release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-v1.0.1.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 2c1d9ddb83384f4dc0764059b686dbcdf770762b
+      ARTIFACT_ID: "10077906158"
+      TAG: v1.0.1
+    steps:
+      - name: Download hardened judge artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > judge-artifact.zip
+          unzip -j judge-artifact.zip -d dist
+          apk="$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          mv "$apk" dist/Quotes-of-Wisdom-v1.0.1-judge.apk
+          (
+            cd dist
+            sha256sum Quotes-of-Wisdom-v1.0.1-judge.apk > SHA256SUMS.txt
+          )
+
+      - name: Verify artifact checksum
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          # Quotes of Wisdom v1.0.1
+
+          Hardened Shipaton judge build.
+
+          - Source commit: `2c1d9ddb83384f4dc0764059b686dbcdf770762b`
+          - CI run: `34281375036`
+          - Version: `1.0.1` (`versionCode 2`)
+          - Build type: QA / judge APK
+          - RevenueCat: Test Store configuration; no real charge
+          - Signing: stable CI test signer; not a production Play Store signing key
+
+          RevenueCat hardening in this build:
+
+          - uses RevenueCat-generated anonymous App User IDs for the no-login model;
+          - relies on RevenueCat `CustomerInfo` as the paid-entitlement source of truth instead of a separate persistent Boolean Pro cache;
+          - verifies active `pro_access` before reporting purchase success;
+          - reports restore-without-entitlement explicitly;
+          - installs the CustomerInfo listener even when RevenueCat was configured earlier in process setup.
+
+          For reinstall or cross-device restore, the RevenueCat project should use **Transfer to new App User ID** restore behavior. The production Google Play release path remains separate and requires the real Google Play RevenueCat SDK key and production signing credentials.
+
+          `SHA256SUMS.txt` is attached for integrity verification.
+          EOF
+
+      - name: Publish GitHub release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/Quotes-of-Wisdom-v1.0.1-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/Quotes-of-Wisdom-v1.0.1-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET_SHA" \
+              --title "Quotes of Wisdom v1.0.1" \
+              --notes-file release-notes.md
+          fi
