@@ -6,39 +6,20 @@ import org.junit.Test
 
 class RevenueCatEntitlementStateTest {
     @Test
-    fun confirmedProSeedsStartupWithoutShowingFreeState() {
+    fun startupWithoutCustomerInfoStartsUnresolved() {
         val state = RevenueCatUiState()
-            .seedFromLastConfirmedEntitlement(lastConfirmedHasPro = true)
-
-        assertTrue(state.entitlementResolved)
-        assertTrue(state.hasPro)
-    }
-
-    @Test
-    fun startupWithoutAConfirmedSnapshotRemainsUnresolved() {
-        val state = RevenueCatUiState()
-            .seedFromLastConfirmedEntitlement(lastConfirmedHasPro = null)
 
         assertFalse(state.entitlementResolved)
         assertFalse(state.hasPro)
+        assertTrue(state.entitlementLoading)
     }
 
     @Test
-    fun lastConfirmedFreeStillWaitsForFreshStartupResolution() {
-        val state = RevenueCatUiState()
-            .seedFromLastConfirmedEntitlement(lastConfirmedHasPro = false)
-
-        assertFalse(state.entitlementResolved)
-        assertFalse(state.hasPro)
-    }
-
-    @Test
-    fun transientFailureCannotDowngradeLastConfirmedPro() {
-        val state = RevenueCatUiState(hasPro = false)
-            .resolveEntitlementFailure(
-                errorMessage = "Network unavailable",
-                lastConfirmedHasPro = true
-            )
+    fun transientFailurePreservesAlreadyKnownProState() {
+        val state = RevenueCatUiState(
+            entitlementResolved = true,
+            hasPro = true
+        ).resolveEntitlementFailure("Network unavailable")
 
         assertTrue(state.entitlementResolved)
         assertTrue(state.hasPro)
@@ -46,11 +27,21 @@ class RevenueCatEntitlementStateTest {
     }
 
     @Test
-    fun successfulInactiveStateCanStillReplaceProFallback() {
-        val fallbackState = RevenueCatUiState()
-            .seedFromLastConfirmedEntitlement(lastConfirmedHasPro = true)
-        val confirmedInactiveState = fallbackState
-            .resolveConfirmedEntitlement(hasPro = false)
+    fun transientFailureWithoutKnownProResolvesConservatively() {
+        val state = RevenueCatUiState()
+            .resolveEntitlementFailure("Network unavailable")
+
+        assertTrue(state.entitlementResolved)
+        assertFalse(state.hasPro)
+        assertFalse(state.entitlementLoading)
+    }
+
+    @Test
+    fun successfulInactiveStateCanReplacePreviouslyKnownPro() {
+        val confirmedInactiveState = RevenueCatUiState(
+            entitlementResolved = true,
+            hasPro = true
+        ).resolveConfirmedEntitlement(hasPro = false)
 
         assertFalse(confirmedInactiveState.hasPro)
         assertTrue(
@@ -63,16 +54,15 @@ class RevenueCatEntitlementStateTest {
 
     @Test
     fun transientFailureDoesNotTriggerPaywallForKnownPro() {
-        val fallbackState = RevenueCatUiState()
-            .resolveEntitlementFailure(
-                errorMessage = "Network unavailable",
-                lastConfirmedHasPro = true
-            )
+        val failedState = RevenueCatUiState(
+            entitlementResolved = true,
+            hasPro = true
+        ).resolveEntitlementFailure("Network unavailable")
 
         assertFalse(
             shouldShowPaywallAfterConfirmedProLoss(
                 lastResolvedHasPro = true,
-                currentState = fallbackState
+                currentState = failedState
             )
         )
     }
