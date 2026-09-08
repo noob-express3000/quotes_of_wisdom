@@ -2,7 +2,7 @@
 
 Quotes of Wisdom is an Android quote app built for RevenueCat Shipaton 2026. It uses Kotlin, Jetpack Compose, Android Text-to-Speech, and RevenueCat.
 
-Everything except purchases runs locally. There are no accounts, ads, analytics, or custom servers. The current v1 build is a release candidate; judge builds and the Google Play release are handled separately.
+App-owned content and state remain local. RevenueCat handles purchase/entitlement traffic, and a user-selected network-capable Text-to-Speech engine may use its own network service. There are no accounts, ads, analytics SDK, or custom servers. Judge builds and the Google Play release are handled separately.
 
 ## Highlights
 
@@ -60,9 +60,9 @@ APK:
 app\build\outputs\apk\debug\app-debug.apk
 ```
 
-### Optimized QA / judge build
+### QA / judge build
 
-The normal debug APK is debuggable and can run slower than the release-like QA variant. Use the QA build for performance testing and judge evaluation:
+The normal debug APK is intended for development. Use the release-derived QA variant for judge evaluation and physical-device testing:
 
 ```bash
 ./gradlew :app:assembleQa
@@ -74,7 +74,7 @@ APK:
 app/build/outputs/apk/qa/app-qa.apk
 ```
 
-QA is minified, resource-shrunk, debuggable, and connected to RevenueCat's Test Store. It is **not** a Google Play production artifact and test purchases do not charge real money.
+QA remains debuggable, uses the release configuration where compatible, and connects to RevenueCat's Test Store. It is **not** a Google Play production artifact and test purchases do not charge real money.
 
 A local QA build uses that computer's Android debug keystore. GitHub Actions uses a stable test-only CI signer so later CI judge builds can update earlier ones. If an older APK was signed differently, uninstall it once before installing the CI build. Google Play production signing uses a separate identity.
 
@@ -100,6 +100,10 @@ RevenueCat configuration expected by the app:
 | Lifetime product | `qow_lifetime` | `pro_access` |
 
 All three products must be attached to RevenueCat's Current Offering as weekly, monthly, and lifetime packages. The UI displays localized prices supplied by RevenueCat/the store. It does not infer location or use fallback prices.
+
+The app has no login system, so the RevenueCat SDK is configured without a custom App User ID and uses RevenueCat-generated anonymous IDs. The RevenueCat project should use **Transfer to new App User ID** restore behavior so purchases can be restored after reinstalling or moving to another device.
+
+RevenueCat's cached `CustomerInfo` is the entitlement source used for offline/restart behavior. Quotes of Wisdom does not maintain a separate Boolean Pro cache that can outlive RevenueCat's subscription-expiration logic.
 
 ## Architecture
 
@@ -145,7 +149,7 @@ python3 tools/validate_production_quotes.py app/src/main/assets/quotes.json
 ./gradlew :app:testDebugUnitTest :app:lintQa :app:assembleDebug :app:assembleQa
 ```
 
-GitHub Actions validates the quote database, runs unit tests and Android lint, builds debug and QA APKs, checks the CI signature, and validates the minified release app-bundle path with a non-production CI key.
+GitHub Actions validates the quote database, runs unit tests and Android lint, builds debug and QA APKs, checks the CI signature, and validates the release app-bundle path with a non-production CI key.
 
 Automated tests currently cover quote-deck behavior, access-state logic, RevenueCat entitlement transitions, and theme palette rules. Device testing and paywall interaction checks are still done before release.
 
