@@ -2,7 +2,7 @@
 
 > **Not ready to publish:** replace every bracketed placeholder, confirm the final production SDK/data inventory, obtain a permanent public URL, and link that URL inside the app and Google Play Console.
 
-- **Effective date:** 29 August 2026
+- **Effective date:** 8 September 2026
 - **Developer/Data controller:** [DEVELOPER OR LEGAL NAME]
 - **Privacy and support contact:** [SUPPORT EMAIL]
 - **App package:** `com.shipaton.quotesofwisdom`
@@ -14,7 +14,7 @@ Quotes of Wisdom is a local-first Android application. This policy explains what
 - Quotes of Wisdom does not contain advertising or a third-party analytics SDK.
 - The app does not request access to precise or approximate device location.
 - Quotes, favorites, themes, streaks, trial state, and reminder preferences are primarily stored on your device.
-- RevenueCat processes an opaque app-user identifier and purchase/entitlement information so paid Pro access can work.
+- RevenueCat processes an anonymous App User ID and purchase/entitlement information so paid Pro access can work.
 - Google Play processes production payments; the direct judge build uses RevenueCat Test Store and does not charge real money.
 - If you choose a network-capable Text-to-Speech voice, the installed speech provider may process quote text under its own privacy terms.
 
@@ -27,24 +27,21 @@ The app stores information needed to provide its features, including:
 - streak and last-opened-day state;
 - trial/grace/access timing state;
 - Text-to-Speech engine, voice, and speed preferences;
-- reminder enablement and selected reminder time;
-- the last successfully confirmed Pro-entitlement state.
+- reminder enablement and selected reminder time.
 
-This information is not sent to a custom Quotes of Wisdom backend because the app does not operate one. It remains on the device unless a feature described below requires a service provider. Some ordinary app preferences—including trial timing—may be included in Android's device backup if the user enables Android backup. The RevenueCat entitlement snapshot and local notification records are excluded from app backup where configured.
+This information is not sent to a custom Quotes of Wisdom backend because the app does not operate one. It remains on the device unless a feature described below requires a service provider. Some ordinary app preferences—including trial timing—may be included in Android's device backup if the user enables Android backup. Local notification records are excluded from app backup where configured.
+
+RevenueCat separately caches its App User ID and `CustomerInfo` on the device as part of the RevenueCat SDK. Quotes of Wisdom relies on RevenueCat's entitlement cache and refresh behavior rather than maintaining a second local Pro-entitlement database.
 
 ## Purchases and Pro entitlement
 
 Quotes of Wisdom uses RevenueCat to load product offerings, process purchase results, restore purchases, and determine whether the `pro_access` entitlement is active.
 
-The app creates its RevenueCat App User ID locally from:
+Quotes of Wisdom has no account or login system and does not construct its own RevenueCat customer identifier from Android device identifiers. The RevenueCat SDK is configured without a custom App User ID, so RevenueCat creates and caches a random anonymous App User ID for the installation.
 
-```text
-Android ID + app package name + app signing-certificate fingerprint
- -> SHA-256
- -> opaque identifier
-```
+After an uninstall/reinstall or installation on another device, the anonymous App User ID may change. The app provides Restore Purchases so purchases associated with the same store account can be recovered. The RevenueCat project should use **Transfer to new App User ID** restore behavior for this no-login model.
 
-The app does not pass the raw Android ID as this customer identifier. RevenueCat receives the resulting opaque identifier together with information needed to provide and troubleshoot offerings, transactions, subscriptions, and entitlements. RevenueCat may also process app configuration, locale/currency, network, and service-request information as described in its own policy.
+RevenueCat receives the anonymous App User ID together with information needed to provide and troubleshoot offerings, transactions, subscriptions, and entitlements. RevenueCat may also process app configuration, locale/currency, network, and service-request information as described in its own policy.
 
 In a production Google Play build, Google Play handles payment credentials and payment processing. Quotes of Wisdom does not receive or store full payment-card details. The judge/QA build uses RevenueCat Test Store and makes no real-money charge.
 
