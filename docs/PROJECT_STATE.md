@@ -1,6 +1,6 @@
 # Quotes of Wisdom — Canonical Project State
 
-_Last updated: 2026-09-07_
+_Last updated: 2026-09-08_
 
 Read this file first when resuming work. GitHub `main` is the source of truth.
 
@@ -9,27 +9,24 @@ Read this file first when resuming work. GitHub `main` is the source of truth.
 | Area | State |
 |---|---|
 | v1 feature scope | Frozen |
-| Production-hardening changes | Merged |
 | RevenueCat Test Store integration | Implemented |
-| Entitlement restart/offline hardening | Implemented |
+| RevenueCat anonymous-user hardening | Implemented |
+| RevenueCat cached entitlement handling | Implemented |
 | Stable CI QA signing | Implemented |
-| Main-branch CI | Green |
 | Open-source license | Apache-2.0 |
 | Current-tree public-source review | Complete |
 | GitHub repository | Public |
-| Final stable-APK device smoke | Pending |
-| Permanent judge GitHub Release | Pending |
+| Public judge release | `v1.0.0` published |
+| Hardened judge candidate | `v1.0.1` source ready; CI/device verification pending |
 | Google Play production configuration | Pending |
 
 Repository: `noob-express3000/quotes_of_wisdom`
 
-Latest verified application-code baseline:
+Latest application-code baseline:
 
-- `main` application-code commit `2bb72b0146a088eb3ccc33f3154c99f8af5a9efe`
-- GitHub Actions run `34137811917` completed successfully on 2026-09-07
-- quote validation, unit tests, lint, Debug APK, optimized QA APK, Release-path bundle, and stable-signature verification all passed
-
-Documentation-only commits may follow this baseline without changing the application binary. GitHub `main` remains the source of truth.
+- application-code commit `0b5a169f4815f1dc3d58062a7c6b183eecb1cd6b`
+- later commits may update documentation without changing the application binary
+- the hardened RevenueCat path must pass the standard Android CI workflow before replacing the public judge APK
 
 ## Product
 
@@ -37,7 +34,7 @@ Android-only, local-first quote app built with Kotlin and Jetpack Compose.
 
 - No login, ads, analytics SDK, or custom backend.
 - Quotes, preferences, favorites, streaks, trial state, and notification settings are local.
-- Android Text-to-Speech supplies narration.
+- Android Text-to-Speech supplies narration; a selected network-capable engine may use its own network service.
 - RevenueCat is authoritative for paid Pro entitlement.
 - The effective feature set is determined by the app-controlled trial state plus the RevenueCat `pro_access` entitlement.
 
@@ -86,21 +83,39 @@ Pro:
 - installed TTS engine and English voice selection
 - additional voice-data installer flow
 - speech rate from 0.7x to 1.4x
+- selectable quote font
 - selectable daily reminder time
 - no launch paywall
 
-## Entitlement startup behavior
+## RevenueCat identity and restore model
 
-RevenueCat remains authoritative, while a last-confirmed local entitlement snapshot prevents known Pro users from seeing a false paywall during refresh.
+Quotes of Wisdom has no login system. The RevenueCat SDK is therefore configured **without a custom App User ID**. RevenueCat generates and caches a random anonymous App User ID for the installation.
 
-- A confirmed active `pro_access` entitlement is cached locally.
-- The snapshot seeds the next cold launch while RevenueCat refreshes in the background.
-- A network or SDK refresh failure does not replace known Pro with Free.
-- Only a successful RevenueCat response confirming inactive access can clear a previously confirmed Pro state.
-- Free/unknown startup waits for a fresh entitlement resolution before deciding whether to show the launch paywall.
-- The entitlement snapshot is excluded from Android backup and device transfer.
+This avoids tying purchase identity to Android ID, hardware metadata, or the app signing certificate.
 
-This snapshot improves startup behavior; it is not a second source of truth and cannot grant a new purchase.
+For production and Test Store restore testing, the RevenueCat project should use:
+
+```text
+Restore behavior: Transfer to new App User ID
+```
+
+That is the documented RevenueCat model for apps that rely on anonymous users and need purchases to be recoverable after reinstalling or moving to another device.
+
+The app exposes a Restore Purchases action. Google Play remains the payment/store identity in production; Quotes of Wisdom does not add its own account system.
+
+## Entitlement startup and offline behavior
+
+RevenueCat `CustomerInfo` is the entitlement source of truth.
+
+- The app asks RevenueCat for `CustomerInfo` at startup and listens for later updates.
+- RevenueCat's SDK cache supplies restart/offline entitlement behavior.
+- Quotes of Wisdom does **not** maintain a second persistent Boolean Pro cache.
+- If a transient entitlement refresh fails after Pro is already known in the current process, the in-memory Pro state is preserved rather than being downgraded because of the error alone.
+- A successful RevenueCat response confirming inactive `pro_access` can remove Pro.
+- Purchase success is not reported to the UI as Pro success unless the returned `CustomerInfo` actually contains active `pro_access`.
+- Restore success without active `pro_access` is surfaced as a clear no-active-purchase result.
+
+This keeps subscription expiration/offline grace semantics inside RevenueCat rather than allowing an app-owned Boolean to outlive the store entitlement.
 
 ## Commercial model — frozen for v1
 
@@ -120,27 +135,23 @@ All products grant the single entitlement `pro_access` and must be attached to R
 
 Runtime prices come from RevenueCat/store localized pricing. A plan remains disabled until its real product and formatted price load. The app does not request location, infer region, or display invented fallback prices.
 
-## RevenueCat identity and privacy boundary
+## Privacy boundary
 
-The app creates a deterministic, opaque, device-scoped RevenueCat App User ID:
+The app does not create its RevenueCat identity from Android ID and does not call RevenueCat `collectDeviceIdentifiers()`.
 
-```text
-ANDROID_ID + package name + signing-certificate fingerprint
- -> SHA-256
- -> qow_<opaque digest>
-```
+RevenueCat receives its own anonymous App User ID plus purchase/entitlement traffic required for billing. Local quote activity, favorites, streaks, themes, trial state, and reminder preferences are not sent to a custom backend. The selected Android TTS engine may process spoken quote text according to that provider's behavior, especially for network voices.
 
-The app does not pass the raw Android ID as its RevenueCat customer identifier. Changing the app signing certificate changes the identifier namespace, which is why judge and production signing identities are intentionally separate.
-
-RevenueCat receives the opaque identifier and purchase/entitlement traffic. Local quote activity, favorites, streaks, themes, and reminder preferences are not sent to a custom backend. The selected Android TTS engine may process spoken quote text according to that provider's own behavior, especially for network voices.
+See `docs/PRIVACY_POLICY_DRAFT.md` and `docs/DATA_SAFETY_DRAFT.md` for the current working disclosure mapping.
 
 ## Build types
 
-| Build | Optimization | RevenueCat | Signing | Intended use |
+| Build | Configuration | RevenueCat | Signing | Intended use |
 |---|---|---|---|---|
-| Debug | Debuggable/unoptimized | Test Store | Local or stable CI debug signer | Development |
-| QA | Minified and resource-shrunk; debuggable | Test Store | Local or stable CI debug signer | Device QA and judges |
-| Release | Minified and resource-shrunk | Google Play key required | Not configured in repo | Production Play bundle |
+| Debug | Debuggable development build | Test Store | Local or stable CI debug signer | Development |
+| QA | Release-derived but debuggable | Test Store | Local or stable CI debug signer | Device QA and judges |
+| Release | Release optimization/shrinking enabled | Google Play key required | Not configured in repo | Production Play bundle |
+
+Because QA remains debuggable, Android Gradle Plugin may disable optimization/obfuscation steps that are incompatible with a debuggable build. The production Release path is separately validated in CI.
 
 The CI Release build uses `goog_ci_validation_key` only to validate compilation, lint, shrinking, and bundle generation. It is not a deployable production RevenueCat configuration.
 
@@ -149,12 +160,11 @@ The CI Release build uses `goog_ci_validation_key` only to validate compilation,
 GitHub Actions restores one committed, test-only debug keystore for CI-produced Debug and QA APKs and verifies the signer before uploading artifacts.
 
 - Stable CI certificate SHA-256: `72:94:42:18:4D:E0:36:0C:72:8F:56:CE:DA:A5:36:90:09:4A:0A:60:00:3D:C4:8E:CD:D3:7D:33:F3:7A:0B:03`
-- Historical baseline QA APK SHA-256 from the 2026-08-29 post-merge run: `c53cf8cec3f5aab4e813b57189bd9639a1f1ad3746547e86675d419e1f9d93f9`
 - APKs signed by older transient CI keys must be uninstalled once before installing the stable-signer APK.
 - Future stable CI APKs can update one another.
 - The keystore is deliberately test-only and must never become the Google Play upload or app-signing key.
 
-Because the RevenueCat App User ID includes the signing fingerprint, the one-time signer migration also creates a new Test Store customer identity. Test purchases made under an older signer will not appear under the stable signer.
+RevenueCat identity is no longer derived from this signing certificate.
 
 ## Implemented interaction rules
 
@@ -170,6 +180,7 @@ Because the RevenueCat App User ID includes the signing fingerprint, the one-tim
 - Replay restarts narration; Next stops current speech before advancing.
 - Paywall Info and Close remain independently tappable above the scrolling content.
 - Retry appears only after billing data fails and refreshes RevenueCat customer/offerings data; it does not start a purchase.
+- Quote font selection is Pro-only; non-Pro renders the default Lora font while preserving a saved Pro choice.
 
 ## Notifications
 
@@ -185,13 +196,13 @@ Daily reminders are implemented.
 
 ## Automated validation
 
-GitHub Actions currently performs:
+GitHub Actions performs:
 
 1. production quote-database validation;
 2. unit tests;
 3. QA lint;
 4. Debug and QA APK builds;
-5. minified Release app-bundle path validation;
+5. Release app-bundle path validation;
 6. stable Debug/QA signing verification;
 7. Debug and QA artifact upload.
 
@@ -202,11 +213,11 @@ Unit tests cover:
 - trial/grace/locked/Pro access policy;
 - three-color theme invariants.
 
-Compose interaction tests are not yet present. Paywall Info, Close, purchase, Retry, and Restore are therefore mandatory physical-smoke checks until automated UI coverage is added.
+Compose interaction tests are not yet present. Paywall Info, Close, purchase, Retry, and Restore therefore remain mandatory physical-smoke checks.
 
-## Final judge checkpoint
+## Hardened judge checkpoint
 
-Install the stable CI QA APK once after removing any older-signer build, then verify:
+After the hardened CI build is green, verify on a physical Android device:
 
 1. Quote appears and narration starts without an artificial delay.
 2. Replay, Next, Favorite, Share, settings, and Back work.
@@ -214,10 +225,12 @@ Install the stable CI QA APK once after removing any older-signer build, then ve
 4. Test Store prices are `$0.99`, `$2.99`, and `$29.99`.
 5. Lifetime test purchase activates `PRO`.
 6. `PRO` survives force-stop and cold reopen.
-7. Known Pro still opens as Pro while offline.
-8. Restore Purchases succeeds for the same stable-signer Test Store identity.
-9. Streak flames/horn and Pro spin complete without jank or crash.
-10. Daily-notification permission and scheduling behave correctly.
+7. Previously loaded Pro remains available during the RevenueCat-supported offline cache/grace path.
+8. Restore Purchases works after reinstall/new anonymous identity when RevenueCat restore behavior is **Transfer to new App User ID**.
+9. A completed purchase without returned `pro_access` produces a visible error instead of false success.
+10. Pro-only font, theme, speech, and reminder controls remain gated correctly.
+11. Streak flames/horn and Pro spin complete without jank or crash.
+12. Daily-notification permission and scheduling behave correctly.
 
 Repeat the critical smoke path on more than one Android device if time permits. Record the exact APK SHA-256 and CI commit in the GitHub Release.
 
@@ -225,23 +238,25 @@ Repeat the critical smoke path on more than one Android device if time permits. 
 
 ### Shipaton / direct judge release
 
-- complete final stable-APK physical smoke;
-- publish a permanent GitHub Release with APK, checksum, signer, and test instructions;
+- complete hardened CI verification;
+- run final physical smoke;
+- publish the hardened judge APK as `v1.0.1` if it passes;
 - record the demo video and attach screenshots plus BuildInPublic evidence.
 
 ### Google Play production release
 
+- set RevenueCat production and sandbox restore behavior appropriately;
 - add the real Google Play products and RevenueCat Android SDK key;
 - inject a private upload signing key outside the repository;
 - add concise renewal/cancellation disclosure and Terms/Privacy links to the paywall;
-- finalize and host Privacy/Terms, then complete Data safety from the final SDK inventory;
-- run real Google Play sandbox purchase, cancellation, pending, restore, and offline tests;
+- finalize and host Privacy/Terms, then complete Data Safety from the final SDK inventory;
+- run real Google Play sandbox purchase, cancellation, pending, restore, reinstall, multi-device, and offline tests;
 - upload a signed AAB to Internal or Closed testing before production.
 
 ## Development discipline
 
 ```text
-spec -> implement -> CI -> physical-device test -> review -> merge
+spec -> implement -> CI -> physical-device test -> review -> release
 ```
 
-Feature scope is locked. Prefer defects, submission assets, compliance, testing, and release hardening over new product scope.
+Feature scope is locked. Prefer defects, compliance, testing, release hardening, and submission assets over new product scope.
