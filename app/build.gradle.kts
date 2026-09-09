@@ -175,10 +175,10 @@ android {
 
     defaultConfig {
         applicationId = "com.shipaton.quotesofwisdom"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
     }
 
     buildTypes {
@@ -261,6 +261,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("com.revenuecat.purchases:purchases:10.18.1")
+    implementation("com.revenuecat.purchases:purchases-ui:10.18.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
