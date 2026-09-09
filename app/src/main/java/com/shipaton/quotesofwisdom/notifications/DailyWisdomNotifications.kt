@@ -165,7 +165,7 @@ object DailyWisdomNotifications {
             context = context,
             channelId = DEMO_CHANNEL_ID,
             notificationId = DEMO_NOTIFICATION_ID,
-            title = "Quotes of Wisdom",
+            title = "myQuote",
             body = "Your daily quote is ready.",
             highPriority = true
         )

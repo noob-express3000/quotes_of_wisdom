@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "QuotesOfWisdom"
+rootProject.name = "myQuote"
 include(":app")

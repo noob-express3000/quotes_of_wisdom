@@ -1,10 +1,12 @@
-# Quotes of Wisdom — Product Specification v1
+# myQuote — Product Specification v1
 
 ## Product constraints
 
 - Android only.
 - Local-first. No custom backend and no login/registration system.
 - RevenueCat is used for purchases/entitlements, not authentication.
+- Public product name: **myQuote**.
+- Stable Android package/application ID: `com.shipaton.quotesofwisdom`.
 - Every visual theme contains exactly three base colors.
 - Theme composition follows a perceptual 60/30/10 hierarchy:
   - 60% dominant
@@ -19,7 +21,7 @@
 - The Home access label (`FREE`, `GRACE`, `LOCKED`, `PRO`) uses the active accent/tertiary color.
 - Primary readable copy uses the active secondary color.
 - Dynamic/Material defaults must not introduce a hidden fourth color.
-- The home screen does not show a redundant `Quotes of Wisdom` title.
+- The home screen does not show a redundant `myQuote` title.
 - Quote text is displayed without added opening/closing quotation marks.
 - v1 ships with **100 themes**: 2 Trial themes and 98 Pro themes.
 - Theme display names are color-accurate and use at most two words.
@@ -174,16 +176,23 @@ Any active paid product granting `pro_access` enters this state.
 - Selectable installed TTS engines and English voices.
 - Additional device voice-data installation through `Get more voices`.
 - Adjustable speech speed.
+- Selectable quote font.
+- Selectable daily reminder time.
 - No launch upgrade interruption.
 
 A `cold app launch` means a new app-session entry, not every temporary Activity resume.
 
-The last successfully confirmed active RevenueCat entitlement seeds the next cold launch while
-the SDK refreshes in the background. Free/unknown startup still waits for a fresh entitlement
-resolution. A transient entitlement refresh failure must not downgrade a known Pro user or flash
-the paywall; only a successful RevenueCat response confirming inactive access may replace a
-previously confirmed Pro state. The local entitlement snapshot is excluded from cloud backup and
-device transfer.
+## RevenueCat entitlement behavior
+
+RevenueCat `CustomerInfo` is authoritative for paid Pro entitlement.
+
+- At startup, myQuote asks RevenueCat for `CustomerInfo` and installs an update listener.
+- RevenueCat's SDK cache supplies restart/offline entitlement behavior.
+- myQuote does **not** maintain a second persistent Boolean Pro cache.
+- If a transient RevenueCat refresh fails after Pro is already known in the current process, that error alone does not downgrade the user.
+- A successful RevenueCat response confirming inactive `pro_access` can remove Pro.
+- Purchase success is not reported to the UI unless returned `CustomerInfo` contains active `pro_access`.
+- Restore without active `pro_access` returns an explicit no-active-purchase result.
 
 ## Pro / paywall presentation
 
@@ -210,7 +219,8 @@ device transfer.
 ## App icon
 
 - Do not use a generic light-bulb icon.
-- The launcher icon is a bold minimal `Q` mark using the app's three-color visual language.
+- The launcher icon is a bold minimal Gothic `Q` mark using the app's three-color visual language.
+- The `Q` remains the myQuote brand mark.
 - Adaptive and legacy launcher resources are both provided.
 
 ## Commercial products
@@ -228,6 +238,8 @@ All paid products grant the same RevenueCat entitlement:
 `pro_access`
 
 Feature access must not branch on weekly/monthly/lifetime product identifiers.
+
+The existing `qow_weekly`, `qow_monthly`, and `qow_lifetime` strings are stable RevenueCat/store catalog identifiers. Renaming the public product to myQuote does not require replacing those technical product IDs.
 
 ## Trial implementation
 
@@ -249,31 +261,25 @@ LOCKED
 Any state + active pro_access -> PRO
 ```
 
-## Trial identity hardening
+## RevenueCat identity and restore
 
-The final purchase/trial implementation derives a stable opaque device-scoped App User ID from app-scoped device information rather than using a random anonymous RevenueCat ID.
+myQuote has no authentication system. RevenueCat is configured **without a custom App User ID**, allowing the SDK to create and cache an anonymous App User ID for each installation.
+
+The app does not use Android ID, signing-certificate fingerprints, advertising IDs, or hardware metadata to construct the RevenueCat customer identifier.
+
+For both Test Store and production Google Play restore testing, configure the RevenueCat project to use:
 
 ```text
-ANDROID_ID
-+ application package name
-+ app signing-certificate fingerprint
-        |
-        v
-SHA-256
-        |
-        v
-opaque RevenueCat App User ID
+Transfer to new App User ID
 ```
 
-The raw Android identifier must never be displayed, logged, or transmitted as the RevenueCat identifier.
-
-RevenueCat customer history/first-seen timing can serve as an external trial-history anchor. Local DataStore remains the fast/offline cache.
+The in-app Restore Purchases action is the recovery path after reinstall/new anonymous identity or when moving to another device under the same store purchase identity.
 
 ## Clock rollback hardening
 
-Trial calculations must not trust user-editable wall time alone. Track local trial start, latest observed wall time, monotonic elapsed time during a running installation, and RevenueCat first-seen/customer timing when available.
+Trial calculations do not trust user-editable wall time alone. Local trial logic tracks the latest observed wall time and uses the maximum observed timestamp so moving the device clock backwards does not grant additional trial time within the same persisted installation state.
 
-Moving the device clock backwards must never grant additional trial time.
+The trial remains intentionally app-controlled/local. Clearing app data can reset trial state; preventing that fully would require an account/backend or a store-managed trial model, which is outside the current no-login architecture.
 
 ## Debug demo behavior
 
@@ -284,4 +290,6 @@ Moving the device clock backwards must never grant additional trial time.
 
 ## Known limits
 
-This design deters casual trial resets without a backend/account system. It is not intended to resist factory resets, new Android user profiles, signing-key changes, rooted/device-tampered environments, or sophisticated integrity bypasses.
+- Local trial state can be reset by clearing app data or installing into a fresh app-data environment.
+- Anonymous RevenueCat identity can change after reinstall, so restore behavior must be configured and tested correctly.
+- The design is not intended to resist rooted/device-tampered environments or sophisticated integrity bypasses.

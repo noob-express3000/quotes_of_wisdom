@@ -1,8 +1,8 @@
-# Quotes of Wisdom — Quote Curation Policy
+# myQuote — Quote Curation Policy
 
 ## Goal
 
-The production corpus should feel grounded, memorable, and worth returning to. Fiction is explicitly allowed: novels, plays, poetry, speeches, letters, essays, and dialogue can all produce valid Quotes of Wisdom material.
+The production corpus should feel grounded, memorable, and worth returning to. Fiction is explicitly allowed: novels, plays, poetry, speeches, letters, essays, and dialogue can all produce valid myQuote material.
 
 Every retained quote must be:
 
@@ -75,7 +75,7 @@ Author attribution and copyright permission are separate questions. Crediting an
 
 1. public-domain fiction and non-fiction;
 2. permissively licensed material compatible with commercial redistribution;
-3. original Quotes of Wisdom material that we own.
+3. original myQuote material that we own.
 
 Modern copyrighted fiction can be considered only if we have a defensible license/permission path. We do not rely on attribution alone as a rights strategy.
 
@@ -120,7 +120,7 @@ IDs are stable integers assigned only after an entry passes final review.
 
 The Hugging Face dataset is a useful **candidate/discovery pool**, not an automatic redistribution source.
 
-Its card traces the data to `ShivaliGoel/Quotes-500K`, whose README says the corpus was scraped from multiple quote websites and made available for educational/research purposes. No repository `LICENSE` file was found during our review. Because Quotes of Wisdom is intended to be public and monetized, we do not blindly copy the dataset into the app.
+Its card traces the data to `ShivaliGoel/Quotes-500K`, whose README says the corpus was scraped from multiple quote websites and made available for educational/research purposes. No repository `LICENSE` file was found during our review. Because myQuote is intended to be public and monetized, we do not blindly copy the dataset into the app.
 
 ### Public-domain fiction corpus
 

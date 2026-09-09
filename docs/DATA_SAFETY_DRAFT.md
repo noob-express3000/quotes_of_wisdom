@@ -1,6 +1,6 @@
 # Google Play Data Safety — Working Draft
 
-> **Do not submit this blindly.** This mapping reflects the repository on 8 September 2026 and RevenueCat Android SDK 10.18.1. Re-check the final AAB, RevenueCat dashboard integrations, Google Play's current form, and the final privacy policy immediately before submission.
+> **Do not submit this blindly.** This mapping reflects the repository on 9 September 2026 and RevenueCat Android SDK 10.18.1. Re-check the final AAB, RevenueCat dashboard integrations, Google Play's current form, and the final privacy policy immediately before submission.
 
 Official references:
 
@@ -10,6 +10,7 @@ Official references:
 
 ## Final-code inventory
 
+- **myQuote** is the public product name. The stable technical package remains `com.shipaton.quotesofwisdom`.
 - RevenueCat is the only third-party network SDK declared directly by the app.
 - The app does not include advertising, Firebase, a standalone analytics SDK, or a crash-reporting SDK.
 - The app does not call RevenueCat `collectDeviceIdentifiers()` or set email, name, phone, advertising ID, or other customer attributes.
@@ -46,7 +47,7 @@ RevenueCat's current Android guidance explicitly requires Purchase history and s
 
 RevenueCat's current Google Play Data Safety guidance marks this category as conditional when integrations use identifiers such as `gpsAdId` or `androidId`.
 
-The current Quotes of Wisdom code:
+The current myQuote code:
 
 - does not read Android ID for billing identity;
 - does not call `collectDeviceIdentifiers()`;
@@ -81,5 +82,5 @@ Do not copy this section into Play Console without checking the final merged man
 - [ ] Publish a support email/contact form for privacy and deletion requests.
 - [ ] Define a practical process for helping a user identify the RevenueCat customer record associated with a purchase without requesting unnecessary personal data.
 - [ ] Test the deletion process in RevenueCat and document what purchase records Google/RevenueCat must retain.
-- [ ] Make the final privacy policy consistent with the submitted Data Safety form.
+- [ ] Make the final myQuote Privacy Policy consistent with the submitted Data Safety form.
 - [ ] Update this mapping whenever an SDK, integration, account system, analytics tool, or data flow changes.

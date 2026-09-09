@@ -1,8 +1,18 @@
-# Quotes of Wisdom
+# myQuote
 
-Quotes of Wisdom is an Android quote app built for RevenueCat Shipaton 2026. It uses Kotlin, Jetpack Compose, Android Text-to-Speech, and RevenueCat.
+myQuote is an Android quote app built for RevenueCat Shipaton 2026. It uses Kotlin, Jetpack Compose, Android Text-to-Speech, and RevenueCat.
 
-App-owned content and state remain local. RevenueCat handles purchase/entitlement traffic, and a user-selected network-capable Text-to-Speech engine may use its own network service. There are no accounts, ads, analytics SDK, or custom servers. Judge builds and the Google Play release are handled separately.
+The app is a working release candidate. App-owned content and state remain local. RevenueCat handles purchase and entitlement traffic, and a user-selected network-capable Text-to-Speech engine may use its own network service. There are no app accounts, ads, analytics SDK, or custom servers. Judge/Test Store builds and the eventual Google Play production release are handled separately.
+
+## Current status
+
+- Current source version: **1.0.2** (`versionCode 3`)
+- Billing validation: RevenueCat Test Store
+- Google Play production billing: pending Play Console access/configuration and Play testing
+- Package/application ID: `com.shipaton.quotesofwisdom` (retained as the stable technical namespace)
+- Public repository: `noob-express3000/quotes_of_wisdom` (retained for link/history stability)
+
+The product brand is **myQuote**. Legacy package, repository, storage, and historical release identifiers are not user-facing branding and are intentionally preserved to avoid unnecessary migration or provenance breakage.
 
 ## Highlights
 
@@ -11,10 +21,10 @@ App-owned content and state remain local. RevenueCat handles purchase/entitlemen
 - favorites, attributed sharing, daily streaks, and local reminders
 - Android Text-to-Speech with replay, engine, voice, and speed controls
 - 100 three-color themes using a strict 60/30/10 system
-- 30-day trial, text-only grace period, locked state, and Pro access
+- 30-day app-controlled trial, text-only grace period, locked state, and Pro access
 - RevenueCat weekly, monthly, lifetime, and restore-purchase paths
 - full-screen Jetpack Compose UI with display-cutout handling
-- no ads, login, analytics SDK, or custom backend
+- no ads, app login, analytics SDK, or custom backend
 
 ## Build from source
 
@@ -62,7 +72,7 @@ app\build\outputs\apk\debug\app-debug.apk
 
 ### QA / judge build
 
-The normal debug APK is intended for development. Use the release-derived QA variant for judge evaluation and physical-device testing:
+Use the release-derived QA variant for judge evaluation and physical-device testing:
 
 ```bash
 ./gradlew :app:assembleQa
@@ -74,13 +84,13 @@ APK:
 app/build/outputs/apk/qa/app-qa.apk
 ```
 
-QA remains debuggable, uses the release configuration where compatible, and connects to RevenueCat's Test Store. It is **not** a Google Play production artifact and test purchases do not charge real money.
+QA remains debuggable, uses the release configuration where compatible, and connects to RevenueCat's Test Store. It is **not** a Google Play production artifact and Test Store purchases do not charge real money.
 
-A local QA build uses that computer's Android debug keystore. GitHub Actions uses a stable test-only CI signer so later CI judge builds can update earlier ones. If an older APK was signed differently, uninstall it once before installing the CI build. Google Play production signing uses a separate identity.
+A local QA build uses that computer's Android debug keystore. GitHub Actions uses a stable test-only CI signer so later CI judge builds can update earlier ones. Google Play production signing uses a separate identity.
 
 ## RevenueCat configuration
 
-Debug and QA builds use the RevenueCat Test Store public SDK key included in the Android client configuration. This allows purchase flows to be tested without private credentials.
+Debug and QA builds use the RevenueCat Test Store public SDK key included in the Android client configuration.
 
 A release build reads the public RevenueCat Google Play Android SDK key from the Gradle property `REVENUECAT_API_KEY`:
 
@@ -88,7 +98,7 @@ A release build reads the public RevenueCat Google Play Android SDK key from the
 ./gradlew :app:bundleRelease -PREVENUECAT_API_KEY=goog_your_public_sdk_key
 ```
 
-Release builds fail before compilation if the key is missing, is a Test Store key, or does not begin with `goog_`. Production signing configuration and private keystore material are not included in the repository. The command above validates and builds the release path but does not create a production-signed upload by itself.
+Release builds fail before compilation if the key is missing, is a Test Store key, or does not begin with `goog_`. Production signing material is not included in the repository.
 
 RevenueCat configuration expected by the app:
 
@@ -99,15 +109,15 @@ RevenueCat configuration expected by the app:
 | Monthly product | `qow_monthly` | `pro_access` |
 | Lifetime product | `qow_lifetime` | `pro_access` |
 
-All three products must be attached to RevenueCat's Current Offering as weekly, monthly, and lifetime packages. The UI displays localized prices supplied by RevenueCat/the store. It does not infer location or use fallback prices.
+The `qow_*` product IDs are stable technical catalog identifiers and do not represent the public product name.
 
-The app has no login system, so the RevenueCat SDK is configured without a custom App User ID and uses RevenueCat-generated anonymous IDs. The RevenueCat project should use **Transfer to new App User ID** restore behavior so purchases can be restored after reinstalling or moving to another device.
+All three products must be attached to RevenueCat's Current Offering as weekly, monthly, and lifetime packages. The UI displays localized prices supplied by RevenueCat/the store and does not infer location or invent fallback prices.
 
-RevenueCat's cached `CustomerInfo` is the entitlement source used for offline/restart behavior. Quotes of Wisdom does not maintain a separate Boolean Pro cache that can outlive RevenueCat's subscription-expiration logic.
+The app has no login system, so RevenueCat is configured without a custom App User ID and uses RevenueCat-generated anonymous IDs. The RevenueCat project should use **Transfer to new App User ID** restore behavior so purchases can be restored after reinstalling or moving to another device.
+
+RevenueCat `CustomerInfo` is the paid-entitlement source of truth. myQuote does not maintain a second persistent Boolean Pro cache that can outlive RevenueCat's subscription-expiration logic.
 
 ## Architecture
-
-The app is local-first and has no login or custom backend.
 
 ```text
 Jetpack Compose UI
@@ -126,13 +136,11 @@ HomeViewModel / UI state
         +---- DailyWisdomNotifications -> AlarmManager / notifications
 ```
 
-Important source areas:
+Important source areas retain the original technical namespace:
 
 ```text
 app/src/main/java/com/shipaton/quotesofwisdom/MainActivity.kt
-app/src/main/java/com/shipaton/quotesofwisdom/ui/home/
-app/src/main/java/com/shipaton/quotesofwisdom/ui/settings/
-app/src/main/java/com/shipaton/quotesofwisdom/ui/paywall/
+app/src/main/java/com/shipaton/quotesofwisdom/ui/
 app/src/main/java/com/shipaton/quotesofwisdom/billing/
 app/src/main/java/com/shipaton/quotesofwisdom/speech/
 app/src/main/java/com/shipaton/quotesofwisdom/notifications/
@@ -149,9 +157,7 @@ python3 tools/validate_production_quotes.py app/src/main/assets/quotes.json
 ./gradlew :app:testDebugUnitTest :app:lintQa :app:assembleDebug :app:assembleQa
 ```
 
-GitHub Actions validates the quote database, runs unit tests and Android lint, builds debug and QA APKs, checks the CI signature, and validates the release app-bundle path with a non-production CI key.
-
-Automated tests currently cover quote-deck behavior, access-state logic, RevenueCat entitlement transitions, and theme palette rules. Device testing and paywall interaction checks are still done before release.
+GitHub Actions validates the quote database, runs unit tests and Android lint, builds Debug and QA APKs, checks the CI signature, and validates the Release app-bundle path with a non-production CI key.
 
 ## Toolchain
 
@@ -170,8 +176,8 @@ Automated tests currently cover quote-deck behavior, access-state logic, Revenue
 - [`docs/product-spec.md`](docs/product-spec.md) — v1 behavior and visual rules
 - [`docs/SHIPATON_SUBMISSION.md`](docs/SHIPATON_SUBMISSION.md) — judge path, demo script, and submission copy
 - [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) — judge and Google Play gates
-- [`docs/PRIVACY_POLICY_DRAFT.md`](docs/PRIVACY_POLICY_DRAFT.md) — policy draft requiring owner/contact details
-- [`docs/TERMS_OF_USE_DRAFT.md`](docs/TERMS_OF_USE_DRAFT.md) — subscription and product-terms draft
+- [`docs/PRIVACY_POLICY_DRAFT.md`](docs/PRIVACY_POLICY_DRAFT.md) — working privacy policy
+- [`docs/TERMS_OF_USE_DRAFT.md`](docs/TERMS_OF_USE_DRAFT.md) — working product terms
 - [`docs/DATA_SAFETY_DRAFT.md`](docs/DATA_SAFETY_DRAFT.md) — current Google Play disclosure mapping
 - [`docs/quote-curation-policy.md`](docs/quote-curation-policy.md) — corpus acceptance rules
 - [`docs/quote-verification-ledger.md`](docs/quote-verification-ledger.md) — quote-level verification record
@@ -180,4 +186,4 @@ Automated tests currently cover quote-deck behavior, access-state logic, Revenue
 
 The original application code, build tooling, documentation, and corpus selection/arrangement/metadata are available under the [Apache License 2.0](LICENSE).
 
-Individual historical quotation texts remain attributed to their respective authors and are not claimed as original project authorship. The code license does not create new rights in those underlying words. See [`NOTICE`](NOTICE) and the quote provenance/rights records under [`docs/`](docs/).
+Individual historical quotation texts remain attributed to their respective authors and are not claimed as original project authorship. See [`NOTICE`](NOTICE) and the quote provenance/rights records under [`docs/`](docs/).

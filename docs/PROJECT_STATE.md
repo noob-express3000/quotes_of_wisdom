@@ -1,8 +1,17 @@
-# Quotes of Wisdom — Canonical Project State
+# myQuote — Canonical Project State
 
-_Last updated: 2026-09-08_
+_Last updated: 2026-09-09_
 
 Read this file first when resuming work. GitHub `main` is the source of truth.
+
+## Product identity
+
+- **Public product name:** `myQuote`
+- **Android package/application ID:** `com.shipaton.quotesofwisdom`
+- **Repository:** `noob-express3000/quotes_of_wisdom`
+- **Launcher/icon mark:** Gothic `Q`
+
+The package, repository, existing storage keys, RevenueCat product IDs, and historical release identifiers intentionally retain their original technical names. They are compatibility/provenance identifiers, not current public branding.
 
 ## Release status
 
@@ -14,36 +23,30 @@ Read this file first when resuming work. GitHub `main` is the source of truth.
 | RevenueCat cached entitlement handling | Implemented |
 | Stable CI QA signing | Implemented |
 | Open-source license | Apache-2.0 |
-| Current-tree public-source review | Complete |
-| GitHub repository | Public |
-| Original judge release | `v1.0.0` retained for provenance |
-| Hardened judge release | `v1.0.1` published |
+| Current product brand | `myQuote` |
+| Original/pre-rename judge releases | `v1.0.0` and `v1.0.1` retained for provenance |
+| Renamed judge candidate | `v1.0.2` / `versionCode 3` |
 | Google Play production configuration | Pending |
 
-Repository: `noob-express3000/quotes_of_wisdom`
-
-Hardened application baseline:
-
-- source commit: `2c1d9ddb83384f4dc0764059b686dbcdf770762b`
-- version: `1.0.1` (`versionCode 2`)
-- Android CI run: `34281375036`
-- QA artifact ID: `10077906158`
-- judge APK SHA-256: `3fd037fa01b396c5aef129febf5b4a554fe071f9590cb9e4734ee85fb37f8092`
-- release: <https://github.com/noob-express3000/quotes_of_wisdom/releases/tag/v1.0.1>
-
-The CI run passed quote validation, unit tests, QA lint, Debug/QA APK builds, Release bundle-path validation, stable signer verification, and artifact uploads.
+The `v1.0.2` candidate changes product branding and documentation without changing the package/application ID or monetization model. It must pass the standard CI and physical-device smoke path before becoming the preferred judge artifact.
 
 ## Product
 
-Android-only, local-first quote app built with Kotlin and Jetpack Compose.
+myQuote is an Android-only, local-first quote app built with Kotlin and Jetpack Compose.
 
-- No login, ads, analytics SDK, or custom backend.
+- No app login, ads, analytics SDK, or custom backend.
 - 1,063 curated quotes from 356 authors across 12 classifications.
 - Quotes, favorites, themes, streaks, trial state, and reminders are local.
 - Android Text-to-Speech supplies narration; network-capable voices may use their provider's network service.
 - RevenueCat is authoritative for paid `pro_access` entitlement.
 - 100 themes: 2 Trial and 98 Pro.
 - Pro includes TTS engine/voice/speed controls, quote fonts, custom reminder time, and all themes.
+
+## Current deployment status
+
+myQuote is a **working Android release candidate**, not a production Google Play release.
+
+The app has been built and exercised against RevenueCat's Test Store. Production Google Play publication still requires Play Console access/configuration, the real RevenueCat Google Play public SDK key, production signing, Play product setup, policy URLs, and real Play testing. The remaining gap is store configuration and production validation rather than an unfinished application prototype.
 
 ## Access lifecycle
 
@@ -59,9 +62,9 @@ The app-controlled trial remains intentionally local. Clearing app data can rese
 
 ## RevenueCat identity and restore model
 
-Quotes of Wisdom has no authentication system, so RevenueCat is configured **without a custom App User ID**. The RevenueCat SDK generates and caches an anonymous App User ID for the installation.
+myQuote has no authentication system, so RevenueCat is configured **without a custom App User ID**. The RevenueCat SDK generates and caches an anonymous App User ID for the installation.
 
-The app no longer derives billing identity from Android ID, package signing material, or hardware metadata.
+The app does not derive billing identity from Android ID, package signing material, or hardware metadata.
 
 For Test Store and Google Play restore behavior, the RevenueCat project should use:
 
@@ -69,7 +72,7 @@ For Test Store and Google Play restore behavior, the RevenueCat project should u
 Restore behavior: Transfer to new App User ID
 ```
 
-The app exposes Restore Purchases so a purchase can be recovered after reinstalling or moving to another device without adding a Quotes of Wisdom account system.
+The app exposes Restore Purchases so a purchase can be recovered after reinstalling or moving to another device without adding a myQuote account system.
 
 ## Entitlement behavior
 
@@ -77,7 +80,7 @@ RevenueCat `CustomerInfo` is the paid-entitlement source of truth.
 
 - Startup requests `CustomerInfo` and installs an update listener.
 - RevenueCat's SDK cache provides restart/offline entitlement behavior.
-- Quotes of Wisdom does not maintain a second persistent Boolean Pro cache.
+- myQuote does not maintain a second persistent Boolean Pro cache.
 - A transient refresh failure does not downgrade already-known in-process Pro state by itself.
 - A successful RevenueCat response confirming inactive `pro_access` can remove Pro.
 - Purchase success is reported only when returned `CustomerInfo` contains active `pro_access`.
@@ -91,7 +94,7 @@ RevenueCat `CustomerInfo` is the paid-entitlement source of truth.
 - Lifetime: **USD 29.99** — `qow_lifetime`
 - Entitlement: `pro_access`
 
-All three products must be attached to RevenueCat's Current Offering. Runtime prices come from RevenueCat/store localized pricing; the app does not request location or invent fallback prices.
+The `qow_*` identifiers are stable catalog IDs. Runtime prices come from RevenueCat/store localized pricing; the app does not request location or invent fallback prices.
 
 ## Build types
 
@@ -107,24 +110,22 @@ Stable CI certificate SHA-256:
 
 The committed CI keystore is test-only and must never become the Google Play upload or app-signing key.
 
-## Physical smoke still required
+## v1.0.2 verification gate
 
-Before replacing submission links with `v1.0.1`, verify the released APK on a physical Android device:
-
-1. Clean install and cold launch.
-2. Trial paywall is dismissible; Info/Close work repeatedly.
-3. Weekly/Monthly/Lifetime Test Store prices show `$0.99`, `$2.99`, `$29.99`.
-4. Lifetime Test Store purchase activates Pro.
-5. Pro survives force-stop/reopen.
-6. RevenueCat-cached Pro behaves correctly offline.
-7. After setting RevenueCat sandbox restore behavior to **Transfer to new App User ID**, reinstall and Restore Purchases successfully recover Pro.
-8. Trial/non-Pro uses the default Lora font and gates font selection behind `See Pro`.
-9. Pro exposes all quote fonts, themes, speech controls, and reminder-time control.
-10. Replay, Next, Favorite, Share, settings, Back, streak effect, Pro spin, and notifications work without regression.
+1. CI: quote validation, unit tests, lint, Debug/QA builds, Release bundle-path validation, stable signer verification, artifact upload.
+2. Install the stable CI QA APK and confirm the launcher/app identity displays **myQuote**.
+3. Confirm Trial paywall, Info and Close behavior.
+4. Confirm Test Store prices `$0.99`, `$2.99`, `$29.99`.
+5. Complete Lifetime Test Store purchase and confirm Pro.
+6. Force-stop/reopen and test RevenueCat cached entitlement behavior offline.
+7. After setting sandbox restore behavior to **Transfer to new App User ID**, reinstall and Restore Purchases.
+8. Confirm Trial/non-Pro default font and all Pro feature gates.
+9. Confirm Replay, Next, Favorite, Share, settings, Back, streak effect, Pro spin, and notifications.
+10. Confirm demo notification displays **myQuote**.
 
 ## Remaining Google Play work
 
-- Create/configure the Play Console app and products.
+- Create/configure the Play Console app using package `com.shipaton.quotesofwisdom` and public product name **myQuote**.
 - Configure `qow_lifetime` as a non-consumable one-time product.
 - Set RevenueCat production restore behavior to **Transfer to new App User ID** and verify the sandbox override separately.
 - Supply the real RevenueCat Google Play public SDK key outside source.

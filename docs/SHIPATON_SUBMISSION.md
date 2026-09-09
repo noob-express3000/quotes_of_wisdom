@@ -1,28 +1,29 @@
-# Quotes of Wisdom — Shipaton Submission and Judge Guide
+# myQuote — Shipaton Submission and Judge Guide
 
-_Updated: 2026-09-08. Re-check the live competition form before submitting._
-
-Official references checked while preparing this draft:
-
-- Next Gen Award: <https://shipaton.com/next-gen>
-- BuildInPublic Award: <https://www.shipaton.com/categories/build-in-public-award>
+_Updated: 2026-09-09. Re-check the live competition form before submitting._
 
 ## Submission identity
 
-- **Project:** Quotes of Wisdom
+- **Project:** myQuote
 - **Platform:** Android 6.0+
+- **Current status:** working Android release candidate; RevenueCat Test Store validated; Google Play production configuration/testing pending developer-account access
 - **Repository:** <https://github.com/noob-express3000/quotes_of_wisdom>
 - **Source license:** Apache-2.0; historical quote texts documented separately in `NOTICE`
 - **Business model:** 30-day app-controlled trial, weekly/monthly subscription, or lifetime Pro
 - **Billing demonstration:** RevenueCat Test Store; no real-money charge
+- **Technical package:** `com.shipaton.quotesofwisdom` retained for compatibility
 
 ### One-line pitch
 
-One good thought, spoken beautifully, inside a focused daily ritual that works without an account or content backend.
+One good thought, spoken beautifully, inside a focused daily ritual that works without an app account or content backend.
 
 ### Short description
 
-Quotes of Wisdom is a local-first Android app that turns a carefully verified quote library into a calm daily ritual. It combines no-repeat browsing, favorites, streaks, reminders, Android Text-to-Speech, 100 strict three-color themes, and a RevenueCat upgrade flow. The app has no login, ads, analytics SDK, or custom backend. RevenueCat supplies localized product information and the single `pro_access` entitlement across weekly, monthly, and lifetime products.
+myQuote is a local-first Android app that turns a carefully verified quote library into a focused daily ritual. It combines no-repeat browsing, favorites, streaks, reminders, Android Text-to-Speech, 100 strict three-color themes, and a RevenueCat upgrade flow. The app has no app login, ads, analytics SDK, or custom backend. RevenueCat supplies localized product information and the single `pro_access` entitlement across weekly, monthly, and lifetime products.
+
+### Current release status
+
+myQuote is not presented as a Play Store release. The Android application is working and buildable, the judge path uses RevenueCat Test Store, and CI validates the production bundle path. A production release still requires Play Console product configuration, the production RevenueCat Google Play SDK key, production signing, policy URLs, and Google Play billing tests.
 
 ### What RevenueCat enables
 
@@ -35,21 +36,37 @@ Quotes of Wisdom is a local-first Android app that turns a carefully verified qu
 
 The app does not branch Pro features by product ID. Every valid paid product grants the same entitlement.
 
-Because the app has no login system, RevenueCat is configured without a custom App User ID and generates an anonymous ID for the installation. The RevenueCat project should use **Transfer to new App User ID** restore behavior so a user can recover purchases after reinstalling or moving to another device.
+Because myQuote has no login system, RevenueCat is configured without a custom App User ID and generates an anonymous ID for the installation. The RevenueCat project should use **Transfer to new App User ID** restore behavior so a user can recover purchases after reinstalling or moving to another device.
+
+## Pricing and trial rationale
+
+RevenueCat's State of Subscription Apps 2025 report influenced the commercial structure, but the exact prices were product decisions rather than values copied from the report.
+
+- RevenueCat reported the strongest median trial-to-paid conversion for **17–32 day trials (45.7%)**, which supported using a 30-day trial for a habit-oriented product rather than a very short trial.
+- RevenueCat reported broad use of hybrid monetization, including apps combining subscriptions with one-time/lifetime purchases, which supported offering Lifetime alongside recurring plans.
+- The report also showed materially stronger retention and lower refund behavior at lower price points, which supported deliberately inexpensive pricing for an app without an expensive content backend.
+
+The resulting catalog targets are:
+
+- Weekly: **$0.99**
+- Monthly: **$2.99**
+- Lifetime: **$29.99**
+
+These exact prices are intentionally low product choices, not claimed as RevenueCat benchmark recommendations.
 
 ## Judge installation
 
-The GitHub Release should contain a stable CI-produced file named similar to:
+The preferred renamed judge release should contain a stable CI-produced file named similar to:
 
 ```text
-Quotes-of-Wisdom-v1.0.1-judge.apk
+myQuote-v1.0.2-judge.apk
 ```
 
 1. Use an Android 6.0 or newer device.
-2. If an older Quotes of Wisdom test build is installed and Android reports a signing conflict, uninstall it once.
+2. If an older test build is installed and Android reports a signing conflict, uninstall it once.
 3. Download the APK from the permanent GitHub Release.
 4. Allow installation from the browser/file manager when Android prompts.
-5. Install and open the app.
+5. Install and open **myQuote**.
 6. Keep internet access available for RevenueCat offerings, purchase, and restore tests.
 
 The APK uses RevenueCat Test Store. Test purchases are simulated and do not charge real money. The quote corpus and ordinary quote browsing are bundled/local-first.
@@ -58,7 +75,7 @@ The APK uses RevenueCat Test Store. Test purchases are simulated and do not char
 
 ### 0:00–0:25 — The product
 
-- Open on a strong quote and let narration begin.
+- Open myQuote on a strong quote and let narration begin.
 - State the problem: most quote apps are noisy feeds or require a content service; this one is a focused local daily ritual.
 - Tap Next and Replay to establish the core loop.
 
@@ -88,40 +105,23 @@ The APK uses RevenueCat Test Store. Test purchases are simulated and do not char
 ### 2:15–2:45 — Engineering proof
 
 - Show the public repository, green GitHub Actions run, and quote-verification ledger.
-- State: Kotlin, Jetpack Compose, DataStore, Android TTS, AlarmManager, RevenueCat; no account or custom backend.
+- State: Kotlin, Jetpack Compose, DataStore, Android TTS, AlarmManager, RevenueCat; no app account or custom backend.
 - Mention physical Android testing.
 
 ### 2:45–3:00 — Close
 
 - Return to the best visual theme/quote.
-- End with the pitch and the public repository link.
-
-Do not spend demo time scrolling through every theme or reading every feature label. Show the product loop, the purchase proof, and the engineering decisions.
+- End with the myQuote name, Gothic Q, and public repository link.
 
 ## Suggested technical highlights
 
-- **RevenueCat-native identity:** the app uses RevenueCat-generated anonymous App User IDs because there is no login system.
-- **Restore path:** the no-login model pairs with RevenueCat's **Transfer to new App User ID** restore behavior.
-- **Entitlement authority:** the app relies on RevenueCat `CustomerInfo` and its SDK cache rather than maintaining a second Boolean entitlement database.
-- **Defensive purchase handling:** a completed transaction is not reported as Pro success unless the returned `CustomerInfo` contains active `pro_access`.
-- **Real pricing:** paywall strings come from RevenueCat/store products; there is no location lookup or hardcoded production currency fallback.
-- **Local-first resilience:** the quote corpus, favorites, streaks, themes, and reminders work without a custom service.
+- **RevenueCat-native identity:** RevenueCat-generated anonymous App User IDs because there is no login system.
+- **Restore path:** the no-login model pairs with **Transfer to new App User ID** restore behavior.
+- **Entitlement authority:** RevenueCat `CustomerInfo` and its SDK cache rather than a second Boolean entitlement database.
+- **Defensive purchase handling:** a transaction is not reported as Pro success unless returned `CustomerInfo` contains active `pro_access`.
+- **Real pricing:** paywall strings come from RevenueCat/store products; no location lookup or hardcoded production currency fallback.
+- **Local-first resilience:** quote corpus, favorites, streaks, themes, and reminders work without a custom service.
 - **Content integrity:** every production quote is covered by curation, provenance, and verification records.
-
-## BuildInPublic evidence prompts
-
-Link the actual posts rather than merely claiming the project was built publicly.
-
-- initial problem and product direction;
-- early screenshots and the 60/30/10 feedback loop;
-- changes made from public feedback, such as accent-emphasis correction or simplified paywall cards;
-- performance and signing/update discoveries;
-- RevenueCat entitlement/restore hardening and the verified fix;
-- final demo/release post with repository and APK links.
-
-Suggested sentence structure:
-
-> Feedback exposed **[specific problem]**. I changed **[specific behavior]**, verified it in **[build/test]**, and the result was **[observable improvement]**.
 
 ## Screenshot set
 
@@ -132,16 +132,16 @@ Suggested sentence structure:
 5. TTS engine/voice controls;
 6. paywall with Test Store prices;
 7. Pro access info card;
-8. Android daily notification;
+8. Android daily notification showing myQuote branding;
 9. public GitHub Actions success and quote-verification proof.
 
 Use the location-neutral Test Store build for public capture. Avoid status-bar/location indicators, personal notifications, account names, local file paths, RevenueCat dashboard customer records, and production credentials.
 
 ## GitHub Release template
 
-- **Tag:** `v1.0.1`
-- **Title:** `Quotes of Wisdom v1.0.1`
-- **Asset:** `Quotes-of-Wisdom-v1.0.1-judge.apk`
+- **Tag:** `v1.0.2`
+- **Title:** `myQuote v1.0.2`
+- **Asset:** `myQuote-v1.0.2-judge.apk`
 
 Include:
 
@@ -154,14 +154,12 @@ Minimum Android version: Android 6.0 (API 23)
 Billing: RevenueCat Test Store; no real-money charge
 ```
 
-Add this compatibility note:
-
-> If an earlier test APK was signed differently, uninstall it once before installing this release. CI judge builds use the project's stable test-only signer and can update one another normally.
+Historical `v1.0.0` and `v1.0.1` releases retain their original names/assets for provenance; the current product brand is myQuote.
 
 ## Final submission links
 
 - Public repository: <https://github.com/noob-express3000/quotes_of_wisdom>
-- Judge GitHub Release: `<fill with final release>`
+- Judge GitHub Release: `<fill with final myQuote release>`
 - Demo video: `<fill>`
 - BuildInPublic post/thread: `<fill>`
 - Privacy policy: `<fill after hosting/finalization>`

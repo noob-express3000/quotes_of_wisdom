@@ -112,7 +112,7 @@ val downloadQuoteFonts by tasks.registering {
             val connection = URI(url).toURL().openConnection().apply {
                 connectTimeout = 20_000
                 readTimeout = 45_000
-                setRequestProperty("User-Agent", "quotes-of-wisdom-build")
+                setRequestProperty("User-Agent", "myquote-build")
             }
             connection.getInputStream().use { input ->
                 destination.outputStream().use { output -> input.copyTo(output) }
@@ -177,8 +177,8 @@ android {
         applicationId = "com.shipaton.quotesofwisdom"
         minSdk = 23
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
     }
 
     buildTypes {

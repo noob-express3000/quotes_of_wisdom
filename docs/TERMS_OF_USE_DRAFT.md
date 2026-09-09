@@ -1,19 +1,19 @@
-# Terms of Use for Quotes of Wisdom — Draft
+# Terms of Use for myQuote — Draft
 
 > **Not ready to publish:** replace every bracketed placeholder, confirm the target audience and governing law, review the final Google Play product configuration, and obtain a permanent public URL. This draft is operational documentation, not legal advice.
 
-- **Effective date:** 29 August 2026
+- **Effective date:** 9 September 2026
 - **Developer:** [DEVELOPER OR LEGAL NAME]
 - **Support contact:** [SUPPORT EMAIL]
 - **App package:** `com.shipaton.quotesofwisdom`
 
 ## 1. Agreement
 
-These Terms govern use of Quotes of Wisdom. By downloading, accessing, or using the app, you agree to these Terms and any applicable Google Play terms. If you do not agree, do not use the app.
+These Terms govern use of myQuote. By downloading, accessing, or using the app, you agree to these Terms and any applicable Google Play terms. If you do not agree, do not use the app.
 
 ## 2. The app
 
-Quotes of Wisdom is a local-first Android app that provides a curated quote library, favorites, sharing, streaks, reminders, themes, and Android Text-to-Speech controls. The app does not provide an account system or custom content backend.
+myQuote is a local-first Android app that provides a curated quote library, favorites, sharing, streaks, reminders, themes, and Android Text-to-Speech controls. The app does not provide an account system or custom content backend.
 
 Quotes and narration are offered for general information, reflection, and entertainment. They are not medical, psychological, legal, financial, or other professional advice, and they are not a substitute for qualified professional support.
 
@@ -29,33 +29,33 @@ Pro may be offered through:
 
 The exact price, currency, billing period, and any applicable tax are displayed by Google Play before purchase. Prices and availability may vary by Play country and may change for future purchases as permitted by Google Play rules.
 
-All valid paid products grant the same `pro_access` entitlement. A purchase is associated with the user's Google Play purchase history and the app's RevenueCat customer record, not with a Quotes of Wisdom login.
+All valid paid products grant the same `pro_access` entitlement. A purchase is associated with the user's Google Play purchase history and the app's RevenueCat customer record, not with a myQuote login.
 
 ## 4. Auto-renewing subscriptions
 
 Weekly and Monthly subscriptions automatically renew unless canceled through Google Play before the next renewal. Google Play charges the payment method associated with the user's Play account and manages billing, renewal, cancellation, and applicable refunds.
 
-Deleting Quotes of Wisdom does not cancel an active subscription. Users can manage or cancel subscriptions through Google Play's subscription settings. Cancellation normally stops future renewal while preserving paid access through the end of the current billing period, subject to Google Play's rules.
+Deleting myQuote does not cancel an active subscription. Users can manage or cancel subscriptions through Google Play's subscription settings. Cancellation normally stops future renewal while preserving paid access through the end of the current billing period, subject to Google Play's rules.
 
 ## 5. Lifetime purchase
 
-“Lifetime” means a one-time purchase that grants Pro for the supported lifetime of the Quotes of Wisdom product on the applicable platform and store account. It does not mean the lifetime of the purchaser and does not guarantee perpetual maintenance, compatibility with every future Android version/device, or permanent operation of third-party services.
+“Lifetime” means a one-time purchase that grants Pro for the supported lifetime of the myQuote product on the applicable platform and store account. It does not mean the lifetime of the purchaser and does not guarantee perpetual maintenance, compatibility with every future Android version/device, or permanent operation of third-party services.
 
 Lifetime access depends on a valid store purchase and the continuing availability of the app, Google Play, and RevenueCat entitlement services. Where supported, Restore Purchases can recover the entitlement associated with the same store purchase identity.
 
 ## 6. Judge and Test Store builds
 
-A build explicitly labeled `QA`, `judge`, or `Test Store` uses RevenueCat Test Store. Purchases in that build are simulated, do not charge real money, and do not create Google Play subscription rights. Test entitlements may be reset, unavailable, or separated when the app's test signing certificate changes.
+A build explicitly labeled `QA`, `judge`, or `Test Store` uses RevenueCat Test Store. Purchases in that build are simulated, do not charge real money, and do not create Google Play subscription rights. Test entitlements may be reset or unavailable according to the Test Store environment.
 
 ## 7. Text-to-Speech and external services
 
-Quotes of Wisdom uses Android's installed Text-to-Speech system. Voice availability, quality, network requirements, and speech processing depend on the engine/provider installed or selected on the device. Quotes of Wisdom does not guarantee that a particular voice or engine will remain available.
+myQuote uses Android's installed Text-to-Speech system. Voice availability, quality, network requirements, and speech processing depend on the engine/provider installed or selected on the device. myQuote does not guarantee that a particular voice or engine will remain available.
 
 Purchases and entitlement processing depend on Google Play and RevenueCat. Use of those services is also governed by their own terms and policies.
 
 ## 8. Acceptable use
 
-You may use Quotes of Wisdom for personal, lawful purposes. You must not:
+You may use myQuote for personal, lawful purposes. You must not:
 
 - interfere with or attempt to defeat purchase, entitlement, trial, or security controls;
 - redistribute a modified APK in a deceptive way or represent it as an official release;
@@ -76,7 +76,7 @@ The developer may fix, update, suspend, or discontinue features when reasonably 
 
 ## 11. Disclaimer
 
-To the extent permitted by applicable law, Quotes of Wisdom is provided “as is” and “as available,” without warranties that it will always be uninterrupted, error-free, or compatible with every device, Text-to-Speech engine, network, or third-party service. Consumer rights that cannot legally be excluded remain unaffected.
+To the extent permitted by applicable law, myQuote is provided “as is” and “as available,” without warranties that it will always be uninterrupted, error-free, or compatible with every device, Text-to-Speech engine, network, or third-party service. Consumer rights that cannot legally be excluded remain unaffected.
 
 ## 12. Limitation of liability
 
@@ -84,7 +84,7 @@ To the extent permitted by applicable law, [DEVELOPER OR LEGAL NAME] will not be
 
 ## 13. Privacy
 
-Use of the app is also governed by the Quotes of Wisdom Privacy Policy: [PRIVACY POLICY URL].
+Use of the app is also governed by the myQuote Privacy Policy: [PRIVACY POLICY URL].
 
 ## 14. Governing law
 
