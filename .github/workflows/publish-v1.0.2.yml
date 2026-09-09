@@ -1,0 +1,90 @@
+name: Publish myQuote v1.0.2 judge release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-v1.0.2.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET_SHA: 9facebb8dc647048802cff2da392f319b4e24ee8
+      CI_RUN_ID: "34399275732"
+      ARTIFACT_ID: "10122949515"
+      ARTIFACT_SHA256: "4e43cbf3f35d781972f81867dfc825c822838d92dab63871fb3dd6f1290174c0"
+      TAG: v1.0.2
+    steps:
+      - name: Download renamed judge artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            > judge-artifact.zip
+          echo "${ARTIFACT_SHA256}  judge-artifact.zip" | sha256sum --check --status
+          unzip -j judge-artifact.zip -d dist
+          apk="$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          mv "$apk" dist/myQuote-v1.0.2-judge.apk
+          (
+            cd dist
+            sha256sum myQuote-v1.0.2-judge.apk > SHA256SUMS.txt
+          )
+
+      - name: Verify artifact checksum
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          # myQuote v1.0.2
+
+          Renamed Shipaton judge build. The public product name is now **myQuote** and the Gothic Q remains the app mark.
+
+          - Source commit: `9facebb8dc647048802cff2da392f319b4e24ee8`
+          - Android CI run: `34399275732`
+          - Version: `1.0.2` (`versionCode 3`)
+          - Build type: QA / judge APK
+          - RevenueCat: Test Store configuration; no real charge
+          - Signing: stable CI test signer; not a production Play Store signing key
+          - Package/application ID: `com.shipaton.quotesofwisdom` (retained for update compatibility)
+
+          Product-facing branding, notification copy, README, policy drafts, release documentation, and submission documentation use **myQuote**. Historical repository/package/catalog identifiers remain stable where changing them would break compatibility or provenance.
+
+          The RevenueCat hardening from v1.0.1 remains in place: RevenueCat-generated anonymous App User IDs, `CustomerInfo` as entitlement source of truth, explicit restore failure handling, and active `pro_access` verification after purchase.
+
+          For reinstall or cross-device restore, configure RevenueCat restore behavior as **Transfer to new App User ID**. Google Play production configuration and production signing remain separate from this Test Store judge APK.
+
+          `SHA256SUMS.txt` is attached for integrity verification.
+          EOF
+
+      - name: Publish GitHub release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/myQuote-v1.0.2-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/myQuote-v1.0.2-judge.apk \
+              dist/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET_SHA" \
+              --title "myQuote v1.0.2" \
+              --notes-file release-notes.md
+          fi
