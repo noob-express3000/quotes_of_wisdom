@@ -8,6 +8,11 @@ _Updated: 2026-09-09. Re-check the live competition form before submitting._
 - **Platform:** Android 6.0+
 - **Current status:** working Android release candidate; RevenueCat Test Store validated; Google Play production configuration/testing pending developer-account access
 - **Repository:** <https://github.com/noob-express3000/quotes_of_wisdom>
+- **Judge release:** <https://github.com/noob-express3000/quotes_of_wisdom/releases/tag/v1.0.2>
+- **Judge APK:** `myQuote-v1.0.2-judge.apk`
+- **Judge APK SHA-256:** `3439768959570d5962edc845f72dce0ee082b6e0f90b9913035952585e6ad053`
+- **Source commit:** `9facebb8dc647048802cff2da392f319b4e24ee8`
+- **Android CI run:** `34399275732`
 - **Source license:** Apache-2.0; historical quote texts documented separately in `NOTICE`
 - **Business model:** 30-day app-controlled trial, weekly/monthly subscription, or lifetime Pro
 - **Billing demonstration:** RevenueCat Test Store; no real-money charge
@@ -23,7 +28,9 @@ myQuote is a local-first Android app that turns a carefully verified quote libra
 
 ### Current release status
 
-myQuote is not presented as a Play Store release. The Android application is working and buildable, the judge path uses RevenueCat Test Store, and CI validates the production bundle path. A production release still requires Play Console product configuration, the production RevenueCat Google Play SDK key, production signing, policy URLs, and Google Play billing tests.
+myQuote is a **working Android release candidate/judge build**, not a production Google Play release. Version 1.0.2 is published as a permanent GitHub judge release and was built from an exact source commit that passed the repository's quote validation, tests, lint, Debug/QA build paths, Release AAB-path validation, stable-signature verification, and artifact upload.
+
+The judge APK uses RevenueCat Test Store. A production Google Play release still requires Play Console access and product configuration, the production RevenueCat Google Play SDK key, production signing, hosted policy URLs, and billing tests through a Play testing track. The remaining gap is store publication/production validation rather than building an unfinished prototype.
 
 ### What RevenueCat enables
 
@@ -56,15 +63,9 @@ These exact prices are intentionally low product choices, not claimed as Revenue
 
 ## Judge installation
 
-The preferred renamed judge release should contain a stable CI-produced file named similar to:
-
-```text
-myQuote-v1.0.2-judge.apk
-```
-
 1. Use an Android 6.0 or newer device.
-2. If an older test build is installed and Android reports a signing conflict, uninstall it once.
-3. Download the APK from the permanent GitHub Release.
+2. Download `myQuote-v1.0.2-judge.apk` from the permanent `v1.0.2` GitHub Release.
+3. If Android reports a signing conflict with an older test build, uninstall the older build once.
 4. Allow installation from the browser/file manager when Android prompts.
 5. Install and open **myQuote**.
 6. Keep internet access available for RevenueCat offerings, purchase, and restore tests.
@@ -137,18 +138,15 @@ The APK uses RevenueCat Test Store. Test purchases are simulated and do not char
 
 Use the location-neutral Test Store build for public capture. Avoid status-bar/location indicators, personal notifications, account names, local file paths, RevenueCat dashboard customer records, and production credentials.
 
-## GitHub Release template
-
-- **Tag:** `v1.0.2`
-- **Title:** `myQuote v1.0.2`
-- **Asset:** `myQuote-v1.0.2-judge.apk`
-
-Include:
+## Release record
 
 ```text
-Source commit: <full commit SHA>
-CI run: <GitHub Actions URL>
-APK SHA-256: <sha256>
+Tag: v1.0.2
+Title: myQuote v1.0.2
+Source commit: 9facebb8dc647048802cff2da392f319b4e24ee8
+Android CI run: 34399275732
+APK: myQuote-v1.0.2-judge.apk
+APK SHA-256: 3439768959570d5962edc845f72dce0ee082b6e0f90b9913035952585e6ad053
 Signer certificate SHA-256: 72:94:42:18:4D:E0:36:0C:72:8F:56:CE:DA:A5:36:90:09:4A:0A:60:00:3D:C4:8E:CD:D3:7D:33:F3:7A:0B:03
 Minimum Android version: Android 6.0 (API 23)
 Billing: RevenueCat Test Store; no real-money charge
@@ -159,7 +157,7 @@ Historical `v1.0.0` and `v1.0.1` releases retain their original names/assets for
 ## Final submission links
 
 - Public repository: <https://github.com/noob-express3000/quotes_of_wisdom>
-- Judge GitHub Release: `<fill with final myQuote release>`
+- Judge GitHub Release: <https://github.com/noob-express3000/quotes_of_wisdom/releases/tag/v1.0.2>
 - Demo video: `<fill>`
 - BuildInPublic post/thread: `<fill>`
 - Privacy policy: `<fill after hosting/finalization>`

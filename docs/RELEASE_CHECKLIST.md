@@ -4,32 +4,28 @@ A checked CI item is not a substitute for physical-device testing.
 
 ## A. Shipaton / judge release
 
-### Completed before the rename
+### Completed
 
+- [x] Public product name changed to **myQuote**.
+- [x] Launcher/app label and demo notification branding use **myQuote**.
+- [x] Gothic `Q` remains the product mark.
+- [x] Stable technical package/application ID remains `com.shipaton.quotesofwisdom`.
+- [x] Repository name remains `quotes_of_wisdom` for link/history stability.
+- [x] RevenueCat product IDs remain `qow_weekly`, `qow_monthly`, and `qow_lifetime`.
+- [x] Existing local storage identifiers remain unchanged for update compatibility.
 - [x] RevenueCat uses SDK-generated anonymous App User IDs; no device-derived billing identifier remains.
 - [x] RevenueCat `CustomerInfo` is the paid-entitlement source of truth; no persistent Boolean Pro snapshot remains.
 - [x] Purchase success requires active `pro_access` in returned `CustomerInfo`.
 - [x] Restore without active `pro_access` produces an explicit failure result.
-- [x] RevenueCat listener installation is robust when the SDK was already configured in-process.
 - [x] Test Store prices come from RevenueCat; the app has no location inference or production fallback prices.
-- [x] Original `v1.0.0` and hardened `v1.0.1` releases remain available for provenance.
-
-### myQuote rename candidate
-
-- [x] Public product name changed to **myQuote**.
-- [x] Launcher/app label changed to **myQuote**.
-- [x] Demo notification branding changed to **myQuote**.
-- [x] Gothic `Q` remains the product mark.
-- [x] Gradle project name changed to `myQuote`.
-- [x] CI artifact names changed to `myquote-debug` and `myquote-qa`.
 - [x] README, project state, submission guide, privacy draft, terms draft, Data Safety draft, product spec, NOTICE, and curation policy aligned to myQuote.
-- [x] Stable technical package/application ID remains `com.shipaton.quotesofwisdom`.
-- [x] Repository name remains `quotes_of_wisdom` for link/history stability.
-- [x] RevenueCat product IDs remain `qow_weekly`, `qow_monthly`, and `qow_lifetime`.
-- [x] Existing local storage identifiers remain unchanged for upgrade compatibility.
-- [x] Renamed candidate version is `1.0.2` / `versionCode 3`.
-- [ ] Exact `v1.0.2` source commit passes quote validation, tests, lint, Debug/QA builds, Release bundle validation, stable-signature verification, and artifact upload.
-- [ ] Publish permanent `v1.0.2` judge release only after the exact source commit is green.
+- [x] Renamed binary version is `1.0.2` / `versionCode 3`.
+- [x] Exact source commit `9facebb8dc647048802cff2da392f319b4e24ee8` passed quote validation, tests, lint, Debug/QA builds, Release bundle validation, signer verification, and artifact upload in Android CI run `34399275732`.
+- [x] QA artifact ID `10122949515` recorded and archive digest verified.
+- [x] Permanent release published: <https://github.com/noob-express3000/quotes_of_wisdom/releases/tag/v1.0.2>
+- [x] Judge APK asset: `myQuote-v1.0.2-judge.apk`.
+- [x] Judge APK SHA-256: `3439768959570d5962edc845f72dce0ee082b6e0f90b9913035952585e6ad053`.
+- [x] Original `v1.0.0` and `v1.0.1` releases retained for provenance.
 
 ### RevenueCat dashboard gate
 
@@ -39,16 +35,16 @@ A checked CI item is not a substitute for physical-device testing.
 
 ### Physical smoke
 
-Use the stable CI-produced `myQuote-v1.0.2-judge.apk` after it is published.
+Use `myQuote-v1.0.2-judge.apk` from the permanent release.
 
-- [ ] Clean install and confirm the launcher/app identity displays `myQuote`.
+- [ ] Clean install/update and confirm the launcher/app identity displays `myQuote`.
 - [ ] Confirm the existing Gothic Q launcher icon remains correct.
 - [ ] Trial paywall is dismissible; Info and Close work repeatedly.
 - [ ] Weekly, Monthly, and Lifetime show `$0.99`, `$2.99`, and `$29.99` in Test Store.
 - [ ] Unavailable/loading plans cannot be purchased and never show invented prices.
 - [ ] Lifetime Test Store purchase activates `PRO`.
 - [ ] Force-stop/reopen online preserves Pro.
-- [ ] Offline reopen follows RevenueCat cached-entitlement behavior without an app-owned fallback database.
+- [ ] Offline reopen follows RevenueCat cached-entitlement behavior without an app-owned fallback entitlement database.
 - [ ] Reinstall/new anonymous identity + Restore Purchases recovers Pro after the sandbox restore setting is configured.
 - [ ] Trial/non-Pro renders default Lora and gates quote-font selection behind `See Pro`.
 - [ ] Pro exposes all quote fonts, themes, TTS controls, and custom reminder time.
@@ -58,11 +54,11 @@ Use the stable CI-produced `myQuote-v1.0.2-judge.apk` after it is published.
 
 ### Submission assets
 
-- [ ] Use **myQuote** consistently in the article, submission form, screenshots, captions, and demo narration.
+- [ ] Use **myQuote** consistently in the HackerNoon article, Shipaton form, screenshots, captions, and demo narration.
 - [ ] Clearly state: working Android release candidate; RevenueCat Test Store tested; Google Play production configuration/testing pending developer-account access.
 - [ ] Include the RevenueCat State of Subscription Apps findings that informed the 30-day trial and low-price/hybrid monetization direction.
 - [ ] Do not claim RevenueCat prescribed the exact `$0.99 / $2.99 / $29.99` prices; those are product decisions.
-- [ ] Add the public repository and final `v1.0.2` GitHub Release to the submission.
+- [ ] Add the public repository and `v1.0.2` GitHub Release to the submission.
 - [ ] Add BuildInPublic evidence.
 - [ ] Re-check the live Shipaton form immediately before submission.
 

@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-09_
 
-Read this file first when resuming work. GitHub `main` is the source of truth.
+Read this file first when resuming work. GitHub `main` is the source of truth for current documentation; the released app binary is pinned to the source commit recorded below.
 
 ## Product identity
 
@@ -25,10 +25,21 @@ The package, repository, existing storage keys, RevenueCat product IDs, and hist
 | Open-source license | Apache-2.0 |
 | Current product brand | `myQuote` |
 | Original/pre-rename judge releases | `v1.0.0` and `v1.0.1` retained for provenance |
-| Renamed judge candidate | `v1.0.2` / `versionCode 3` |
+| Current judge release | **`v1.0.2` published** |
 | Google Play production configuration | Pending |
 
-The `v1.0.2` candidate changes product branding and documentation without changing the package/application ID or monetization model. It must pass the standard CI and physical-device smoke path before becoming the preferred judge artifact.
+## Current judge release
+
+- Release: <https://github.com/noob-express3000/quotes_of_wisdom/releases/tag/v1.0.2>
+- Source commit: `9facebb8dc647048802cff2da392f319b4e24ee8`
+- Version: `1.0.2` (`versionCode 3`)
+- Android CI run: `34399275732`
+- QA artifact ID: `10122949515`
+- QA artifact archive digest: `sha256:4e43cbf3f35d781972f81867dfc825c822838d92dab63871fb3dd6f1290174c0`
+- Judge APK: `myQuote-v1.0.2-judge.apk`
+- Judge APK SHA-256: `3439768959570d5962edc845f72dce0ee082b6e0f90b9913035952585e6ad053`
+
+The source commit passed quote validation, unit tests, QA lint, Debug/QA APK builds, Release bundle-path validation, stable signer verification, and artifact uploads. The release workflow then downloaded that exact QA artifact, verified its archive digest, generated the APK checksum, and published the release against the source commit rather than the later release-workflow commit.
 
 ## Product
 
@@ -44,9 +55,9 @@ myQuote is an Android-only, local-first quote app built with Kotlin and Jetpack 
 
 ## Current deployment status
 
-myQuote is a **working Android release candidate**, not a production Google Play release.
+myQuote is a **working Android release candidate/judge build**, not yet a production Google Play release.
 
-The app has been built and exercised against RevenueCat's Test Store. Production Google Play publication still requires Play Console access/configuration, the real RevenueCat Google Play public SDK key, production signing, Play product setup, policy URLs, and real Play testing. The remaining gap is store configuration and production validation rather than an unfinished application prototype.
+The Android app is built and verified against RevenueCat's Test Store. Production Google Play publication still requires Play Console access/configuration, the real RevenueCat Google Play public SDK key, production signing, Play product setup, hosted policy URLs, and billing tests through a Play testing track. The remaining gap is store configuration and production validation rather than an unfinished application prototype.
 
 ## Access lifecycle
 
@@ -110,18 +121,19 @@ Stable CI certificate SHA-256:
 
 The committed CI keystore is test-only and must never become the Google Play upload or app-signing key.
 
-## v1.0.2 verification gate
+## Physical smoke still required
 
-1. CI: quote validation, unit tests, lint, Debug/QA builds, Release bundle-path validation, stable signer verification, artifact upload.
-2. Install the stable CI QA APK and confirm the launcher/app identity displays **myQuote**.
-3. Confirm Trial paywall, Info and Close behavior.
-4. Confirm Test Store prices `$0.99`, `$2.99`, `$29.99`.
-5. Complete Lifetime Test Store purchase and confirm Pro.
-6. Force-stop/reopen and test RevenueCat cached entitlement behavior offline.
-7. After setting sandbox restore behavior to **Transfer to new App User ID**, reinstall and Restore Purchases.
-8. Confirm Trial/non-Pro default font and all Pro feature gates.
-9. Confirm Replay, Next, Favorite, Share, settings, Back, streak effect, Pro spin, and notifications.
-10. Confirm demo notification displays **myQuote**.
+Automated validation is green, but the final named build should still be exercised on a physical Android device:
+
+1. Install `myQuote-v1.0.2-judge.apk` and confirm the launcher/app name displays **myQuote** while the Gothic Q remains intact.
+2. Confirm Trial paywall, Info and Close behavior.
+3. Confirm Test Store prices `$0.99`, `$2.99`, `$29.99`.
+4. Complete Lifetime Test Store purchase and confirm Pro.
+5. Force-stop/reopen and test RevenueCat cached entitlement behavior offline.
+6. After setting sandbox restore behavior to **Transfer to new App User ID**, reinstall and Restore Purchases.
+7. Confirm Trial/non-Pro default font and all Pro feature gates.
+8. Confirm Replay, Next, Favorite, Share, settings, Back, streak effect, Pro spin, and notifications.
+9. Confirm the demo notification displays **myQuote**.
 
 ## Remaining Google Play work
 
