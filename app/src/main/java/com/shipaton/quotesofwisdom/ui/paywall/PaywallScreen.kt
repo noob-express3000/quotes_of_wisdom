@@ -30,8 +30,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,6 +46,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.Offering
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.StoreTransaction
+import com.revenuecat.purchases.getOfferingsWith
+import com.revenuecat.purchases.ui.revenuecatui.Paywall
+import com.revenuecat.purchases.ui.revenuecatui.PaywallListener
+import com.revenuecat.purchases.ui.revenuecatui.PaywallOptions
 import com.shipaton.quotesofwisdom.billing.PurchasePlan
 import com.shipaton.quotesofwisdom.model.AccessState
 
@@ -64,7 +74,137 @@ fun PaywallScreen(
     onRetryBilling: () -> Unit
 ) {
     var showInfo by rememberSaveable { mutableStateOf(false) }
+    var dashboardOffering by remember { mutableStateOf<Offering?>(null) }
 
+    LaunchedEffect(billingLoading, availablePlans) {
+        if (!Purchases.isConfigured || billingLoading) return@LaunchedEffect
+
+        Purchases.sharedInstance.getOfferingsWith(
+            onError = { dashboardOffering = null },
+            onSuccess = { offerings ->
+                dashboardOffering = offerings.current?.takeIf { it.hasPaywall }
+            }
+        )
+    }
+
+    val remoteOffering = dashboardOffering
+    if (remoteOffering != null) {
+        RevenueCatDashboardPaywall(
+            offering = remoteOffering,
+            canDismiss = canDismiss,
+            onDismiss = onDismiss,
+            onInfo = { showInfo = true },
+            onCustomerInfoChanged = onRetryBilling
+        )
+    } else {
+        LocalFallbackPaywall(
+            canDismiss = canDismiss,
+            weeklyPrice = weeklyPrice,
+            monthlyPrice = monthlyPrice,
+            lifetimePrice = lifetimePrice,
+            availablePlans = availablePlans,
+            billingLoading = billingLoading,
+            billingBusy = billingBusy,
+            billingMessage = billingMessage,
+            onDismiss = onDismiss,
+            onInfo = { showInfo = true },
+            onChoosePlan = onChoosePlan,
+            onRestorePurchases = onRestorePurchases,
+            onRetryBilling = onRetryBilling
+        )
+    }
+
+    if (showInfo) {
+        UpgradeInfoDialog(
+            accessState = accessState,
+            onDismiss = { showInfo = false }
+        )
+    }
+}
+
+@Composable
+private fun RevenueCatDashboardPaywall(
+    offering: Offering,
+    canDismiss: Boolean,
+    onDismiss: () -> Unit,
+    onInfo: () -> Unit,
+    onCustomerInfoChanged: () -> Unit
+) {
+    val listener = remember(onCustomerInfoChanged) {
+        object : PaywallListener {
+            override fun onPurchaseCompleted(
+                customerInfo: CustomerInfo,
+                storeTransaction: StoreTransaction
+            ) {
+                onCustomerInfoChanged()
+            }
+
+            override fun onRestoreCompleted(customerInfo: CustomerInfo) {
+                onCustomerInfoChanged()
+            }
+        }
+    }
+
+    val options = PaywallOptions.Builder {
+        if (canDismiss) onDismiss()
+    }
+        .setOffering(offering)
+        .setShouldDisplayDismissButton(false)
+        .setListener(listener)
+        .build()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Paywall(options = options)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+                .padding(horizontal = 22.dp, vertical = 8.dp)
+                .align(Alignment.TopCenter)
+                .zIndex(2f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onInfo) {
+                Icon(
+                    Icons.Rounded.Info,
+                    contentDescription = "Pro information",
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+            }
+
+            if (canDismiss) {
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        Icons.Rounded.Close,
+                        contentDescription = "Close subscription page",
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+            } else {
+                Spacer(Modifier.height(48.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocalFallbackPaywall(
+    canDismiss: Boolean,
+    weeklyPrice: String?,
+    monthlyPrice: String?,
+    lifetimePrice: String?,
+    availablePlans: Set<PurchasePlan>,
+    billingLoading: Boolean,
+    billingBusy: Boolean,
+    billingMessage: String?,
+    onDismiss: () -> Unit,
+    onInfo: () -> Unit,
+    onChoosePlan: (PurchasePlan) -> Unit,
+    onRestorePurchases: () -> Unit,
+    onRetryBilling: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -83,7 +223,7 @@ fun PaywallScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { showInfo = true }) {
+                IconButton(onClick = onInfo) {
                     Icon(
                         Icons.Rounded.Info,
                         contentDescription = "Pro information",
@@ -222,13 +362,6 @@ fun PaywallScreen(
                 }
             }
         }
-    }
-
-    if (showInfo) {
-        UpgradeInfoDialog(
-            accessState = accessState,
-            onDismiss = { showInfo = false }
-        )
     }
 }
 
