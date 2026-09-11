@@ -43,6 +43,7 @@ The product brand is **myQuote**. Legacy package, repository, storage, and histo
 <p align="center">
   <img src="screenshots/device%201%20voices.jpeg" width="30%" alt="Voice selection">
   <img src="screenshots/device%201%20easter%20egg.jpeg" width="30%" alt="Easter egg">
+  <img src="screenshots/Screenshot_20260911_222456_myQuote.cleaned.jpg" width="30%" alt="myQuote screenshot">
 </p>
 
 ## Build from source
