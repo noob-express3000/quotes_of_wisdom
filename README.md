@@ -26,6 +26,25 @@ The product brand is **myQuote**. Legacy package, repository, storage, and histo
 - full-screen Jetpack Compose UI with display-cutout handling
 - no ads, app login, analytics SDK, or custom backend
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/device%201%20quotes.jpeg" width="30%" alt="Quote screen">
+  <img src="screenshots/device%201%20themes.jpeg" width="30%" alt="Theme selection">
+  <img src="screenshots/device%201%20settings.jpeg" width="30%" alt="Settings screen">
+</p>
+
+<p align="center">
+  <img src="screenshots/device%201%20favorites.jpeg" width="30%" alt="Favorites screen">
+  <img src="screenshots/device%201%20reminders.jpeg" width="30%" alt="Reminder time picker">
+  <img src="screenshots/device%201%20fonts.jpeg" width="30%" alt="Font selection">
+</p>
+
+<p align="center">
+  <img src="screenshots/device%201%20voices.jpeg" width="30%" alt="Voice selection">
+  <img src="screenshots/device%201%20easter%20egg.jpeg" width="30%" alt="Easter egg">
+</p>
+
 ## Build from source
 
 ### Requirements
