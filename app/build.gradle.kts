@@ -21,6 +21,25 @@ data class BundledQuoteFontSpec(
     val licenseUrl: String
 )
 
+fun googleFontsBowerFont(
+    resourceName: String,
+    repository: String,
+    fileName: String,
+    gitBlobSha: String,
+    license: String = "OFL"
+): BundledQuoteFontSpec {
+    val licensePath = if (license == "APACHE2") "LICENSE.txt" else "OFL.txt"
+    val licenseSuffix = if (license == "APACHE2") "license" else "ofl"
+    val base = "https://raw.githubusercontent.com/google-fonts-bower/$repository/master"
+    return BundledQuoteFontSpec(
+        resourceName = resourceName,
+        fontUrl = "$base/$fileName",
+        gitBlobSha = gitBlobSha,
+        licenseFileName = "${resourceName}_$licenseSuffix.txt",
+        licenseUrl = "$base/$licensePath"
+    )
+}
+
 val bundledQuoteFonts = listOf(
     BundledQuoteFontSpec(
         resourceName = "lora_regular",
@@ -91,7 +110,47 @@ val bundledQuoteFonts = listOf(
         gitBlobSha = "a11f86527e676751a69c54d49d99c24c4f68855d",
         licenseFileName = "caveat_ofl.txt",
         licenseUrl = "https://raw.githubusercontent.com/google-fonts-bower/caveat-bower/master/OFL.txt"
-    )
+    ),
+    googleFontsBowerFont("noto_serif_regular", "notoserif-bower", "NotoSerif-Regular.ttf", "96c7d74ab69adb5a8d61d2449cb3c9c6cf63bfb8"),
+    googleFontsBowerFont("source_serif_pro_regular", "sourceserifpro-bower", "SourceSerifPro-Regular.ttf", "a9b478f4e83cb38a8a42103c7763e1adedc54804"),
+    googleFontsBowerFont("libre_caslon_text_regular", "librecaslontext-bower", "LibreCaslonText-Regular.ttf", "5f53a47d599cbd223f8db21e2aafe9cf2ee562c9"),
+    googleFontsBowerFont("uncial_antiqua_regular", "uncialantiqua-bower", "UncialAntiqua-Regular.ttf", "4e801dc5faa225e11cab23ebe99c7daa47e0a76d"),
+    googleFontsBowerFont("neuton_regular", "neuton-bower", "Neuton-Regular.ttf", "3abe95222fdb15483fb49bb97f3291dc1ee492a6"),
+    googleFontsBowerFont("enriqueta_regular", "enriqueta-bower", "Enriqueta-Regular.ttf", "466db7e858344ce52b9abbda0712a91062a74271"),
+    googleFontsBowerFont("coustard_regular", "coustard-bower", "Coustard-Regular.ttf", "3ce93facef721760e5a35abd306f21803984b13a"),
+    googleFontsBowerFont("gilda_display_regular", "gildadisplay-bower", "GildaDisplay-Regular.ttf", "ee5a40cdfb1fb74a469f0a9dac346a72b7c682fc"),
+    googleFontsBowerFont("bree_serif_regular", "breeserif-bower", "BreeSerif-Regular.ttf", "bb069cfcfe5c716faadfdf1fb9e733e251249c1d"),
+    googleFontsBowerFont("kurale_regular", "kurale-bower", "Kurale-Regular.ttf", "66424111757247a7ade759285a2e70d1906ee5cb"),
+    googleFontsBowerFont("philosopher_regular", "philosopher-bower", "Philosopher-Regular.ttf", "de5d78b2bafe2379ef7112c8615a6b72d0172cf0"),
+    googleFontsBowerFont("andada_regular", "andada-bower", "Andada-Regular.ttf", "99c35604b7cfa9703077b37d8826ebbb8f82f94c"),
+    googleFontsBowerFont("averia_serif_libre_regular", "averiaseriflibre-bower", "AveriaSerifLibre-Regular.ttf", "fbc33d56962cf2cfc8705a6b333381d8699e1dcc"),
+    googleFontsBowerFont("lusitana_regular", "lusitana-bower", "Lusitana-Regular.ttf", "5a8eccae8ab6bfe0ba3f7fcc0ca17829c649dd8e"),
+    googleFontsBowerFont("kotta_one_regular", "kottaone-bower", "KottaOne-Regular.ttf", "79001e263a6a2e121cd69a80eaf37d393a8bceba"),
+    googleFontsBowerFont("caudex_regular", "caudex-bower", "Caudex-Regular.ttf", "669f9f8c9d375158b9b2a9ff29de0070017e87cd"),
+    googleFontsBowerFont("cantata_one_regular", "cantataone-bower", "CantataOne-Regular.ttf", "b31d2a704ef0d72de1e7a747208be8812f07e24b"),
+    googleFontsBowerFont("abril_fatface_regular", "abrilfatface-bower", "AbrilFatface-Regular.ttf", "e761f7b9c3c77290511fd87c296c8a3077d5db44"),
+    googleFontsBowerFont("josefin_slab_regular", "josefinslab-bower", "JosefinSlab-Regular.ttf", "6cb8832fa6a4df47c6dd5ffb1723360678ba4ac7"),
+    googleFontsBowerFont("roboto_mono_regular", "robotomono-bower", "RobotoMono-Regular.ttf", "495a82ce92ede816ffde602ade57dc02dc7b6314", "APACHE2"),
+    googleFontsBowerFont("cutive_mono_regular", "cutivemono-bower", "CutiveMono-Regular.ttf", "980fab95b773bbbe5fa0237abb5464d93edbc337"),
+    googleFontsBowerFont("special_elite_regular", "specialelite-bower", "SpecialElite.ttf", "b62fddb4baf5b67db8996114315dc18cfbf594cc", "APACHE2"),
+    googleFontsBowerFont("architects_daughter_regular", "architectsdaughter-bower", "ArchitectsDaughter.ttf", "a2d4f0c46d716ad5db0516116aa46a7d9744679c"),
+    googleFontsBowerFont("permanent_marker_regular", "permanentmarker-bower", "PermanentMarker.ttf", "8052508cfd6ac4617327bcdf7726aafda67a4bab", "APACHE2"),
+    googleFontsBowerFont("shadows_into_light_regular", "shadowsintolight-bower", "ShadowsIntoLight.ttf", "903e32be5e3dbc418dea268b28bc3432bde14a10"),
+    googleFontsBowerFont("dancing_script_regular", "dancingscript-bower", "DancingScript-Regular.ttf", "72db83506c68815348b1588f353a8081b08df412"),
+    googleFontsBowerFont("great_vibes_regular", "greatvibes-bower", "GreatVibes-Regular.ttf", "9dbbf4df5ee7411ec19752c90cde2fa7e991fd9c"),
+    googleFontsBowerFont("kaushan_script_regular", "kaushanscript-bower", "KaushanScript-Regular.ttf", "e69e4ac0192b8890c1d3a3aeb1df731df9de6ff6"),
+    googleFontsBowerFont("italianno_regular", "italianno-bower", "Italianno-Regular.ttf", "147abbd3fe0e114880aa83786027c6f7a0c76b95"),
+    googleFontsBowerFont("almendra_regular", "almendra-bower", "Almendra-Regular.ttf", "672d6ae6df2929fb6436fa3b32c5dae95d191d51"),
+    googleFontsBowerFont("medievalsharp_regular", "medievalsharp-bower", "MedievalSharp.ttf", "4534f0e5d7fb1eb27e929052630edcf39af7855e"),
+    googleFontsBowerFont("new_rocker_regular", "newrocker-bower", "NewRocker-Regular.ttf", "2b7993d3c19d303b4f05b06983479e415972f93a"),
+    googleFontsBowerFont("metal_mania_regular", "metalmania-bower", "MetalMania-Regular.ttf", "db41a35fadc970e011bc076bba3f511160c80dde"),
+    googleFontsBowerFont("fruktur_regular", "fruktur-bower", "Fruktur-Regular.ttf", "670f0848b151d387f0ee75c53bf5b01c8e52a120"),
+    googleFontsBowerFont("fondamento_regular", "fondamento-bower", "Fondamento-Regular.ttf", "d0489b2934f853cb018a2e0c8ca3010ded0bb44c"),
+    googleFontsBowerFont("im_fell_great_primer_regular", "imfellgreatprimer-bower", "IMFeGPrm28P.ttf", "5f7f32df83ce3d2120cf51222297de609774d298"),
+    googleFontsBowerFont("marcellus_sc_regular", "marcellussc-bower", "MarcellusSC-Regular.ttf", "7304b969bf6ae3185f981c24960de897c47d2cd0"),
+    googleFontsBowerFont("unna_regular", "unna-bower", "Unna-Regular.ttf", "2538f2c741aa7b6507646eb37c3a1a91fbbb182c"),
+    googleFontsBowerFont("germania_one_regular", "germaniaone-bower", "GermaniaOne-Regular.ttf", "bd83f36e4de3b73028b0ab07b5129674fb4c5000"),
+    googleFontsBowerFont("nixie_one_regular", "nixieone-bower", "NixieOne-Regular.ttf", "1bead886d30f7d5f094702279938f8b8f11f989f")
 )
 
 val generatedQuoteFontResDir = layout.buildDirectory.dir("generated/quote-fonts/res")

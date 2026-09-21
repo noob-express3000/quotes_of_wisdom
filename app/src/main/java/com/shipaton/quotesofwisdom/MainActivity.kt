@@ -53,6 +53,7 @@ import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_ID_KEY
 import com.shipaton.quotesofwisdom.ui.theme.QUOTE_FONT_PREFERENCES
 import com.shipaton.quotesofwisdom.ui.theme.QuotesOfWisdomTheme
 import com.shipaton.quotesofwisdom.ui.theme.UnifiedAppTypography
+import com.shipaton.quotesofwisdom.ui.theme.effectiveQuoteFontId
 import com.shipaton.quotesofwisdom.ui.theme.quoteFontById
 import com.shipaton.quotesofwisdom.ui.theme.themeById
 
@@ -141,7 +142,10 @@ class MainActivity : ComponentActivity() {
             } else {
                 DefaultTheme
             }
-            val effectiveFontId = if (access == AccessState.PRO) selectedQuoteFontId else "default"
+            val effectiveFontId = effectiveQuoteFontId(
+                selectedId = selectedQuoteFontId,
+                hasPro = access == AccessState.PRO
+            )
             val selectedFontFamily = quoteFontById(effectiveFontId).fontFamily
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
 
