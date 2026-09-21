@@ -114,7 +114,7 @@ val bundledQuoteFonts = listOf(
     googleFontsBowerFont("noto_serif_regular", "notoserif-bower", "NotoSerif-Regular.ttf", "96c7d74ab69adb5a8d61d2449cb3c9c6cf63bfb8"),
     googleFontsBowerFont("source_serif_pro_regular", "sourceserifpro-bower", "SourceSerifPro-Regular.ttf", "a9b478f4e83cb38a8a42103c7763e1adedc54804"),
     googleFontsBowerFont("libre_caslon_text_regular", "librecaslontext-bower", "LibreCaslonText-Regular.ttf", "5f53a47d599cbd223f8db21e2aafe9cf2ee562c9"),
-    googleFontsBowerFont("prata_regular", "prata-bower", "Prata-Regular.ttf", "6c0e862cdb2c2409546fb2c42a709319db43f538"),
+    googleFontsBowerFont("uncial_antiqua_regular", "uncialantiqua-bower", "UncialAntiqua-Regular.ttf", "4e801dc5faa225e11cab23ebe99c7daa47e0a76d"),
     googleFontsBowerFont("neuton_regular", "neuton-bower", "Neuton-Regular.ttf", "3abe95222fdb15483fb49bb97f3291dc1ee492a6"),
     googleFontsBowerFont("enriqueta_regular", "enriqueta-bower", "Enriqueta-Regular.ttf", "466db7e858344ce52b9abbda0712a91062a74271"),
     googleFontsBowerFont("coustard_regular", "coustard-bower", "Coustard-Regular.ttf", "3ce93facef721760e5a35abd306f21803984b13a"),
