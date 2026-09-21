@@ -53,6 +53,19 @@ class RevenueCatEntitlementStateTest {
     }
 
     @Test
+    fun operationErrorsDoNotOfferRefreshRetry() {
+        val state = RevenueCatUiState(operationErrorMessage = "No active Pro purchase found.")
+
+        assertFalse(state.canRetryRefresh)
+    }
+
+    @Test
+    fun entitlementAndOfferingErrorsOfferRefreshRetry() {
+        assertTrue(RevenueCatUiState(entitlementErrorMessage = "Network").canRetryRefresh)
+        assertTrue(RevenueCatUiState(offeringsErrorMessage = "Network").canRetryRefresh)
+    }
+
+    @Test
     fun transientFailureDoesNotTriggerPaywallForKnownPro() {
         val failedState = RevenueCatUiState(
             entitlementResolved = true,
