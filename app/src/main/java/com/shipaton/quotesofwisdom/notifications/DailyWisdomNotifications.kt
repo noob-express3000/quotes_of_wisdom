@@ -12,10 +12,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.shipaton.quotesofwisdom.MainActivity
 import com.shipaton.quotesofwisdom.R
+import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
 import java.util.Calendar
 
 object DailyWisdomNotifications {
     internal const val ACTION_DAILY = "com.shipaton.quotesofwisdom.action.DAILY_WISDOM"
+    internal const val ACTION_READ_ALOUD = "com.shipaton.quotesofwisdom.action.READ_ALOUD"
+    internal const val EXTRA_QUOTE_TEXT = "quote_text"
 
     const val DEFAULT_REMINDER_HOUR = 9
     const val DEFAULT_REMINDER_MINUTE = 0
@@ -30,16 +33,7 @@ object DailyWisdomNotifications {
     private const val DEMO_NOTIFICATION_ID = 4101
     private const val DAILY_ALARM_REQUEST_CODE = 4102
     private const val OPEN_APP_REQUEST_CODE = 4103
-
-    private val reminderCopy = listOf(
-        "Your daily quote is ready.",
-        "Here's today's quote.",
-        "Take a moment for today's quote.",
-        "A new quote is ready for you.",
-        "Time for today's quote.",
-        "Your quote for today is waiting.",
-        "Come back for today's quote."
-    )
+    private const val READ_ALOUD_REQUEST_CODE = 4104
 
     fun isEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -142,20 +136,33 @@ object DailyWisdomNotifications {
         alarmManager.cancel(dailyAlarmIntent(context))
     }
 
-    internal fun showDaily(context: Context) {
+    internal suspend fun showDaily(context: Context) {
         if (!isEnabled(context) || !canPostDaily(context)) return
         ensureChannels(context)
 
-        val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-        val body = reminderCopy[day % reminderCopy.size]
+        val quotes = runCatching {
+            AssetQuoteRepository(context).loadQuotes()
+        }.getOrNull().orEmpty()
+        if (quotes.isEmpty()) return
+
+        val now = Calendar.getInstance()
+        val dayToken = now.get(Calendar.YEAR) * 400 + now.get(Calendar.DAY_OF_YEAR)
+        val quote = quotes[quoteIndexForDay(dayToken, quotes.size)]
+
         notify(
             context = context,
             channelId = DAILY_CHANNEL_ID,
             notificationId = DAILY_NOTIFICATION_ID,
-            title = "Today's quote",
-            body = body,
-            highPriority = false
+            title = null,
+            body = quote.text,
+            highPriority = false,
+            readAloudText = quote.text
         )
+    }
+
+    internal fun quoteIndexForDay(dayToken: Int, quoteCount: Int): Int {
+        require(quoteCount > 0) { "quoteCount must be positive" }
+        return Math.floorMod(dayToken, quoteCount)
     }
 
     fun showDemo(context: Context) {
@@ -189,9 +196,10 @@ object DailyWisdomNotifications {
         context: Context,
         channelId: String,
         notificationId: Int,
-        title: String,
+        title: String?,
         body: String,
-        highPriority: Boolean
+        highPriority: Boolean,
+        readAloudText: String? = null
     ) {
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, channelId)
@@ -201,13 +209,26 @@ object DailyWisdomNotifications {
 
         builder
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(openAppIntent(context))
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
+
+        if (!title.isNullOrBlank()) {
+            builder.setContentTitle(title)
+        }
+
+        if (!readAloudText.isNullOrBlank()) {
+            builder.addAction(
+                Notification.Action.Builder(
+                    0,
+                    "Read aloud",
+                    readAloudIntent(context, readAloudText)
+                ).build()
+            )
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setPriority(
@@ -235,6 +256,18 @@ object DailyWisdomNotifications {
             context,
             OPEN_APP_REQUEST_CODE,
             Intent(context, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+    private fun readAloudIntent(context: Context, quoteText: String): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            READ_ALOUD_REQUEST_CODE,
+            Intent(context, MainActivity::class.java).apply {
+                action = ACTION_READ_ALOUD
+                putExtra(EXTRA_QUOTE_TEXT, quoteText)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
