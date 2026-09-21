@@ -8,83 +8,116 @@ on:
       - .github/workflows/publish-v1.0.2.yml
 
 permissions:
-  actions: read
   contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: 9facebb8dc647048802cff2da392f319b4e24ee8
-      CI_RUN_ID: "34399275732"
-      ARTIFACT_ID: "10122949515"
-      ARTIFACT_SHA256: "4e43cbf3f35d781972f81867dfc825c822838d92dab63871fb3dd6f1290174c0"
       TAG: v1.0.2
+
     steps:
-      - name: Download renamed judge artifact
+      - uses: actions/checkout@v4
+
+      - name: Validate production quote database
+        run: python3 tools/validate_production_quotes.py app/src/main/assets/quotes.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Restore stable CI debug keystore
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/myquote-ci-debug.keystore"
+          base64 --decode .github/ci-debug.keystore.b64 > "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "CI_DEBUG_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+          echo "cd1202f07a664194685c122b585165b62000fb347cd2070a741e801c8f8c3ef9  $keystore_path" |
+            sha256sum --check --status
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Bootstrap Gradle wrapper
+        run: |
+          chmod +x bootstrap-gradle.sh
+          ./bootstrap-gradle.sh
+
+      - name: Test, lint, and build judge APK
+        run: >-
+          ./gradlew
+          :app:testDebugUnitTest
+          :app:lintQa
+          :app:assembleQa
+
+      - name: Verify stable CI APK signing
+        run: |
+          set -euo pipefail
+          expected="$(
+            keytool -exportcert \
+              -keystore "$CI_DEBUG_KEYSTORE_PATH" \
+              -storepass android \
+              -alias androiddebugkey 2>/dev/null |
+              sha256sum |
+              cut -d' ' -f1
+          )"
+          apk="app/build/outputs/apk/qa/app-qa.apk"
+          actual="$(
+            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" |
+              awk -F': ' '/Signer #1 certificate SHA-256 digest/ { print tolower($2); exit }'
+          )"
+          test "$actual" = "$expected"
+
+      - name: Prepare judge assets
         run: |
           set -euo pipefail
           mkdir -p dist
-          gh api \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
-            > judge-artifact.zip
-          echo "${ARTIFACT_SHA256}  judge-artifact.zip" | sha256sum --check --status
-          unzip -j judge-artifact.zip -d dist
-          apk="$(find dist -maxdepth 1 -type f -name '*.apk' -print -quit)"
-          test -n "$apk"
-          mv "$apk" dist/myQuote-v1.0.2-judge.apk
+          cp app/build/outputs/apk/qa/app-qa.apk dist/myQuote-v1.0.2-judge.apk
           (
             cd dist
             sha256sum myQuote-v1.0.2-judge.apk > SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
           )
-
-      - name: Verify artifact checksum
-        run: |
-          set -euo pipefail
-          cd dist
-          sha256sum --check SHA256SUMS.txt
 
       - name: Write release notes
         run: |
-          cat > release-notes.md <<'EOF'
+          cat > release-notes.md <<EOF
           # myQuote v1.0.2
 
-          Renamed Shipaton judge build. The public product name is now **myQuote** and the Gothic Q remains the app mark.
+          Current Shipaton judge build.
 
-          - Source commit: `9facebb8dc647048802cff2da392f319b4e24ee8`
-          - Android CI run: `34399275732`
-          - Version: `1.0.2` (`versionCode 3`)
+          - Source commit: \`${GITHUB_SHA}\`
+          - Android workflow run: \`${GITHUB_RUN_ID}\`
+          - Version: \`1.0.2\` (\`versionCode 3\`)
           - Build type: QA / judge APK
           - RevenueCat: Test Store configuration; no real charge
           - Signing: stable CI test signer; not a production Play Store signing key
-          - Package/application ID: `com.shipaton.quotesofwisdom` (retained for update compatibility)
+          - Package/application ID: \`com.shipaton.quotesofwisdom\`
 
-          Product-facing branding, notification copy, README, policy drafts, release documentation, and submission documentation use **myQuote**. Historical repository/package/catalog identifiers remain stable where changing them would break compatibility or provenance.
+          This build includes the daily-streak foreground tracking fix. Opening or returning to the app on consecutive local calendar days now records each day even when Android keeps the existing process alive.
 
-          The RevenueCat hardening from v1.0.1 remains in place: RevenueCat-generated anonymous App User IDs, `CustomerInfo` as entitlement source of truth, explicit restore failure handling, and active `pro_access` verification after purchase.
-
-          For reinstall or cross-device restore, configure RevenueCat restore behavior as **Transfer to new App User ID**. Google Play production configuration and production signing remain separate from this Test Store judge APK.
-
-          `SHA256SUMS.txt` is attached for integrity verification.
+          \`SHA256SUMS.txt\` is attached for integrity verification.
           EOF
 
-      - name: Publish GitHub release
+      - name: Replace v1.0.2 judge assets
         run: |
           set -euo pipefail
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" \
-              dist/myQuote-v1.0.2-judge.apk \
-              dist/SHA256SUMS.txt \
-              --repo "$GITHUB_REPOSITORY" \
-              --clobber
-          else
-            gh release create "$TAG" \
-              dist/myQuote-v1.0.2-judge.apk \
-              dist/SHA256SUMS.txt \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$TARGET_SHA" \
-              --title "myQuote v1.0.2" \
-              --notes-file release-notes.md
-          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release upload "$TAG" \
+            dist/myQuote-v1.0.2-judge.apk \
+            dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+          gh release edit "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --notes-file release-notes.md
