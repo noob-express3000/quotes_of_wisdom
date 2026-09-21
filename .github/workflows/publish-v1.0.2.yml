@@ -121,3 +121,38 @@ jobs:
           gh release edit "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --notes-file release-notes.md
+
+      - name: Record successful publication
+        env:
+          STATUS_BRANCH: fix/streak-foreground-open
+          STATUS_PATH: .github/release-v1.0.2-status.txt
+        run: |
+          set -euo pipefail
+          apk_sha="$(sha256sum dist/myQuote-v1.0.2-judge.apk | cut -d' ' -f1)"
+          marker="$(
+            printf 'tag=%s\nfilename=%s\nsource_sha=%s\nrun_id=%s\napk_sha256=%s\n' \
+              "$TAG" \
+              "myQuote-v1.0.2-judge.apk" \
+              "$GITHUB_SHA" \
+              "$GITHUB_RUN_ID" \
+              "$apk_sha"
+          )"
+          encoded="$(printf '%s\n' "$marker" | base64 -w 0)"
+          endpoint="repos/${GITHUB_REPOSITORY}/contents/${STATUS_PATH}"
+          existing_sha="$(
+            gh api --method GET "$endpoint" \
+              -f ref="$STATUS_BRANCH" \
+              --jq '.sha' 2>/dev/null || true
+          )"
+          if [ -n "$existing_sha" ]; then
+            gh api --method PUT "$endpoint" \
+              -f message="Record v1.0.2 release replacement" \
+              -f content="$encoded" \
+              -f branch="$STATUS_BRANCH" \
+              -f sha="$existing_sha" >/dev/null
+          else
+            gh api --method PUT "$endpoint" \
+              -f message="Record v1.0.2 release replacement" \
+              -f content="$encoded" \
+              -f branch="$STATUS_BRANCH" >/dev/null
+          fi
