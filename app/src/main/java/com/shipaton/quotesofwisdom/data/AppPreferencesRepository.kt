@@ -132,6 +132,11 @@ class AppPreferencesRepository(private val context: Context) {
             val previousStreak = prefs[Keys.streak] ?: 0
             val previousBest = prefs[Keys.bestStreak] ?: 0
 
+            prefs[Keys.latestSeenMillis] = maxOf(
+                prefs[Keys.latestSeenMillis] ?: now.timeInMillis,
+                now.timeInMillis
+            )
+
             val broke = previousDay != 0 && previousDay != today && previousDay != yesterday
             val nextStreak = when (previousDay) {
                 today -> previousStreak.coerceAtLeast(1)
