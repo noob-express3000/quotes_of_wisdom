@@ -72,6 +72,7 @@ import kotlin.math.sin
 fun HomeScreen(
     uiState: HomeUiState,
     ttsReady: Boolean,
+    autoSpeakEnabled: Boolean = true,
     onNextQuote: () -> Unit,
     onReplay: () -> Unit,
     onAutoSpeak: () -> Unit,
@@ -89,8 +90,8 @@ fun HomeScreen(
         onDispose { hornPlayer.release() }
     }
 
-    LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed) {
-        if (uiState.quote != null && ttsReady && ttsAllowed) {
+    LaunchedEffect(uiState.quote?.id, ttsReady, ttsAllowed, autoSpeakEnabled) {
+        if (uiState.quote != null && ttsReady && ttsAllowed && autoSpeakEnabled) {
             onAutoSpeak()
         }
     }
