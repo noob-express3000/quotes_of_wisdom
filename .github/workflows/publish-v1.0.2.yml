@@ -104,7 +104,7 @@ jobs:
           - Signing: stable CI test signer; not a production Play Store signing key
           - Package/application ID: \`com.shipaton.quotesofwisdom\`
 
-          This build includes the daily-streak foreground tracking fix. Opening or returning to the app on consecutive local calendar days now records each day even when Android keeps the existing process alive.
+          This build includes the daily-streak foreground tracking fix plus the audited state fixes for Pro font gating, trial-clock hardening, quote no-repeat behavior, notification recovery, reminder synchronization, billing retry semantics, and TTS state guards.
 
           \`SHA256SUMS.txt\` is attached for integrity verification.
           EOF
