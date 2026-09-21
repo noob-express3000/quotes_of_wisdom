@@ -28,7 +28,7 @@ val QuoteFonts = listOf(
     QuoteFontOption("noto_serif", "Noto Serif", bundledFont(R.font.noto_serif_regular)),
     QuoteFontOption("source_serif", "Source Serif", bundledFont(R.font.source_serif_pro_regular)),
     QuoteFontOption("libre_caslon", "Libre Caslon", bundledFont(R.font.libre_caslon_text_regular)),
-    QuoteFontOption("prata", "Prata", bundledFont(R.font.prata_regular)),
+    QuoteFontOption("uncial_antiqua", "Uncial Antiqua", bundledFont(R.font.uncial_antiqua_regular)),
     QuoteFontOption("neuton", "Neuton", bundledFont(R.font.neuton_regular)),
     QuoteFontOption("enriqueta", "Enriqueta", bundledFont(R.font.enriqueta_regular)),
     QuoteFontOption("coustard", "Coustard", bundledFont(R.font.coustard_regular)),
