@@ -15,6 +15,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+internal fun consumeNotificationQuote(
+    deck: QuoteDeck,
+    quotes: List<Quote>,
+    quoteId: Int?
+): Quote? {
+    val id = quoteId ?: return null
+    val quote = quotes.firstOrNull { it.id == id } ?: return null
+    return deck.consume(quote)
+}
+
 data class HomeUiState(
     val quote: Quote? = null,
     val isLoading: Boolean = true,
@@ -138,6 +148,17 @@ class HomeViewModel(
                 )
             }
         }
+    }
+
+    fun showNotificationQuote(quoteId: Int): Boolean {
+        val currentDeck = deck ?: return false
+        val quote = consumeNotificationQuote(currentDeck, loadedQuotes, quoteId) ?: return false
+        _uiState.value = _uiState.value.copy(
+            quote = quote,
+            isLoading = false,
+            errorMessage = null
+        )
+        return true
     }
 
     fun nextQuote() {

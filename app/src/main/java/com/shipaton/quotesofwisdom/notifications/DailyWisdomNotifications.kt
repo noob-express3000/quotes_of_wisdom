@@ -13,12 +13,14 @@ import android.os.Build
 import com.shipaton.quotesofwisdom.MainActivity
 import com.shipaton.quotesofwisdom.R
 import com.shipaton.quotesofwisdom.data.AssetQuoteRepository
+import com.shipaton.quotesofwisdom.model.Quote
 import java.util.Calendar
 
 object DailyWisdomNotifications {
     internal const val ACTION_DAILY = "com.shipaton.quotesofwisdom.action.DAILY_WISDOM"
     internal const val ACTION_READ_ALOUD = "com.shipaton.quotesofwisdom.action.READ_ALOUD"
     internal const val EXTRA_QUOTE_TEXT = "quote_text"
+    internal const val EXTRA_QUOTE_ID = "quote_id"
 
     const val DEFAULT_REMINDER_HOUR = 9
     const val DEFAULT_REMINDER_MINUTE = 0
@@ -140,16 +142,17 @@ object DailyWisdomNotifications {
         if (!isEnabled(context) || !canPostDaily(context)) return
         ensureChannels(context)
 
-        val quoteText = quoteTextForToday(context) ?: return
+        val quote = quoteForToday(context) ?: return
 
         notify(
             context = context,
             channelId = DAILY_CHANNEL_ID,
             notificationId = DAILY_NOTIFICATION_ID,
             title = null,
-            body = quoteText,
+            body = quote.text,
             highPriority = false,
-            readAloudText = quoteText
+            quoteId = quote.id,
+            readAloudText = quote.text
         )
     }
 
@@ -175,20 +178,21 @@ object DailyWisdomNotifications {
             )
         }
 
-        val quoteText = quoteTextForToday(context) ?: return
+        val quote = quoteForToday(context) ?: return
 
         notify(
             context = context,
             channelId = DEMO_CHANNEL_ID,
             notificationId = DEMO_NOTIFICATION_ID,
             title = null,
-            body = quoteText,
+            body = quote.text,
             highPriority = true,
-            readAloudText = quoteText
+            quoteId = quote.id,
+            readAloudText = quote.text
         )
     }
 
-    private suspend fun quoteTextForToday(context: Context): String? {
+    private suspend fun quoteForToday(context: Context): Quote? {
         val quotes = runCatching {
             AssetQuoteRepository(context).loadQuotes()
         }.getOrNull().orEmpty()
@@ -196,7 +200,12 @@ object DailyWisdomNotifications {
 
         val now = Calendar.getInstance()
         val dayToken = now.get(Calendar.YEAR) * 400 + now.get(Calendar.DAY_OF_YEAR)
-        return quotes[quoteIndexForDay(dayToken, quotes.size)].text
+        return quoteForDay(quotes, dayToken)
+    }
+
+    internal fun quoteForDay(quotes: List<Quote>, dayToken: Int): Quote {
+        require(quotes.isNotEmpty()) { "quotes must not be empty" }
+        return quotes[quoteIndexForDay(dayToken, quotes.size)]
     }
 
     private fun notify(
@@ -206,6 +215,7 @@ object DailyWisdomNotifications {
         title: String?,
         body: String,
         highPriority: Boolean,
+        quoteId: Int? = null,
         readAloudText: String? = null
     ) {
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -218,7 +228,7 @@ object DailyWisdomNotifications {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
-            .setContentIntent(openAppIntent(context))
+            .setContentIntent(openAppIntent(context, quoteId))
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -232,7 +242,7 @@ object DailyWisdomNotifications {
                 Notification.Action.Builder(
                     0,
                     "Read aloud",
-                    readAloudIntent(context, readAloudText)
+                    readAloudIntent(context, quoteId, readAloudText)
                 ).build()
             )
         }
@@ -258,22 +268,28 @@ object DailyWisdomNotifications {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-    private fun openAppIntent(context: Context): PendingIntent =
+    private fun openAppIntent(context: Context, quoteId: Int?): PendingIntent =
         PendingIntent.getActivity(
             context,
             OPEN_APP_REQUEST_CODE,
             Intent(context, MainActivity::class.java).apply {
+                if (quoteId != null) putExtra(EXTRA_QUOTE_ID, quoteId)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-    private fun readAloudIntent(context: Context, quoteText: String): PendingIntent =
+    private fun readAloudIntent(
+        context: Context,
+        quoteId: Int?,
+        quoteText: String
+    ): PendingIntent =
         PendingIntent.getActivity(
             context,
             READ_ALOUD_REQUEST_CODE,
             Intent(context, MainActivity::class.java).apply {
                 action = ACTION_READ_ALOUD
+                if (quoteId != null) putExtra(EXTRA_QUOTE_ID, quoteId)
                 putExtra(EXTRA_QUOTE_TEXT, quoteText)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             },
