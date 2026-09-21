@@ -140,23 +140,16 @@ object DailyWisdomNotifications {
         if (!isEnabled(context) || !canPostDaily(context)) return
         ensureChannels(context)
 
-        val quotes = runCatching {
-            AssetQuoteRepository(context).loadQuotes()
-        }.getOrNull().orEmpty()
-        if (quotes.isEmpty()) return
-
-        val now = Calendar.getInstance()
-        val dayToken = now.get(Calendar.YEAR) * 400 + now.get(Calendar.DAY_OF_YEAR)
-        val quote = quotes[quoteIndexForDay(dayToken, quotes.size)]
+        val quoteText = quoteTextForToday(context) ?: return
 
         notify(
             context = context,
             channelId = DAILY_CHANNEL_ID,
             notificationId = DAILY_NOTIFICATION_ID,
             title = null,
-            body = quote.text,
+            body = quoteText,
             highPriority = false,
-            readAloudText = quote.text
+            readAloudText = quoteText
         )
     }
 
@@ -165,7 +158,7 @@ object DailyWisdomNotifications {
         return Math.floorMod(dayToken, quoteCount)
     }
 
-    fun showDemo(context: Context) {
+    suspend fun showDemo(context: Context) {
         if (!canPost(context)) return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -182,14 +175,28 @@ object DailyWisdomNotifications {
             )
         }
 
+        val quoteText = quoteTextForToday(context) ?: return
+
         notify(
             context = context,
             channelId = DEMO_CHANNEL_ID,
             notificationId = DEMO_NOTIFICATION_ID,
-            title = "myQuote",
-            body = "Your daily quote is ready.",
-            highPriority = true
+            title = null,
+            body = quoteText,
+            highPriority = true,
+            readAloudText = quoteText
         )
+    }
+
+    private suspend fun quoteTextForToday(context: Context): String? {
+        val quotes = runCatching {
+            AssetQuoteRepository(context).loadQuotes()
+        }.getOrNull().orEmpty()
+        if (quotes.isEmpty()) return null
+
+        val now = Calendar.getInstance()
+        val dayToken = now.get(Calendar.YEAR) * 400 + now.get(Calendar.DAY_OF_YEAR)
+        return quotes[quoteIndexForDay(dayToken, quotes.size)].text
     }
 
     private fun notify(
