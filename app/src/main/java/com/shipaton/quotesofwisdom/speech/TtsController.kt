@@ -236,7 +236,6 @@ class TtsController(context: Context) {
                 return
             }
 
-            initializedSuccessfully = true
             val englishVoices = safeEnglishVoices(engine)
             _voices.value = englishVoices.mapIndexed { index, voice ->
                 val country = voice.locale.displayCountry.takeIf { it.isNotBlank() }
@@ -282,6 +281,7 @@ class TtsController(context: Context) {
                     }
                 }
             })
+            initializedSuccessfully = true
             _state.value = TtsState.Ready
         } catch (_: Throwable) {
             _state.value = TtsState.Error("Text-to-speech is unavailable on this device.")
