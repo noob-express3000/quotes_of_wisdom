@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
     private var refreshTtsAfterExternalVoiceUi = false
     private var hasCompletedInitialResume = false
     private var notificationsAvailable by mutableStateOf(false)
+    private var activeNotificationQuoteId by mutableStateOf<Int?>(null)
     private var pendingNotificationQuote by mutableStateOf<String?>(null)
     private var suppressHomeAutoSpeak by mutableStateOf(false)
 
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
         configureDailyNotifications()
         notificationsAvailable = DailyWisdomNotifications.canPostDaily(this)
         ttsController = TtsController(applicationContext)
-        captureReadAloudIntent(intent)
+        captureNotificationIntent(intent)
         val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
         val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
         val quoteFontPreferences = getSharedPreferences(QUOTE_FONT_PREFERENCES, MODE_PRIVATE)
@@ -151,6 +152,17 @@ class MainActivity : ComponentActivity() {
             )
             val selectedFontFamily = quoteFontById(effectiveFontId).fontFamily
             val ttsReady = ttsState == TtsState.Ready || ttsState == TtsState.Speaking
+
+            LaunchedEffect(
+                activeNotificationQuoteId,
+                uiState.isLoading,
+                uiState.streakBrokenOnLaunch
+            ) {
+                val quoteId = activeNotificationQuoteId
+                if (quoteId != null && !uiState.isLoading) {
+                    homeViewModel.showNotificationQuote(quoteId)
+                }
+            }
 
             LaunchedEffect(
                 revenueCatState.entitlementResolved,
@@ -441,6 +453,7 @@ class MainActivity : ComponentActivity() {
                                     ttsReady = ttsReady,
                                     autoSpeakEnabled = !suppressHomeAutoSpeak,
                                     onNextQuote = {
+                                        activeNotificationQuoteId = null
                                         suppressHomeAutoSpeak = false
                                         ttsController.stop()
                                         homeViewModel.nextQuote()
@@ -566,11 +579,25 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        captureReadAloudIntent(intent)
+        captureNotificationIntent(intent)
     }
 
-    private fun captureReadAloudIntent(intent: Intent?) {
-        if (intent?.action != DailyWisdomNotifications.ACTION_READ_ALOUD) return
+    private fun captureNotificationIntent(intent: Intent?) {
+        if (intent == null) return
+
+        activeNotificationQuoteId = if (intent.hasExtra(DailyWisdomNotifications.EXTRA_QUOTE_ID)) {
+            intent.getIntExtra(DailyWisdomNotifications.EXTRA_QUOTE_ID, Int.MIN_VALUE)
+                .takeUnless { it == Int.MIN_VALUE }
+        } else {
+            null
+        }
+
+        if (intent.action != DailyWisdomNotifications.ACTION_READ_ALOUD) {
+            pendingNotificationQuote = null
+            suppressHomeAutoSpeak = false
+            return
+        }
+
         val quoteText = intent.getStringExtra(DailyWisdomNotifications.EXTRA_QUOTE_TEXT)
             .orEmpty()
             .trim()
