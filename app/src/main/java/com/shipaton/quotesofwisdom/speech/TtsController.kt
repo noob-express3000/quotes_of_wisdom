@@ -38,6 +38,7 @@ class TtsController(context: Context) {
     private var tts: TextToSpeech? = null
     private var initGeneration = 0
     private var trialVoiceName: String? = null
+    private var initializedSuccessfully = false
 
     private val _state = MutableStateFlow<TtsState>(TtsState.Initializing)
     val state: StateFlow<TtsState> = _state.asStateFlow()
@@ -82,7 +83,11 @@ class TtsController(context: Context) {
     }
 
     fun applyProSettings(enginePackage: String, voiceName: String, rate: Float) {
-        if (enginePackage.isNotBlank() && enginePackage != _selectedEnginePackage.value) {
+        if (
+            enginePackage.isNotBlank() &&
+            enginePackage != _selectedEnginePackage.value &&
+            _engines.value.any { it.packageName == enginePackage }
+        ) {
             selectEngine(enginePackage)
             return
         }
@@ -153,7 +158,7 @@ class TtsController(context: Context) {
 
     fun stop() {
         runCatching { tts?.stop() }
-        if (_state.value !is TtsState.Error && _state.value != TtsState.Shutdown) {
+        if (_state.value == TtsState.Speaking || (_state.value is TtsState.Error && initializedSuccessfully)) {
             _state.value = TtsState.Ready
         }
     }
@@ -165,6 +170,7 @@ class TtsController(context: Context) {
             tts?.shutdown()
         }
         tts = null
+        initializedSuccessfully = false
         _state.value = TtsState.Shutdown
     }
 
@@ -178,6 +184,7 @@ class TtsController(context: Context) {
         }
 
         trialVoiceName = null
+        initializedSuccessfully = false
         _voices.value = emptyList()
         _selectedVoiceName.value = ""
         _state.value = TtsState.Initializing
@@ -274,6 +281,7 @@ class TtsController(context: Context) {
                     }
                 }
             })
+            initializedSuccessfully = true
             _state.value = TtsState.Ready
         } catch (_: Throwable) {
             _state.value = TtsState.Error("Text-to-speech is unavailable on this device.")

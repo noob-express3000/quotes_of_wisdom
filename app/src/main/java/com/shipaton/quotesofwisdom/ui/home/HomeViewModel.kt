@@ -94,7 +94,7 @@ class HomeViewModel(
                     loadedQuotes = quotes
                     deck = QuoteDeck(quotes)
                     val openingQuote = if (pendingBrokenStreak) {
-                        chooseBrokenStreakQuote(quotes) ?: deck?.next()
+                        chooseBrokenStreakQuote(quotes)?.let { deck?.consume(it) } ?: deck?.next()
                     } else {
                         deck?.next()
                     }

@@ -82,10 +82,24 @@ object DailyWisdomNotifications {
         }
     }
 
-    fun canPost(context: Context): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
+    fun canPost(context: Context): Boolean {
+        val permissionGranted =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        val notificationsEnabled =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.N ||
+                context.getSystemService(NotificationManager::class.java).areNotificationsEnabled()
+        return permissionGranted && notificationsEnabled
+    }
+
+    fun canPostDaily(context: Context): Boolean {
+        if (!canPost(context)) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return true
+        val channel = context.getSystemService(NotificationManager::class.java)
+            .getNotificationChannel(DAILY_CHANNEL_ID)
+        return channel == null || channel.importance != NotificationManager.IMPORTANCE_NONE
+    }
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -129,7 +143,7 @@ object DailyWisdomNotifications {
     }
 
     internal fun showDaily(context: Context) {
-        if (!isEnabled(context) || !canPost(context)) return
+        if (!isEnabled(context) || !canPostDaily(context)) return
         ensureChannels(context)
 
         val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)

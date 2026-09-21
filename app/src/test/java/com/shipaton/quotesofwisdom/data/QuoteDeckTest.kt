@@ -32,6 +32,16 @@ class QuoteDeckTest {
     }
 
     @Test
+    fun consumedQuoteDoesNotReappearBeforeRemainingDeck() {
+        val deck = QuoteDeck(quotes, Random(21))
+        val consumed = deck.consume(quotes[1])
+        val remaining = List(quotes.size - 1) { deck.next().id }
+
+        assertEquals(quotes[1].id, consumed.id)
+        assertTrue(quotes[1].id !in remaining)
+    }
+
+    @Test
     fun preferredClassificationCanBeSelectedFromTheRemainingDeck() {
         val deck = QuoteDeck(quotes, Random(9))
         val selected = deck.nextPreferred(setOf("hope"), preferenceChance = 1.0)

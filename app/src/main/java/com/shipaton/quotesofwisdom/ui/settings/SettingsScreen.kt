@@ -82,6 +82,7 @@ fun SettingsScreen(
     speechRate: Float,
     reminderHour: Int,
     reminderMinute: Int,
+    notificationsAvailable: Boolean,
     onBack: () -> Unit,
     onOpenFavorites: () -> Unit,
     onSelectTheme: (String) -> Unit,
@@ -89,6 +90,7 @@ fun SettingsScreen(
     onSelectVoice: (String) -> Unit,
     onSpeechRateChange: (Float) -> Unit,
     onReminderTimeChange: (Int, Int) -> Unit,
+    onEnableNotifications: () -> Unit,
     onPreviewSpeech: () -> Unit,
     onGetMoreVoices: () -> Unit,
     onOpenPaywall: () -> Unit,
@@ -196,16 +198,18 @@ fun SettingsScreen(
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
-                            if (accessState == AccessState.PRO) {
-                                TimePickerDialog(
-                                    context,
-                                    { _, hour, minute -> onReminderTimeChange(hour, minute) },
-                                    reminderHour,
-                                    reminderMinute,
-                                    DateFormat.is24HourFormat(context)
-                                ).show()
-                            } else {
-                                onOpenPaywall()
+                            when {
+                                accessState != AccessState.PRO -> onOpenPaywall()
+                                !notificationsAvailable -> onEnableNotifications()
+                                else -> {
+                                    TimePickerDialog(
+                                        context,
+                                        { _, hour, minute -> onReminderTimeChange(hour, minute) },
+                                        reminderHour,
+                                        reminderMinute,
+                                        DateFormat.is24HourFormat(context)
+                                    ).show()
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -215,10 +219,10 @@ fun SettingsScreen(
                         )
                     ) {
                         Text(
-                            if (accessState == AccessState.PRO) {
-                                "Reminder time · $reminderTimeLabel"
-                            } else {
-                                "See Pro"
+                            when {
+                                accessState != AccessState.PRO -> "See Pro"
+                                !notificationsAvailable -> "Enable notifications"
+                                else -> "Reminder time · $reminderTimeLabel"
                             }
                         )
                     }

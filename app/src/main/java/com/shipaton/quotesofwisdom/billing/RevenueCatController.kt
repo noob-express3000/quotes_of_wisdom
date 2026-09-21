@@ -42,6 +42,9 @@ data class RevenueCatUiState(
 ) {
     val billingMessage: String?
         get() = operationErrorMessage ?: offeringsErrorMessage ?: entitlementErrorMessage
+
+    val canRetryRefresh: Boolean
+        get() = entitlementErrorMessage != null || offeringsErrorMessage != null
 }
 
 sealed interface BillingResult {

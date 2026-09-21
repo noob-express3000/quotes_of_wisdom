@@ -17,6 +17,20 @@ class QuoteDeck(
 
     fun next(): Quote = nextPreferred(emptySet(), 0.0)
 
+    fun consume(quote: Quote): Quote {
+        val remainingIndex = (index until deck.size).firstOrNull { deck[it].id == quote.id }
+        if (remainingIndex != null) {
+            if (remainingIndex != index) {
+                val current = deck[index]
+                deck[index] = deck[remainingIndex]
+                deck[remainingIndex] = current
+            }
+            index += 1
+        }
+        previous = quote
+        return quote
+    }
+
     fun nextPreferred(
         preferredClassifications: Set<String>,
         preferenceChance: Double = 0.65

@@ -58,6 +58,7 @@ fun PaywallScreen(
     billingLoading: Boolean,
     billingBusy: Boolean,
     billingMessage: String?,
+    billingRetryAvailable: Boolean,
     onDismiss: () -> Unit,
     onChoosePlan: (PurchasePlan) -> Unit,
     onRestorePurchases: () -> Unit,
@@ -188,20 +189,22 @@ fun PaywallScreen(
                             lineHeight = 18.sp
                         )
                     }
-                    item {
-                        Text(
-                            text = "Retry",
-                            modifier = Modifier
-                                .clickable(
-                                    enabled = !billingBusy,
-                                    role = Role.Button,
-                                    onClick = onRetryBilling
-                                )
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    if (billingRetryAvailable) {
+                        item {
+                            Text(
+                                text = "Retry",
+                                modifier = Modifier
+                                    .clickable(
+                                        enabled = !billingBusy,
+                                        role = Role.Button,
+                                        onClick = onRetryBilling
+                                    )
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
