@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color as AndroidColor
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -62,10 +63,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var ttsController: TtsController
     private var refreshTtsAfterExternalVoiceUi = false
     private var hasCompletedInitialResume = false
+    private var notificationsAvailable by mutableStateOf(false)
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             DailyWisdomNotifications.setEnabled(this, granted)
+            notificationsAvailable = granted && DailyWisdomNotifications.canPostDaily(this)
         }
 
     private val revenueCatController: RevenueCatController by lazy {
@@ -83,6 +86,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enterImmersiveMode()
         configureDailyNotifications()
+        notificationsAvailable = DailyWisdomNotifications.canPostDaily(this)
         ttsController = TtsController(applicationContext)
         val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
         val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
@@ -189,6 +193,16 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(
+                revenueCatState.entitlementResolved,
+                revenueCatState.hasPro
+            ) {
+                if (revenueCatState.entitlementResolved) {
+                    reminderHour = DailyWisdomNotifications.reminderHour(this@MainActivity)
+                    reminderMinute = DailyWisdomNotifications.reminderMinute(this@MainActivity)
+                }
+            }
+
+            LaunchedEffect(
                 access,
                 ttsState,
                 uiState.proEnginePackage,
@@ -249,6 +263,7 @@ class MainActivity : ComponentActivity() {
                                     billingLoading = revenueCatState.offeringsLoading,
                                     billingBusy = revenueCatState.busy,
                                     billingMessage = revenueCatState.billingMessage,
+                                    billingRetryAvailable = revenueCatState.canRetryRefresh,
                                     onDismiss = { showPaywall = false },
                                     onChoosePlan = { plan ->
                                         revenueCatController.purchase(
@@ -343,6 +358,7 @@ class MainActivity : ComponentActivity() {
                                     speechRate = speechRate,
                                     reminderHour = reminderHour,
                                     reminderMinute = reminderMinute,
+                                    notificationsAvailable = notificationsAvailable,
                                     onBack = {
                                         screenName = AppScreen.HOME.name
                                         if (uiState.effectiveAccessState == AccessState.LOCKED) {
@@ -364,7 +380,7 @@ class MainActivity : ComponentActivity() {
                                         homeViewModel.setProSpeechRate(rate)
                                     },
                                     onReminderTimeChange = { hour, minute ->
-                                        if (access == AccessState.PRO) {
+                                        if (access == AccessState.PRO && notificationsAvailable) {
                                             reminderHour = hour
                                             reminderMinute = minute
                                             DailyWisdomNotifications.setReminderTime(
@@ -374,6 +390,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     },
+                                    onEnableNotifications = ::openNotificationSettings,
                                     onPreviewSpeech = {
                                         if (access == AccessState.PRO) {
                                             uiState.quote?.let { ttsController.speak(it.text) }
@@ -474,6 +491,22 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent.createChooser(shareIntent, "Share quote"))
     }
 
+    private fun openNotificationSettings() {
+        val notificationSettings = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        }
+        try {
+            startActivity(notificationSettings)
+        } catch (_: Throwable) {
+            startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:$packageName")
+                )
+            )
+        }
+    }
+
     private fun openMoreVoices() {
         val enginePackage = ttsController.selectedEnginePackage.value
 
@@ -507,6 +540,16 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         enterImmersiveMode()
+
+        notificationsAvailable = DailyWisdomNotifications.canPostDaily(this)
+        if (notificationsAvailable) {
+            if (!DailyWisdomNotifications.isEnabled(this)) {
+                DailyWisdomNotifications.setEnabled(this, true)
+            }
+        } else if (DailyWisdomNotifications.isEnabled(this)) {
+            DailyWisdomNotifications.setEnabled(this, false)
+        }
+
         if (hasCompletedInitialResume) {
             homeViewModel.recordForegroundOpen()
         } else {
