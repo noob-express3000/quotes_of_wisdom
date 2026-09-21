@@ -105,7 +105,7 @@ jobs:
           - Signing: stable CI test signer; not a production Play Store signing key
           - Package/application ID: \`com.shipaton.quotesofwisdom\`
 
-          This build includes the audited state fixes plus a 50-font offline quote library. Non-Pro access always falls back to the default Lora font while preserving the saved Pro choice for a future re-upgrade.
+          This build includes the audited state fixes, 50-font offline quote library, and daily notifications that show the quote body with a single Read aloud action routed through the app.
 
           \`SHA256SUMS.txt\` is attached for integrity verification.
           EOF

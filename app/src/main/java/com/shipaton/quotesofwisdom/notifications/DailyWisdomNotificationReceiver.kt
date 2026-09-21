@@ -3,13 +3,23 @@ package com.shipaton.quotesofwisdom.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class DailyWisdomNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             DailyWisdomNotifications.ACTION_DAILY -> {
-                DailyWisdomNotifications.showDaily(context)
                 DailyWisdomNotifications.scheduleNext(context)
+                val pendingResult = goAsync()
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        DailyWisdomNotifications.showDaily(context.applicationContext)
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
             }
 
             Intent.ACTION_BOOT_COMPLETED,

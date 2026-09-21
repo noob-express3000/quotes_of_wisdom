@@ -65,6 +65,8 @@ class MainActivity : ComponentActivity() {
     private var refreshTtsAfterExternalVoiceUi = false
     private var hasCompletedInitialResume = false
     private var notificationsAvailable by mutableStateOf(false)
+    private var pendingNotificationQuote by mutableStateOf<String?>(null)
+    private var suppressHomeAutoSpeak by mutableStateOf(false)
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
         configureDailyNotifications()
         notificationsAvailable = DailyWisdomNotifications.canPostDaily(this)
         ttsController = TtsController(applicationContext)
+        captureReadAloudIntent(intent)
         val initialReminderHour = DailyWisdomNotifications.reminderHour(this)
         val initialReminderMinute = DailyWisdomNotifications.reminderMinute(this)
         val quoteFontPreferences = getSharedPreferences(QUOTE_FONT_PREFERENCES, MODE_PRIVATE)
@@ -211,7 +214,9 @@ class MainActivity : ComponentActivity() {
                 ttsState,
                 uiState.proEnginePackage,
                 uiState.proVoiceName,
-                uiState.proSpeechRate
+                uiState.proSpeechRate,
+                pendingNotificationQuote,
+                initialEntitlementHandled
             ) {
                 if (ttsReady) {
                     if (access == AccessState.PRO) {
@@ -222,6 +227,21 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         ttsController.applyTrialDefaults()
+                    }
+
+                    val pendingQuote = pendingNotificationQuote
+                    if (pendingQuote != null && initialEntitlementHandled) {
+                        if (!LocalAccessPolicy.canUseTts(access)) {
+                            pendingNotificationQuote = null
+                        } else {
+                            val currentTtsState = ttsController.state.value
+                            if (currentTtsState == TtsState.Ready ||
+                                currentTtsState == TtsState.Speaking
+                            ) {
+                                ttsController.speak(pendingQuote)
+                                pendingNotificationQuote = null
+                            }
+                        }
                     }
                 }
             }
@@ -419,7 +439,9 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen(
                                     uiState = uiState,
                                     ttsReady = ttsReady,
+                                    autoSpeakEnabled = !suppressHomeAutoSpeak,
                                     onNextQuote = {
+                                        suppressHomeAutoSpeak = false
                                         ttsController.stop()
                                         homeViewModel.nextQuote()
                                     },
@@ -539,6 +561,23 @@ class MainActivity : ComponentActivity() {
     } catch (_: Throwable) {
         refreshTtsAfterExternalVoiceUi = false
         false
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        captureReadAloudIntent(intent)
+    }
+
+    private fun captureReadAloudIntent(intent: Intent?) {
+        if (intent?.action != DailyWisdomNotifications.ACTION_READ_ALOUD) return
+        val quoteText = intent.getStringExtra(DailyWisdomNotifications.EXTRA_QUOTE_TEXT)
+            .orEmpty()
+            .trim()
+        if (quoteText.isBlank()) return
+
+        pendingNotificationQuote = quoteText
+        suppressHomeAutoSpeak = true
     }
 
     override fun onResume() {
