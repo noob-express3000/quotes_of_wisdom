@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var ttsController: TtsController
     private var refreshTtsAfterExternalVoiceUi = false
+    private var hasCompletedInitialResume = false
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -506,6 +507,11 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         enterImmersiveMode()
+        if (hasCompletedInitialResume) {
+            homeViewModel.recordForegroundOpen()
+        } else {
+            hasCompletedInitialResume = true
+        }
         if (refreshTtsAfterExternalVoiceUi && ::ttsController.isInitialized) {
             refreshTtsAfterExternalVoiceUi = false
             ttsController.refreshCurrentEngine()
