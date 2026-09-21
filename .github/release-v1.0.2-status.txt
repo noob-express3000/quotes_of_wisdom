@@ -1,0 +1,5 @@
+tag=v1.0.2
+filename=myQuote-v1.0.2-judge.apk
+source_sha=a46de9472d15e46aaede280289844cbe213270d7
+run_id=35580995325
+apk_sha256=2d5b7067df45b0556cc6a4eb9a8f6fa6da2941976ea6d06653a3266e9f8a9e99
