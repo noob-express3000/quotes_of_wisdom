@@ -127,6 +127,19 @@ class HomeViewModel(
         )
     }
 
+    fun recordForegroundOpen() {
+        viewModelScope.launch {
+            val update = preferencesRepository.recordColdOpen()
+            if (update.brokePreviousStreak) {
+                pendingBrokenStreak = true
+                _uiState.value = _uiState.value.copy(
+                    quote = chooseBrokenStreakQuote(loadedQuotes) ?: _uiState.value.quote,
+                    streakBrokenOnLaunch = true
+                )
+            }
+        }
+    }
+
     fun nextQuote() {
         val preferredClassifications = _uiState.value.favoriteQuotes
             .groupingBy { it.classification }
