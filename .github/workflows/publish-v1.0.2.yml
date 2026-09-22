@@ -1,5 +1,5 @@
 name: Publish myQuote v1.0.2 judge release
-# Rebuild judge asset after quote-body notification and demo-parity update.
+# Rebuild judge asset after notification-to-Home quote handoff fix.
 # Rebuild current judge asset after the logic-state audit.
 
 on:
@@ -106,10 +106,16 @@ jobs:
           - Signing: stable CI test signer; not a production Play Store signing key
           - Package/application ID: \`com.shipaton.quotesofwisdom\`
 
-          This build includes the audited state fixes, 50-font offline quote library, and daily notifications that show the quote body with a single Read aloud action routed through the app.
+          This build includes the audited state fixes, 50-font offline quote library, and daily notifications whose tap and Read aloud actions resolve the exact quote that generated the notification.
 
           \`SHA256SUMS.txt\` is attached for integrity verification.
           EOF
+
+      - name: Move v1.0.2 tag to published source
+        run: |
+          set -euo pipefail
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$TAG"
 
       - name: Replace v1.0.2 judge assets
         run: |
